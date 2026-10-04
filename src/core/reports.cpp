@@ -85,11 +85,18 @@ QJsonObject tokensJson(const TokenCounts &tokens) {
             {QStringLiteral("cacheRead"), tokens.cacheRead}};
 }
 
-TokenCounts tokensFrom(const QJsonObject &object) {
-    return {.input = object.value(QStringLiteral("input")).toInteger(),
-            .output = object.value(QStringLiteral("output")).toInteger(),
-            .cacheWrite = object.value(QStringLiteral("cacheWrite")).toInteger(),
-            .cacheRead = object.value(QStringLiteral("cacheRead")).toInteger()};
+// The four counts, each required to be a number.
+std::optional<TokenCounts> tokensFrom(const QJsonValue &value) {
+    const QJsonObject object = value.toObject();
+    for (const auto *key : {"input", "output", "cacheWrite", "cacheRead"}) {
+        if (!object.value(QLatin1StringView(key)).isDouble()) {
+            return std::nullopt;
+        }
+    }
+    return TokenCounts{.input = object.value(QStringLiteral("input")).toInteger(),
+                       .output = object.value(QStringLiteral("output")).toInteger(),
+                       .cacheWrite = object.value(QStringLiteral("cacheWrite")).toInteger(),
+                       .cacheRead = object.value(QStringLiteral("cacheRead")).toInteger()};
 }
 
 QJsonObject insightsJson(const Insights &insights) {
@@ -109,15 +116,17 @@ QJsonObject insightsJson(const Insights &insights) {
 }
 
 std::optional<Insights> insightsFrom(const QJsonObject &object) {
-    if (!object.value(QStringLiteral("periods")).isArray()) {
+    // FR-38: at least one period.
+    if (!object.value(QStringLiteral("periods")).isArray() ||
+        object.value(QStringLiteral("periods")).toArray().isEmpty()) {
         return std::nullopt;
     }
     Insights insights{.note = stringOrNull(object.value(QStringLiteral("note"))), .periods = {}};
     for (const QJsonValue &item : object.value(QStringLiteral("periods")).toArray()) {
         const QJsonObject period = item.toObject();
         const auto shares = sharesFrom(period.value(QStringLiteral("shares")));
-        if (!period.value(QStringLiteral("label")).isString() || !shares ||
-            !period.value(QStringLiteral("rankings")).isArray()) {
+        if (!period.value(QStringLiteral("label")).isString() || !period.value(QStringLiteral("summary")).isString() ||
+            !shares || !period.value(QStringLiteral("rankings")).isArray()) {
             return std::nullopt;
         }
         QList<Ranking> rankings;
@@ -168,7 +177,8 @@ std::optional<LimitsReport> limitsReportFromJson(const QJsonObject &json) {
         const QJsonObject window = item.toObject();
         const auto kind = kindFromName(window.value(QStringLiteral("kind")).toString());
         if (!window.value(QStringLiteral("label")).isString() || !kind ||
-            !window.value(QStringLiteral("usedPercent")).isDouble()) {
+            !window.value(QStringLiteral("usedPercent")).isDouble() ||
+            !window.value(QStringLiteral("isBelowOne")).isBool()) {
             return std::nullopt;
         }
         std::optional<QDateTime> resetsAt;
@@ -214,7 +224,8 @@ QJsonObject toJson(const ActivityReport &report) {
 }
 
 std::optional<ActivityReport> activityReportFromJson(const QJsonObject &json) {
-    if (!json.value(QStringLiteral("provider")).isString() || !json.value(QStringLiteral("days")).isArray()) {
+    if (!json.value(QStringLiteral("provider")).isString() || !json.value(QStringLiteral("days")).isArray() ||
+        !json.value(QStringLiteral("skippedLines")).isDouble()) {
         return std::nullopt;
     }
     ActivityReport report{.provider = json.value(QStringLiteral("provider")).toString(),
@@ -223,18 +234,24 @@ std::optional<ActivityReport> activityReportFromJson(const QJsonObject &json) {
     for (const QJsonValue &item : json.value(QStringLiteral("days")).toArray()) {
         const QJsonObject day = item.toObject();
         const QDate date = QDate::fromString(day.value(QStringLiteral("day")).toString(), Qt::ISODate);
-        if (!date.isValid() || !day.value(QStringLiteral("tokens")).isObject()) {
+        const auto tokens = tokensFrom(day.value(QStringLiteral("tokens")));
+        if (!date.isValid() || !tokens || !day.value(QStringLiteral("requests")).isDouble() ||
+            !day.value(QStringLiteral("sessions")).isDouble() || !day.value(QStringLiteral("byModel")).isObject()) {
             return std::nullopt;
         }
         QMap<QString, TokenCounts> byModel;
         const QJsonObject models = day.value(QStringLiteral("byModel")).toObject();
         for (auto it = models.constBegin(); it != models.constEnd(); ++it) {
-            byModel.insert(it.key(), tokensFrom(it.value().toObject()));
+            const auto modelTokens = tokensFrom(it.value());
+            if (!modelTokens) {
+                return std::nullopt;
+            }
+            byModel.insert(it.key(), *modelTokens);
         }
         report.days.append(ActivityDay{.day = date,
                                        .requests = day.value(QStringLiteral("requests")).toInteger(),
                                        .sessions = day.value(QStringLiteral("sessions")).toInteger(),
-                                       .tokens = tokensFrom(day.value(QStringLiteral("tokens")).toObject()),
+                                       .tokens = *tokens,
                                        .byModel = byModel});
     }
     return report;

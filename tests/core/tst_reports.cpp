@@ -113,6 +113,74 @@ private Q_SLOTS:
         json.insert(QStringLiteral("days"), days);
         QVERIFY(!activityReportFromJson(json));
     }
+
+    // A field of the wrong type rejects the whole report, so a foreign history.json is never loaded as zeros.
+    void activityReportRejectsWronglyTypedFields_data() {
+        QTest::addColumn<QString>("field");
+        QTest::addColumn<QJsonValue>("value");
+        QTest::newRow("requests as text") << QStringLiteral("requests") << QJsonValue(QStringLiteral("5"));
+        QTest::newRow("sessions missing") << QStringLiteral("sessions") << QJsonValue(QJsonValue::Undefined);
+        QTest::newRow("tokens field as text") << QStringLiteral("tokens")
+                                              << QJsonValue(QJsonObject{{QStringLiteral("input"), QStringLiteral("x")},
+                                                                        {QStringLiteral("output"), 0},
+                                                                        {QStringLiteral("cacheWrite"), 0},
+                                                                        {QStringLiteral("cacheRead"), 0}});
+        QTest::newRow("byModel not an object") << QStringLiteral("byModel") << QJsonValue(7);
+    }
+    void activityReportRejectsWronglyTypedFields() {
+        QFETCH(QString, field);
+        QFETCH(QJsonValue, value);
+        QJsonObject json = toJson(ActivityReport{
+            .provider = QStringLiteral("claude-code"),
+            .days = {ActivityDay{.day = QDate(2026, 10, 4), .requests = 1, .sessions = 1, .tokens = {}, .byModel = {}}},
+            .skippedLines = 0});
+        QJsonArray days = json.value(QStringLiteral("days")).toArray();
+        QJsonObject day = days.at(0).toObject();
+        if (value.isUndefined()) {
+            day.remove(field);
+        } else {
+            day.insert(field, value);
+        }
+        days.replace(0, day);
+        json.insert(QStringLiteral("days"), days);
+        QVERIFY(!activityReportFromJson(json));
+    }
+
+    void activityReportRejectsTextSkippedLines() {
+        QJsonObject json =
+            toJson(ActivityReport{.provider = QStringLiteral("claude-code"), .days = {}, .skippedLines = 0});
+        json.insert(QStringLiteral("skippedLines"), QStringLiteral("3"));
+        QVERIFY(!activityReportFromJson(json));
+    }
+
+    void limitsReportRejectsATextBelowOneFlag() {
+        QJsonObject json = toJson(sampleLimits());
+        QJsonArray windows = json.value(QStringLiteral("windows")).toArray();
+        QJsonObject first = windows.at(0).toObject();
+        first.insert(QStringLiteral("isBelowOne"), QStringLiteral("yes"));
+        windows.replace(0, first);
+        json.insert(QStringLiteral("windows"), windows);
+        QVERIFY(!limitsReportFromJson(json));
+    }
+
+    // FR-38: insights have at least one period, each with a summary.
+    void limitsReportRejectsInsightsWithoutPeriodsOrSummary() {
+        QJsonObject json = toJson(sampleLimits());
+        QJsonObject insights = json.value(QStringLiteral("insights")).toObject();
+        insights.insert(QStringLiteral("periods"), QJsonArray());
+        json.insert(QStringLiteral("insights"), insights);
+        QVERIFY(!limitsReportFromJson(json));
+
+        json = toJson(sampleLimits());
+        insights = json.value(QStringLiteral("insights")).toObject();
+        QJsonArray periods = insights.value(QStringLiteral("periods")).toArray();
+        QJsonObject period = periods.at(0).toObject();
+        period.remove(QStringLiteral("summary"));
+        periods.replace(0, period);
+        insights.insert(QStringLiteral("periods"), periods);
+        json.insert(QStringLiteral("insights"), insights);
+        QVERIFY(!limitsReportFromJson(json));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestReports)
