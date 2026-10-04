@@ -1643,10 +1643,11 @@ Order: T-5.13, T-5.14, T-5.15, T-5.16, then T-5.10, T-5.11, T-5.12; T-5.17 and T
 The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §4). Each has its own plan in `docs/superpowers/plans/`.
 
 - [x] **L-0** Foundation: CMake project, `contribusage_core`, the plasmoid skeleton `org.contribusage.widget`, Linux CI, the macOS tree removed, this contract updated. Accept: the CI steps pass locally (CI on GitHub after the branch is pushed); `tst_version` and `tst_appletplugin` pass; the widget shows its version in `plasmoidviewer`.
+- [x] **L-4a** Base look with mock data, built ahead of L-1 to L-3 so the look can be checked early: the `prompt` panel label and the popup's blocks in their loaded state, filled with the macOS app's preview data through the core's display and heatmap functions. Accept: `tst_display`, `tst_heatmap` and `tst_appletqml` pass; the viewer shows the popup and the label as in `docs/assets/screenshot-dark.png` and the Prompt tile of `docs/assets/menu-bar-styles.png`.
 - [ ] **L-1** Core, seams and persistence in C++, with the core tests ported from `macos-reference` (`2603a21`).
 - [ ] **L-2** Claude Code provider: probe, parser, transcripts, insights, with its tests and fixtures ported.
 - [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
-- [ ] **L-4** Widget with the base look: drawn label, popup blocks, states.
+- [ ] **L-4** Widget with the base look on real data: the remaining label styles, the section states of SPEC §11.3, keyboard navigation in the heatmap.
 - [ ] **L-5** Settings pages and notifications.
 - [ ] **L-6** Customization: look, theme tokens, QML overrides with fallback.
 - [ ] **L-7** PKGBUILD and the resource budget measurements.

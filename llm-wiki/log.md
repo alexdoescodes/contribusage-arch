@@ -446,3 +446,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-04] docs | L-4a plan: base look first
 - `docs/superpowers/plans/2026-10-04-l4a-base-look-mock-data.md`: the panel label and the popup in the macOS look, on mock data, ahead of the logic milestones L-1 to L-3.
+
+
+## [2026-10-04] feat | Base look with mock data (L-4a)
+- The `prompt` panel label and the popup's blocks in the macOS look, filled with the macOS preview data through new core display and heatmap functions.
+- Built ahead of L-1 to L-3 so the look can be checked early; `Theme.qml` holds every color and size for the customization layers.

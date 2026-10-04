@@ -2,12 +2,13 @@
 type: module
 status: planned
 updated: 2026-10-04
-tracks: []
+tracks: [src/core, tests/core]
 tags: [core, architecture]
 ---
 # ContribusageCore
 
 > Being ported to C++ for the Linux port (ADR-041), milestone M1. Until then this page describes the Swift implementation at the git tag `macos-reference` (commit `2603a21` on `main`).
+> In C++ so far: `display.h` (SPEC §11.4 and §11.5: meter levels, percent, reset, age and compact count texts, bar fractions) and `heatmap.h` (FR-20 and FR-48: the 26-week range and quartile levels), with `tst_display` and `tst_heatmap`.
 
 The provider-neutral heart of the package: models, provider protocols and registry, the refresh scheduler, notification planning, generic activity infrastructure, persistence and the support seams (time, processes, HTTP, Keychain, file events, paths). It knows no concrete provider and nothing about GitHub (NFR-17).
 

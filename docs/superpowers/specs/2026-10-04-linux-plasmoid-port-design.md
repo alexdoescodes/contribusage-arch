@@ -121,3 +121,5 @@ plasmashell (already running)
 | M5 | Settings pages and notifications |
 | M6 | The customization layers |
 | M7 | The PKGBUILD and the resource budget measurements |
+
+On 2026-10-04 the base look moved ahead of M1 to M3 as L-4a (mock data), so the look could be checked early; M4 keeps the rest of the UI on real data.
