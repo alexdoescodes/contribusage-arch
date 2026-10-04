@@ -1,13 +1,13 @@
 ---
 type: module
-status: planned
-updated: 2026-10-04
-tracks: []
+status: active
+updated: 2026-10-05
+tracks: [src/claudecode, tests/claudecode]
 tags: [provider, claude-code]
 ---
 # ContribusageClaudeCode
 
-> Being ported to C++ for the Linux port (ADR-041), milestone M2. Until then this page describes the Swift implementation at the git tag `macos-reference` (commit `2603a21` on `main`).
+> In C++ (`src/claudecode/`, target `contribusage_claudecode`, links only the core): `usageparser` (P-1 to P-11, plus the comma reset format of Claude Code 2.1.289), `claudelocator` (FR-6 with Linux paths, through the login shell), `claudecodelimits` (the exact SPEC §8.1.1 probe and its error mapping), `limitsjob` (5 min interval, `state.json` cache, SPEC §11.3 states; a stand-in until the refresh coordinator of L-1c) and `limitsview` (the state mapped for QML). Activity from transcripts follows in L-2b. Below: the Swift implementation at `macos-reference` (`2603a21`).
 
 The v1 provider (`claude-code`). Limits come from the `/usage` probe (locator, probe, parser, window classifier) and the optional status line bridge; activity comes from local transcripts (decoder, aggregation keys, roots). It never touches Claude Code's credentials and never uses the network ([[decisions/0003-official-interfaces-only]]).
 

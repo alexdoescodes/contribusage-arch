@@ -1,9 +1,9 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-04
+updated: 2026-10-05
 aliases: [ADR-042]
-tracks: [src/core/display.cpp, src/applet/popupmodel.cpp]
+tracks: [src/core/display.cpp, src/claudecode/limitsview.cpp, src/applet/popupmodel.cpp]
 tags: [ui, limits]
 ---
 # ADR-042: One week bar in the popup

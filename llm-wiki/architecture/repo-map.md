@@ -24,7 +24,7 @@ contribusage/
 ├── docs/                   superpowers/: specs/ (designs) and plans/ (one implementation plan per milestone) for the Linux plasmoid port; agents/: configuration the engineering agent skills read (issue tracker, triage labels, domain docs; see AGENTS.md § Agent skills); assets/: README art: header SVGs (light and dark) with the icon drawn flat, screenshots, the 1280×640 social preview (SVG source and the PNG uploaded under Settings → Social preview)
 ├── README.md
 ├── SECURITY.md             supported versions, private vulnerability reporting, what counts as a vulnerability
-├── src/                    core/: the static logic library contribusage_core (Qt6::Core only); applet/: the Plasma widget org.contribusage.widget (QML and its C++ view models)
+├── src/                    core/: the static logic library contribusage_core (Qt6::Core only); claudecode/: the Claude Code provider, contribusage_claudecode (parser, locator, probe, limits job, view); applet/: the Plasma widget org.contribusage.widget (QML and its C++ view models)
 ├── SPEC.md                 the contract: requirements, tasks, research items
 ├── tests/                  Qt Test suites run by CTest: core/, applet/
 └── llm-wiki/               the memory: this Obsidian vault

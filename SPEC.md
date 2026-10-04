@@ -285,7 +285,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 
 | ID | Pri | Requirement |
 |---|---|---|
-| FR-6 | P1 | **Locate `claude`.** Resolution order: (1) user override in Settings, (2) `command -v claude` run once through the user's login shell with `-lc` (usually `/bin/zsh`), (3) known locations on Apple Silicon: `~/.local/bin/claude` (native installer), `/opt/homebrew/bin/claude` (Homebrew), `~/.npm-global/bin/claude`, `/usr/local/bin/claude` (npm with default prefix). A candidate is valid if `claude --version` exits with 0 within 10 s. Cache the resolved path and version; re-resolve when the cached path stops working. |
+| FR-6 | P1 | **Locate `claude`.** Resolution order: (1) user override in Settings, (2) `command -v claude` run once through the user's login shell with `-lc` (usually `/bin/zsh`), (3) known locations on Linux: `~/.local/bin/claude` (native installer), `~/.npm-global/bin/claude`, `/usr/local/bin/claude`, `/usr/bin/claude`. A candidate is valid if `claude --version` exits with 0 within 10 s. Cache the resolved path and version; re-resolve when the cached path stops working. |
 | FR-7 | P1 | **Probe.** Run `claude -p "/usage" --no-session-persistence` with the probe folder as working directory, stdin connected to `/dev/null`, stdout and stderr captured, 30 s timeout. At most one probe runs at a time (single flight: concurrent requests await the running probe). |
 | FR-8 | P1 | **Parse limits.** Extract every usage window line generically (grammar in [8.1.3](#813-parsing-rules)). Keep label text exactly as printed so new windows appear without code changes. Also extract: subscription status line, insights block (structured, P-11), raw output. |
 | FR-9 | P1 | **Unparseable output.** If a probe exits 0 but yields zero windows, the Claude Code limits state becomes `unparseable`, the previous snapshot is kept (marked stale), and the popover offers "Show raw output". |
@@ -474,7 +474,7 @@ Compliance note: see [2.1](#21-why-principle-2-matters-claude-code). The probe r
 ```text
 executable:   <resolved claude path>                  (FR-6)
 arguments:    -p "/usage" --no-session-persistence
-cwd:          ~/Library/Application Support/contribusage/providers/claude-code/probe/   (empty directory, created on demand)
+cwd:          $XDG_DATA_HOME/contribusage/providers/claude-code/probe/   (empty directory, created on demand)
 stdin:        /dev/null
 stdout/err:   captured (stdout parsed, stderr kept for diagnostics only)
 timeout:      30 s, then SIGTERM, then SIGKILL after 2 s
@@ -505,7 +505,7 @@ A real sample (September 2026, subscription plan) is in [Appendix A](#appendix-a
 | P-4 | Label is trimmed and kept verbatim. Known labels today: `Current session`, `Current week (all models)`. Model specific weekly windows may appear on some plans (for example `Current week (<model>)`). Parsing keeps every form; the popup shows one week bar: `Current week (all models)` reads `Current week`, and a model's own week window is hidden (ADR-042). |
 | P-5 | `<1%` is parsed as 0.5 and displayed as `<1%` (keep a flag `isBelowOne`). |
 | P-6 | Reset clause: optional trailing `(<IANA zone>)`; if the identifier is unknown, use the Mac's time zone. |
-| P-7 | Reset formats tried in order: `MMM d 'at' h:mm a`, `MMM d 'at' h a`, `MMM d`, `h:mm a`, `h a` (after normalizing `am`/`pm` to `AM`/`PM`, locale `en_US_POSIX`). |
+| P-7 | Reset formats tried in order: `MMM d 'at' h:mm a`, `MMM d 'at' h a`, `MMM d, h:mm a`, `MMM d, h a`, `MMM d`, `h:mm a`, `h a` (after normalizing `am`/`pm` to `AM`/`PM`, English month names). The comma forms appear from Claude Code 2.1.289 ("resets Oct 5, 6am"; fixture `subscription-comma-dates.txt`). |
 | P-8 | Year inference: the output has no year. Use the current year; if the result lies more than 24 h in the past, use next year. Time only formats resolve to the next occurrence after `now`. |
 | P-9 | Unparseable reset clause: window still valid, `resetsAt = nil`, UI shows "reset time unknown". |
 | P-10 | Billing status: the first non-empty line is stored as `billingNote`. If it does not mention "subscription", `fetch()` throws `SourceError.unsupportedPlan` (ADR-017) and the limits section shows "Plan limits are only available when Claude Code uses a Claude subscription". R-2 (Claude Code 2.1.284): API key billing and a logged out CLI both exit 0 and print the same cost summary, first line `Total cost:            $0.0000`, no windows (fixtures `not-subscription.txt`, `logged-out.txt`). |
@@ -1647,7 +1647,9 @@ The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plas
 - [x] **L-1a** Core models, persistence and the process runner in C++: the report types with their JSON form, snapshots and source states, the XDG data folder with versioned atomic JSON files, and a non-blocking `QProcess` runner that runs one child at a time; Swift tests ported from `2603a21`. Accept: `tst_reports`, `tst_snapshot`, `tst_jsonstore` and `tst_processrunner` pass.
 - [ ] **L-1b** File events (inotify), the file reading seam with the declared-roots check, the secret store (KWallet), the JSONL reader and the history store.
 - [ ] **L-1c** Schedule, refresh coordinator, notification planner, popup layout and menu bar label.
-- [ ] **L-2** Claude Code provider: probe, parser, transcripts, insights, with its tests and fixtures ported.
+- [x] **L-2a** Claude Code limits live: locate `claude` (FR-6, Linux paths), the `/usage` probe every 5 min (FR-7, ADR-039), the parser with the comma reset format of 2.1.289, the error mapping (P-10, FR-9, §13), the last snapshot in `state.json` (FR-10), and the widget showing the real bars, insights and status; blocks without data hidden in live mode, the preview data under `CONTRIBUSAGE_FAKE_DATA=1`. Accept: `tst_usageparser`, `tst_claudelocator`, `tst_claudecodelimits`, `tst_limitscache`, `tst_limitsjob` and `tst_limitsview` pass; the viewer shows the same percentages as `claude -p /usage`.
+- [ ] **L-2b** Claude Code activity from local transcripts (needs L-1b).
+- [ ] **L-2c** Activity from transcripts synced from another machine where Claude Code also runs, counted with the local ones; after L-2b works locally. Decide first how it fits the §1.3 non-goal "no data from other devices".
 - [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
 - [ ] **L-4** Widget with the base look on real data: the remaining label styles, the section states of SPEC §11.3, keyboard navigation in the heatmap.
 - [ ] **L-5** Settings pages and notifications.
