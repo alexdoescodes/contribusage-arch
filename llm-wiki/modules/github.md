@@ -1,11 +1,13 @@
 ---
 type: module
-status: active
+status: planned
 updated: 2026-10-04
-tracks: [Packages/ContribusageKit/Sources/ContribusageGitHub, Packages/ContribusageKit/Tests/ContribusageGitHubTests]
+tracks: []
 tags: [github]
 ---
 # ContribusageGitHub
+
+> Being ported to C++ for the Linux port (ADR-041), milestone M3. Until then this page describes the Swift implementation at the git tag `macos-reference`.
 
 GitHub contributions: the GraphQL client, token validation and contribution statistics (today, week, streaks). GitHub is a separate, always-available source, not a provider. The token is read only through `SecretStore` and never logged.
 

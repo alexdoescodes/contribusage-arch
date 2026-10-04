@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-018]
 tags: [core, scheduling, persistence]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Scheduling]
+tracks: []
 ---
 # ADR-018: `RefreshCoordinator` runs passes, the app feeds conditions
 

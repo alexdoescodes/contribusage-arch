@@ -1,8 +1,8 @@
 ---
 type: research
 status: answered
-updated: 2026-09-29
-tracks: [Packages/ContribusageKit/Tests/ContribusageClaudeCodeTests/Fixtures/usage]
+updated: 2026-10-04
+tracks: []
 tags: [research, claude-code, probe]
 ---
 # R-2: `/usage` output without a subscription

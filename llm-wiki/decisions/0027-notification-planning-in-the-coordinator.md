@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-027]
 tags: [notifications, scheduling, persistence]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Notifications/NotificationPlanner.swift, Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/RefreshCoordinator.swift]
+tracks: []
 ---
 # ADR-027: Notifications are planned in the coordinator from the persisted keys alone
 

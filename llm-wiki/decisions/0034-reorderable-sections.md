@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-034]
 tags: [popover, layout, settings]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Models/PopoverLayout.swift, App/Settings/PopoverTab.swift]
+tracks: []
 ---
 # ADR-034: A provider group's sections are reordered within the group
 

@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-03
+updated: 2026-10-04
 aliases: [ADR-016]
 tags: [core, providers, concurrency]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Providers/Provider.swift]
+tracks: []
 ---
 # ADR-016: `ActivitySource` watches while its stream is consumed
 

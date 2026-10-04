@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-022]
 tags: [core, github, scheduling]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/RefreshCoordinator.swift, App/AppState.swift]
+tracks: []
 ---
 # ADR-022: GitHub joins the coordinator as a typed job
 

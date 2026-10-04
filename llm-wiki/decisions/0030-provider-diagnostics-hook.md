@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-030]
 tags: [core, provider, diagnostics]
-tracks: [App/Popover/PopoverView.swift, App/AppState+Copy.swift, App/Settings/SettingsView.swift, Packages/ContribusageKit/Sources/ContribusageCore/Providers/Provider.swift, Packages/ContribusageKit/Sources/ContribusageClaudeCode/ClaudeCodeProvider.swift]
+tracks: []
 ---
 # ADR-030: Provider diagnostics through `UsageProvider.diagnostics()`; diagnostics in Settings, statistics in the popover
 

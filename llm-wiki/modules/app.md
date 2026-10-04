@@ -1,11 +1,13 @@
 ---
 type: module
-status: active
+status: deprecated
 updated: 2026-10-04
-tracks: [App, Contribusage.xcodeproj]
+tracks: []
 tags: [app, swiftui, ui]
 ---
 # App target
+
+> The macOS SwiftUI app is replaced by [[modules/applet]] in the Linux port (ADR-041). The Swift code is at the git tag `macos-reference`.
 
 The thin SwiftUI shell: menu bar label, popover, Settings, `AppState`, provider registration and notification delivery. It holds views and wiring only; parsing and business logic live in the package ([[decisions/0004-logic-in-contribusagekit-package]]).
 

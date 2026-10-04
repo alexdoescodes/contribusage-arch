@@ -1,11 +1,13 @@
 ---
 type: module
-status: active
+status: planned
 updated: 2026-10-04
-tracks: [Packages/ContribusageKit/Sources/ContribusageClaudeCode, Packages/ContribusageKit/Tests/ContribusageClaudeCodeTests]
+tracks: []
 tags: [provider, claude-code]
 ---
 # ContribusageClaudeCode
+
+> Being ported to C++ for the Linux port (ADR-041), milestone M2. Until then this page describes the Swift implementation at the git tag `macos-reference`.
 
 The v1 provider (`claude-code`). Limits come from the `/usage` probe (locator, probe, parser, window classifier) and the optional status line bridge; activity comes from local transcripts (decoder, aggregation keys, roots). It never touches Claude Code's credentials and never uses the network ([[decisions/0003-official-interfaces-only]]).
 

@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-02
+updated: 2026-10-04
 aliases: [ADR-026]
 tags: [performance, testing, activity]
-tracks: [Packages/ContribusageKit/Tests/ContribusageClaudeCodeTests/TranscriptActivityPerformanceTests.swift]
+tracks: []
 ---
 # ADR-026: NFR-7 is checked on an M3 against half its budget
 

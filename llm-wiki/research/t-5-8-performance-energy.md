@@ -2,7 +2,7 @@
 type: research
 status: answered
 updated: 2026-10-04
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/RefreshCoordinator.swift, Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/Schedule.swift, App/AppState.swift, App/Popover/PopoverView.swift]
+tracks: []
 tags: [research, performance, energy]
 ---
 # T-5.8: idle CPU, memory, latency and energy

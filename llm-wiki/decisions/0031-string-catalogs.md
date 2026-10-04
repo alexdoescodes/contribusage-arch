@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-031]
 tags: [app, core, localization]
-tracks: [App/Resources/Localizable.xcstrings, Packages/ContribusageKit/Sources/ContribusageCore/Resources/Localizable.xcstrings, .github/workflows/ci.yml]
+tracks: [.github/workflows/ci.yml]
 ---
 # ADR-031: String Catalogs in the app and the core, English and German, kept in sync by CI; tool text stays as printed
 

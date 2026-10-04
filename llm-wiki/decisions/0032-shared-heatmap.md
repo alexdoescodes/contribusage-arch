@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-032]
 tags: [app, core, ui, heatmap]
-tracks: [App/Popover/HeatmapBlock.swift, Packages/ContribusageKit/Sources/ContribusageCore/Models/HeatmapLayer.swift]
+tracks: []
 ---
 # ADR-032: One shared heatmap with a layer per source, Combined or Stacked, levels per source
 

@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-02
+updated: 2026-10-04
 aliases: [ADR-024]
 tags: [claude-code, activity, persistence]
-tracks: [Packages/ContribusageKit/Sources/ContribusageClaudeCode/Activity/TranscriptActivity.swift]
+tracks: []
 ---
 # ADR-024: The live index stays in memory until a measurement asks for more
 

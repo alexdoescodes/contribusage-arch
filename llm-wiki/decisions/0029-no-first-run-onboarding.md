@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-029]
 tags: [app, ui, onboarding]
-tracks: [App/Popover/SectionStateView.swift, App/Notifications]
+tracks: []
 ---
 # ADR-029: No first run onboarding
 

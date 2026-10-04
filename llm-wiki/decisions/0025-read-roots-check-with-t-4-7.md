@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-02
+updated: 2026-10-04
 aliases: [ADR-025]
 tags: [testing, conformance, activity]
-tracks: [Packages/ContribusageKit/Tests/ContribusageTestSupport/ProviderConformance.swift]
+tracks: []
 ---
 # ADR-025: The declared-roots read check comes with T-4.7
 

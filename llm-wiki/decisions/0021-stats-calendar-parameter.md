@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-021]
 tags: [github, time]
-tracks: [Packages/ContribusageKit/Sources/ContribusageGitHub/GitHubReport.swift]
+tracks: []
 ---
 # ADR-021: Contribution statistics take the `Calendar` that defines today
 

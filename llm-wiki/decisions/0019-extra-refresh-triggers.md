@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-019]
 tags: [core, scheduling, app]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Scheduling]
+tracks: []
 ---
 # ADR-019: Extra refresh triggers are dates in `Schedule.nextRun`
 

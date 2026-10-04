@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-038]
 tags: [notifications]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Notifications/NotificationPlanner.swift, App/Notifications/NotificationDelivery.swift]
+tracks: []
 ---
 # ADR-038: Notification cycles tolerate a moving reset time; delivery spaced and grouped
 

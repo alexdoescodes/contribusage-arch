@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-03
+updated: 2026-10-04
 aliases: [ADR-023]
 tags: [core, claude-code, app, insights]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Providers/Reports.swift, Packages/ContribusageKit/Sources/ContribusageClaudeCode/Limits/UsageParser.swift, App/Popover/ProviderGroup.swift]
+tracks: []
 ---
 # ADR-023: Insights are parsed into periods, not shown verbatim
 

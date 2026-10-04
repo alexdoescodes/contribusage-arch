@@ -1,8 +1,8 @@
 ---
 type: research
 status: answered
-updated: 2026-10-02
-tracks: [Packages/ContribusageKit/Tests/ContribusageClaudeCodeTests/TranscriptActivityPerformanceTests.swift, Packages/ContribusageKit/Tests/ContribusageClaudeCodeTests/TranscriptTree.swift]
+updated: 2026-10-04
+tracks: []
 tags: [research, performance, activity]
 ---
 # NFR-7: scanning 500 MB of transcripts

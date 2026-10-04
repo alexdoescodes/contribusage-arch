@@ -1,11 +1,13 @@
 ---
 type: module
-status: active
+status: planned
 updated: 2026-10-04
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore, Packages/ContribusageKit/Tests/ContribusageCoreTests, Packages/ContribusageKit/Package.swift]
+tracks: []
 tags: [core, architecture]
 ---
 # ContribusageCore
+
+> Being ported to C++ for the Linux port (ADR-041), milestone M1. Until then this page describes the Swift implementation at the git tag `macos-reference`.
 
 The provider-neutral heart of the package: models, provider protocols and registry, the refresh scheduler, notification planning, generic activity infrastructure, persistence and the support seams (time, processes, HTTP, Keychain, file events, paths). It knows no concrete provider and nothing about GitHub (NFR-17).
 

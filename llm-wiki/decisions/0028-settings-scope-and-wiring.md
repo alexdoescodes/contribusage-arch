@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-028]
 tags: [settings, scheduling, providers, app]
-tracks: [App/Settings, App/AppState.swift, Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/RefreshCoordinator.swift, Packages/ContribusageKit/Sources/ContribusageClaudeCode/ClaudeCodeProvider.swift]
+tracks: []
 ---
 # ADR-028: The Settings window's scope in T-5.2 and how its settings reach the coordinator
 

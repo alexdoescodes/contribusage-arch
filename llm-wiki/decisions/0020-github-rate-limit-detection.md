@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-09-30
+updated: 2026-10-04
 aliases: [ADR-020]
 tags: [github, errors]
-tracks: [Packages/ContribusageKit/Sources/ContribusageGitHub/GitHubClient.swift]
+tracks: []
 ---
 # ADR-020: GitHub rate limits are detected by `x-ratelimit-remaining: 0` on a failed response
 

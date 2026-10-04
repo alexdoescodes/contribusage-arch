@@ -15,6 +15,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 
 ## Modules
 - [[modules/app]]: SwiftUI shell; views and wiring only
+- [[modules/applet]]: the KDE Plasma 6 widget; QML views and C++ view models
 - [[modules/core]]: provider-neutral models, scheduler, persistence, support seams
 - [[modules/claude-code]]: the v1 provider; `/usage` probe, status line bridge, transcripts
 - [[modules/github]]: GraphQL client, token validation, contribution statistics

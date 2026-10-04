@@ -2,7 +2,7 @@
 type: research
 status: answered
 updated: 2026-10-04
-tracks: [Packages/ContribusageKit/Sources/ContribusageClaudeCode/ClaudeCodeProvider.swift]
+tracks: []
 tags: [research, claude-code, scheduling, energy]
 ---
 # R-1: Probe cost

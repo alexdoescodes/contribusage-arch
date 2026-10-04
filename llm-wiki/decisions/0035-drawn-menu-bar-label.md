@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-035]
 tags: [menu-bar, ui, design]
-tracks: [App/MenuBar/MenuBarArt.swift, App/MenuBar/MenuBarItem.swift, Packages/ContribusageKit/Sources/ContribusageCore/Models/MenuBarLabel.swift, Packages/ContribusageKit/Sources/ContribusageGitHub/GitHubReport.swift]
+tracks: []
 ---
 # ADR-035: The menu bar label is one drawn, colored image with seven styles
 

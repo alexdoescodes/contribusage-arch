@@ -4,7 +4,7 @@ status: accepted
 updated: 2026-10-04
 aliases: [ADR-036]
 tags: [core, scheduling, app, providers]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Scheduling/RefreshCoordinator.swift, App/DebugFakeProvider.swift, App/ProviderRegistration.swift]
+tracks: []
 ---
 # ADR-036: Pushed limits in the coordinator, the debug fake provider in the app
 

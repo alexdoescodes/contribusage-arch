@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-09-28
+updated: 2026-10-04
 aliases: [ADR-015]
 tags: [core, testing, persistence]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Support/AppPaths.swift]
+tracks: []
 ---
 # ADR-015: `AppPaths` is a struct, not a seam
 

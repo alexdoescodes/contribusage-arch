@@ -1,10 +1,10 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-02
+updated: 2026-10-04
 aliases: [ADR-017]
 tags: [core, providers, errors]
-tracks: [Packages/ContribusageKit/Sources/ContribusageCore/Providers/Reports.swift]
+tracks: []
 ---
 # ADR-017: `SourceError.unsupportedPlan` carries P-10 out of `fetch()`
 
