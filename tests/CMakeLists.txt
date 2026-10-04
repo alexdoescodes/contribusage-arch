@@ -33,3 +33,7 @@ ecm_add_test(core/tst_reports.cpp
 ecm_add_test(core/tst_snapshot.cpp
     TEST_NAME tst_snapshot
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_jsonstore.cpp
+    TEST_NAME tst_jsonstore
+    LINK_LIBRARIES contribusage_core Qt6::Test)

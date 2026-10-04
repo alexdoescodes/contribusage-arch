@@ -1,8 +1,12 @@
 add_library(contribusage_core STATIC
+    apppaths.cpp
+    apppaths.h
     display.cpp
     display.h
     heatmap.cpp
     heatmap.h
+    jsonstore.cpp
+    jsonstore.h
     reports.cpp
     reports.h
     snapshot.h
