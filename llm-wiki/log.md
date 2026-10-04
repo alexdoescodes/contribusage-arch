@@ -454,3 +454,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-04] decision | One week bar
 - ADR-042: the popup shows `Current week (all models)` as "Current week" and hides per-model week windows; parsing keeps them (`shownWindowLabel` in the core).
+
+## [2026-10-04] decision | Hidden week windows send no notifications
+- ADR-042: a per-model week window that the popup hides also triggers no notification; L-5 implements it.

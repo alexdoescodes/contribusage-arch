@@ -24,5 +24,5 @@ tags: [ui, limits]
 The popup shows one week bar. `contribusage::shownWindowLabel` maps `Current week (all models)` to `Current week` and hides any other `Current week (…)` window; every other window keeps its printed label (FR-8). Parsing and persistence keep every window.
 
 ## Consequences
-- A model's own week limit is not shown. Notifications and Copy still read every parsed window; whether they follow this rule is decided with L-5.
+- A model's own week limit is not shown, and it sends no notifications either (decided 2026-10-04): L-5's notification planning skips every window `shownWindowLabel` hides. Whether Copy follows the rule is still open.
 - Revisit if a plan ever prints only model windows and no all-models window: the popup would then show no week bar.
