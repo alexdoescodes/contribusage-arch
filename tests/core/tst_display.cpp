@@ -127,6 +127,31 @@ private Q_SLOTS:
         QFETCH(QString, expected);
         QCOMPARE(contribusage::compactCount(value), expected);
     }
+
+    void meterLevelNames() {
+        QCOMPARE(meterLevelName(MeterLevel::Normal), QStringLiteral("normal"));
+        QCOMPARE(meterLevelName(MeterLevel::Warning), QStringLiteral("warning"));
+        QCOMPARE(meterLevelName(MeterLevel::Critical), QStringLiteral("critical"));
+    }
+
+    // SPEC §13, worded once with the source's name.
+    void errorMessages() {
+        const QString name = QStringLiteral("Claude Code");
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::ToolNotFound}, name),
+                 QStringLiteral("Claude Code wasn't found"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::NotLoggedIn}, name),
+                 QStringLiteral("Claude Code isn't logged in"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::TimedOut}, name),
+                 QStringLiteral("Claude Code didn't answer in time"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::ProcessFailed, .code = 2}, name),
+                 QStringLiteral("Exited with code 2"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::Unparseable}, name),
+                 QStringLiteral("Couldn't read the usage output"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::Io, .text = QStringLiteral("disk full")}, name),
+                 QStringLiteral("disk full"));
+        QCOMPARE(errorMessage({.kind = SourceError::Kind::UnsupportedPlan, .text = QStringLiteral("note")}, name),
+                 QStringLiteral("note"));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestDisplay)

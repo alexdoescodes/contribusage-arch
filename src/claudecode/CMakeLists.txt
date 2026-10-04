@@ -3,6 +3,10 @@ add_library(contribusage_claudecode STATIC
     claudecodelimits.h
     claudelocator.cpp
     claudelocator.h
+    limitsjob.cpp
+    limitsjob.h
+    limitsview.cpp
+    limitsview.h
     usageparser.cpp
     usageparser.h)
 target_include_directories(contribusage_claudecode PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

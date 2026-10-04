@@ -63,3 +63,14 @@ target_compile_definitions(tst_claudecodelimits PRIVATE
 ecm_add_test(core/tst_limitscache.cpp
     TEST_NAME tst_limitscache
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(claudecode/tst_limitsjob.cpp
+    TEST_NAME tst_limitsjob
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+target_include_directories(tst_limitsjob PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(tst_limitsjob PRIVATE
+    CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/claudecode/fixtures")
+
+ecm_add_test(claudecode/tst_limitsview.cpp
+    TEST_NAME tst_limitsview
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)

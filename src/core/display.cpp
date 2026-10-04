@@ -132,4 +132,50 @@ std::optional<QString> shownWindowLabel(const QString &printed) {
     return std::nullopt;
 }
 
+QString meterLevelName(MeterLevel level) {
+    switch (level) {
+    case MeterLevel::Critical:
+        return QStringLiteral("critical");
+    case MeterLevel::Warning:
+        return QStringLiteral("warning");
+    case MeterLevel::Normal:
+        break;
+    }
+    return QStringLiteral("normal");
+}
+
+QString errorMessage(const SourceError &error, const QString &displayName) {
+    using Kind = SourceError::Kind;
+    switch (error.kind) {
+    case Kind::ToolNotFound:
+        return displayName + QStringLiteral(" wasn't found");
+    case Kind::NotLoggedIn:
+        return displayName + QStringLiteral(" isn't logged in");
+    case Kind::UnsupportedPlan:
+    case Kind::Decoding:
+    case Kind::Io:
+        return error.text;
+    case Kind::TimedOut:
+        return displayName + QStringLiteral(" didn't answer in time");
+    case Kind::ProcessFailed:
+        return QStringLiteral("Exited with code ") + QString::number(error.code);
+    case Kind::Unparseable:
+        return QStringLiteral("Couldn't read the usage output");
+    case Kind::Offline:
+        return QStringLiteral("Offline");
+    case Kind::TokenMissing:
+        return QStringLiteral("No ") + displayName + QStringLiteral(" token saved");
+    case Kind::Unauthorized:
+        return displayName + QStringLiteral(" token is invalid or expired");
+    case Kind::RateLimited:
+        return QStringLiteral("Rate limited until ") +
+               QLocale().toString(error.until.toLocalTime().time(), QLocale::ShortFormat);
+    case Kind::Http:
+        return QStringLiteral("Server error ") + QString::number(error.code);
+    case Kind::ProviderSpecific:
+        break;
+    }
+    return QStringLiteral("Something went wrong with ") + displayName;
+}
+
 } // namespace contribusage

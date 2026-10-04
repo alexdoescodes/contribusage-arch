@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/reports.h"
+
 #include <QDateTime>
 #include <QList>
 #include <QLocale>
@@ -40,5 +42,11 @@ QString compactCount(qint64 value);
 // ADR-042: the popup shows one week bar. "Current week (all models)" reads "Current week"; a model's own week window,
 // "Current week (Opus)", is hidden (nullopt). Any other window keeps its printed label (FR-8).
 std::optional<QString> shownWindowLabel(const QString &printed);
+
+// "normal", "warning", "critical": the names QML's Theme.meterColor reads.
+QString meterLevelName(MeterLevel level);
+
+// SPEC §13: one line for a failed source, worded with its name; technical detail is kept as the source reported it.
+QString errorMessage(const SourceError &error, const QString &displayName);
 
 } // namespace contribusage
