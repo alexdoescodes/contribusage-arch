@@ -7,7 +7,7 @@ tags: [app, swiftui, ui]
 ---
 # App target
 
-> The macOS SwiftUI app is replaced by [[modules/applet]] in the Linux port (ADR-041). The Swift code is at the git tag `macos-reference`.
+> The macOS SwiftUI app is replaced by [[modules/applet]] in the Linux port (ADR-041). The Swift code is at the git tag `macos-reference` (commit `2603a21` on `main`).
 
 The thin SwiftUI shell: menu bar label, popover, Settings, `AppState`, provider registration and notification delivery. It holds views and wiring only; parsing and business logic live in the package ([[decisions/0004-logic-in-contribusagekit-package]]).
 

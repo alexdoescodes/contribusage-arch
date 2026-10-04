@@ -2,13 +2,13 @@
 
 ## Supported versions
 
-Only the [latest release](https://github.com/kuehn-lars/contribusage/releases/latest) receives security fixes. Please check that a problem still occurs there, or on `main`, before you report it.
+There are no releases of the Linux port yet; security fixes land on `main`. Please check that a problem still occurs there before you report it.
 
 ## Report a vulnerability
 
 Please report security problems privately, not in a public issue:
 
-1. Open the repository's [**Security** tab](https://github.com/kuehn-lars/contribusage/security).
+1. Open the repository's [**Security** tab](https://github.com/alexdoescodes/contribusage-arch/security).
 2. Click **Report a vulnerability** and describe what you found: the version, the steps to reproduce, and what an attacker could do with it.
 
 Only the maintainers see the report. You will get an answer as soon as possible, usually within a week. We'll work on a fix with you in the private advisory, and credit you when it is published, unless you prefer otherwise.
@@ -31,4 +31,4 @@ There are no Linux releases yet. Until the package arrives (SPEC §17.8, L-7), b
 
 ## Not a vulnerability
 
-The app is ad-hoc signed and not notarized ([ADR-006](llm-wiki/decisions/0006-no-app-sandbox.md)), so Gatekeeper warns on first launch. That is expected and not a vulnerability.
+The widget runs inside plasmashell with your user's rights and is not sandboxed ([ADR-006](llm-wiki/decisions/0006-no-app-sandbox.md)): it has to run `claude` and read `~/.claude`. That is expected and not a vulnerability.

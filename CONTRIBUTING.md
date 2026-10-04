@@ -19,7 +19,7 @@ You need Arch Linux with KDE Plasma 6. The commands are in [AGENTS.md § Command
 ## Find your way around
 
 - `src/applet/` is the Plasma widget: QML views, their wiring and C++ view models.
-- `src/core/` holds the logic (`contribusage_core`), and `tests/` its Qt Test suites. The Swift code the port comes from is at the git tag `macos-reference`.
+- `src/core/` holds the logic (`contribusage_core`), and `tests/` its Qt Test suites. The Swift code the port comes from is at the git tag `macos-reference` (commit `2603a21` on `main`).
 - [`SPEC.md`](SPEC.md) describes what the app should do, with numbered requirements and a task list in §17. It's long; search it rather than reading it whole.
 - [`llm-wiki/`](llm-wiki/) explains how it's built and why: a page per module, the design decisions, research notes. [`overview.md`](llm-wiki/overview.md) is a good start.
 

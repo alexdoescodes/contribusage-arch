@@ -60,7 +60,7 @@ The windows you see are exactly the ones Claude Code prints for your plan. When 
 - **Your agent's credentials stay untouched.** The widget never reads Claude Code's credential file or its stored secrets and never calls `api.anthropic.com` or `claude.ai`. Instead of reading the OAuth token and calling an undocumented endpoint, it runs the `claude` binary the way you would in a terminal. The reasoning is in [SPEC §2.1](SPEC.md#21-why-principle-2-matters-claude-code).
 - **The GitHub token lives in KWallet**, is never logged, and is never shown again after you connect.
 - **Transcripts are only counted.** The app decodes the fields it counts (timestamps, models, token counts) and never keeps prompt or message text.
-- **No telemetry, no cloud, no crash reporter.** Everything stays in `~/Library/Application Support/contribusage`.
+- **No telemetry, no cloud, no crash reporter.** Everything stays in `~/.local/share/contribusage` and the widget's own Plasma config.
 
 ## Requirements
 

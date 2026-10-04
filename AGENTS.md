@@ -2,7 +2,7 @@
 
 Instructions for every coding agent in this repository. Claude Code loads this file through `CLAUDE.md`.
 
-**contribusage** is a KDE Plasma 6 widget for Arch Linux (C++23, Qt 6, QML) that shows the usage of AI coding tools (v1: Claude Code, behind a provider framework) and GitHub contributions. This fork is the Linux port of the macOS app (ADR-041); the Swift code it was ported from is at the git tag `macos-reference`. Two documents govern the work, and every piece of knowledge lives in exactly one of them:
+**contribusage** is a KDE Plasma 6 widget for Arch Linux (C++23, Qt 6, QML) that shows the usage of AI coding tools (v1: Claude Code, behind a provider framework) and GitHub contributions. This fork is the Linux port of the macOS app (ADR-041); the Swift code it was ported from is at the git tag `macos-reference` (commit `2603a21` on `main`). Two documents govern the work, and every piece of knowledge lives in exactly one of them:
 
 | | `SPEC.md`: the **contract** | `llm-wiki/`: the **memory** |
 |---|---|---|
@@ -29,7 +29,7 @@ Orientation is done when you can name the pages, spec sections and files the pro
 Code changes follow SPEC §0:
 
 1. Take the task from SPEC §17 and read every requirement it references.
-2. Write the tests first, as Qt Test suites under `tests/`, porting the matching Swift test and its fixtures from `macos-reference` where one exists.
+2. Write the tests first, as Qt Test suites under `tests/`, porting the matching Swift test and its fixtures from `macos-reference` (`2603a21`) where one exists.
 3. Make the smallest change that turns them green, in the target that owns it (the page under `llm-wiki/modules/` says which).
 4. Run the tests (see Commands); look at the widget in `plasmoidviewer` too when the applet changed.
 5. Tick the task in SPEC §17. Where the implementation departs from the spec, change the spec in the same change and record the reason as an ADR.

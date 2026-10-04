@@ -7,7 +7,7 @@ tags: [testing]
 ---
 # ContribusageTestSupport
 
-> Being ported to C++ for the Linux port (ADR-041), milestone M1. Until then this page describes the Swift implementation at the git tag `macos-reference`.
+> Being ported to C++ for the Linux port (ADR-041), milestone M1. Until then this page describes the Swift implementation at the git tag `macos-reference` (commit `2603a21` on `main`).
 
 Shared test code that never ships: a fake for every support seam, the `FakeProvider` and the provider conformance suite. `FakeProvider` is shaped unlike Claude Code on purpose (one weekly window, pushed limits only, input and output tokens only, heatmap hue blue), so the core cannot quietly depend on Claude Code's shape.
 

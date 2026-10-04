@@ -7,13 +7,13 @@ tags: [structure]
 ---
 # Repository map
 
-Every top-level entry of the repository and of the vault, and what it is for. `wiki.sh lint` compares the first code block below with the files on disk (the repository root and the vault's top level), so the tree cannot drift unnoticed. The source layout of the Linux port is in its design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §1); each build target has its page under `modules/`. The macOS layout of SPEC §15.2 is at the git tag `macos-reference`.
+Every top-level entry of the repository and of the vault, and what it is for. `wiki.sh lint` compares the first code block below with the files on disk (the repository root and the vault's top level), so the tree cannot drift unnoticed. The source layout of the Linux port is in its design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §1); each build target has its page under `modules/`. The macOS layout of SPEC §15.2 is at the git tag `macos-reference` (commit `2603a21` on `main`).
 
 ```text
 contribusage/
 ├── .claude/settings.json   Claude Code hooks that run the wiki protocol
 ├── .clang-format           clang-format settings (LLVM base, 4 spaces, 120 columns)
-├── .github/               ISSUE_TEMPLATE/ (issue forms: bug, /usage output change, feature; security link), pull_request_template.md; workflows/ CI: package tests (warnings as errors), app build, architecture checks, String Catalog sync check, wiki lint, the GitHub release on a version bump
+├── .github/               ISSUE_TEMPLATE/ (issue forms: bug, /usage output change, feature; security link), pull_request_template.md; workflows/ CI: build with -Werror, Qt Test suites and clang-format in an Arch Linux container, wiki lint and its tooling test
 ├── .gitignore
 ├── AGENTS.md               agent protocol: orient, work, record; publish policy; hard rules
 ├── CLAUDE.md               imports AGENTS.md for Claude Code

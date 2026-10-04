@@ -21,7 +21,7 @@ This fork targets Arch Linux on KDE Plasma 6 (Wayland) and drops macOS. The goal
 | Swift daemon reusing `ContribusageKit` | Logic and tests kept | About 1 GB toolchain, about 30 MB runtime, Foundation gaps on Linux, no mature D-Bus library |
 
 ## Decision
-A compiled Plasma 6 applet, `org.contribusage.widget`, built with `plasma_add_applet`, links a static C++23 library `contribusage_core` that holds all logic. The Swift tests and fixtures are ported one-to-one to Qt Test; the Swift code stays at the git tag `macos-reference`.
+A compiled Plasma 6 applet, `org.contribusage.widget`, built with `plasma_add_applet`, links a static C++23 library `contribusage_core` that holds all logic. The Swift tests and fixtures are ported one-to-one to Qt Test; the Swift code stays at the git tag `macos-reference` (commit `2603a21` on `main`).
 
 ## Consequences
 - macOS is no longer built or maintained here. ADR-001, ADR-008 and ADR-009 no longer apply to this fork; the other ADRs keep their design and are re-linked to C++ files as each milestone lands.

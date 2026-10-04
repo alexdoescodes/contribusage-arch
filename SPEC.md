@@ -82,7 +82,7 @@ One glance at the menu bar tells me how much of my AI coding plan I have left an
 
 ### 1.3 Non-goals (for v1)
 
-- **No macOS or Windows version in this fork.** The macOS app is at the git tag `macos-reference` ([ADR-041](llm-wiki/decisions/0041-linux-plasmoid-port.md)).
+- **No macOS or Windows version in this fork.** The macOS app is at the git tag `macos-reference` (commit `2603a21` on `main`) ([ADR-041](llm-wiki/decisions/0041-linux-plasmoid-port.md)).
 - No desktop environments other than KDE Plasma 6.
 - **No AI coding tools other than Claude Code in v1.** The provider framework exists from day one, but further providers are future work ([7.6](#76-future-provider-candidates)).
 - No multi-account support (one login per provider, one GitHub account).
@@ -1233,7 +1233,7 @@ Global rules:
 
 ## 15. Project setup
 
-> **macOS reference.** This section describes the macOS app at the git tag `macos-reference`. The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
+> **macOS reference.** This section describes the macOS app at the git tag `macos-reference` (commit `2603a21` on `main`). The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
 
 ### 15.1 Prerequisites
 
@@ -1643,7 +1643,7 @@ Order: T-5.13, T-5.14, T-5.15, T-5.16, then T-5.10, T-5.11, T-5.12; T-5.17 and T
 The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §4). Each has its own plan in `docs/superpowers/plans/`.
 
 - [x] **L-0** Foundation: CMake project, `contribusage_core`, the plasmoid skeleton `org.contribusage.widget`, Linux CI, the macOS tree removed, this contract updated. Accept: the CI steps pass locally (CI on GitHub after the branch is pushed); `tst_version` and `tst_appletplugin` pass; the widget shows its version in `plasmoidviewer`.
-- [ ] **L-1** Core, seams and persistence in C++, with the core tests ported from `macos-reference`.
+- [ ] **L-1** Core, seams and persistence in C++, with the core tests ported from `macos-reference` (`2603a21`).
 - [ ] **L-2** Claude Code provider: probe, parser, transcripts, insights, with its tests and fixtures ported.
 - [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
 - [ ] **L-4** Widget with the base look: drawn label, popup blocks, states.
@@ -1653,7 +1653,7 @@ The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plas
 
 ### 17.7 Definition of Done
 
-- Tests written first and passing; new logic lives in `ContribusageKit`, in the correct target.
+- Tests written first and passing; new logic lives in `contribusage_core`, in the directory that owns it.
 - Zero warnings with `-Werror`; clang-format clean.
 - The core still imports no provider and no GitHub code.
 - Every new UI state is checked in `plasmoidviewer`; accessible names set on interactive items.
@@ -1702,7 +1702,7 @@ Decisions are recorded as ADR pages in [`llm-wiki/decisions/`](llm-wiki/decision
 
 ## 20. Known macOS and Apple Silicon pitfalls
 
-> **macOS reference.** This section describes the macOS app at the git tag `macos-reference`. The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
+> **macOS reference.** This section describes the macOS app at the git tag `macos-reference` (commit `2603a21` on `main`). The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
 
 - **GUI apps do not inherit your shell environment.** `PATH`, `CLAUDE_CONFIG_DIR` and friends are missing when launched from Finder. Resolve once through the login shell (FR-6, FR-22).
 - **Homebrew lives in `/opt/homebrew` on Apple Silicon**, which is not on the default GUI `PATH`. Never assume `/usr/local/bin` is the Homebrew prefix.
