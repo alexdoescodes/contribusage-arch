@@ -7,6 +7,8 @@ add_library(contribusage_core STATIC
     heatmap.h
     jsonstore.cpp
     jsonstore.h
+    process.cpp
+    process.h
     reports.cpp
     reports.h
     snapshot.h
