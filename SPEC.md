@@ -1644,7 +1644,9 @@ The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plas
 
 - [x] **L-0** Foundation: CMake project, `contribusage_core`, the plasmoid skeleton `org.contribusage.widget`, Linux CI, the macOS tree removed, this contract updated. Accept: the CI steps pass locally (CI on GitHub after the branch is pushed); `tst_version` and `tst_appletplugin` pass; the widget shows its version in `plasmoidviewer`.
 - [x] **L-4a** Base look with mock data, built ahead of L-1 to L-3 so the look can be checked early: the `prompt` panel label and the popup's blocks in their loaded state, filled with the macOS app's preview data through the core's display and heatmap functions. Accept: `tst_display`, `tst_heatmap` and `tst_appletqml` pass; the viewer shows the popup and the label as in `docs/assets/screenshot-dark.png` and the Prompt tile of `docs/assets/menu-bar-styles.png`.
-- [ ] **L-1** Core, seams and persistence in C++, with the core tests ported from `macos-reference` (`2603a21`).
+- [x] **L-1a** Core models, persistence and the process runner in C++: the report types with their JSON form, snapshots and source states, the XDG data folder with versioned atomic JSON files, and a non-blocking `QProcess` runner that runs one child at a time; Swift tests ported from `2603a21`. Accept: `tst_reports`, `tst_snapshot`, `tst_jsonstore` and `tst_processrunner` pass.
+- [ ] **L-1b** File events (inotify), the file reading seam with the declared-roots check, the secret store (KWallet), the JSONL reader and the history store.
+- [ ] **L-1c** Schedule, refresh coordinator, notification planner, popup layout and menu bar label.
 - [ ] **L-2** Claude Code provider: probe, parser, transcripts, insights, with its tests and fixtures ported.
 - [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
 - [ ] **L-4** Widget with the base look on real data: the remaining label styles, the section states of SPEC §11.3, keyboard navigation in the heatmap.

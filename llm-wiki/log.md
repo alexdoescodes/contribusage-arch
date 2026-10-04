@@ -460,3 +460,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-04] docs | L-1a plan
 - `docs/superpowers/plans/2026-10-04-l1a-models-persistence-process.md`: report models with JSON, snapshots, the XDG data folder with atomic JSON files, and a non-blocking process runner; L-1 split into L-1a to L-1c.
+
+## [2026-10-04] feat | Core models, persistence and process runner (L-1a)
+- `reports.h`, `snapshot.h`, `apppaths.h`, `jsonstore.h` and `process.h` in `contribusage_core`, with the Swift tests ported to Qt Test.
+- L-1 is split into L-1a, L-1b and L-1c in SPEC §17.8.
