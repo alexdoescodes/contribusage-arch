@@ -1,12 +1,13 @@
 import QtQuick
-import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasmoid
 
-// Placeholder representations until M4 brings the drawn label and the popup blocks.
 PlasmoidItem {
     id: root
+
+    switchWidth: Theme.popupWidth
+    switchHeight: Kirigami.Units.gridUnit * 20
 
     compactRepresentation: PlasmaComponents.Label {
         text: "contribusage"
@@ -17,11 +18,5 @@ PlasmoidItem {
         }
     }
 
-    fullRepresentation: ColumnLayout {
-        Layout.preferredWidth: Kirigami.Units.gridUnit * 20
-
-        PlasmaComponents.Label {
-            text: "contribusage " + AppInfo.version
-        }
-    }
+    fullRepresentation: FullPopup {}
 }

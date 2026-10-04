@@ -20,10 +20,18 @@ class TestAppletQml : public QObject {
 private Q_SLOTS:
     void initTestCase() { QVERIFY2(m_loader.load(), qPrintable(m_loader.errorString())); }
 
-    void mainQmlCompiles() {
+    void qmlFileCompiles_data() {
+        QTest::addColumn<QString>("file");
+        for (const auto *name : {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection",
+                                 "ProviderGroup", "HeatmapBlock", "GitHubSection", "Footer", "FullPopup"}) {
+            QTest::newRow(name) << QString::fromLatin1(name);
+        }
+    }
+    void qmlFileCompiles() {
+        QFETCH(QString, file);
         QQmlEngine engine;
-        QQmlComponent component(&engine,
-                                QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/main.qml")));
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/%1.qml").arg(file)));
         QVERIFY2(component.status() == QQmlComponent::Ready, qPrintable(component.errorString()));
     }
 
