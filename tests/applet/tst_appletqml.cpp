@@ -22,8 +22,9 @@ private Q_SLOTS:
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
-        for (const auto *name : {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection",
-                                 "ProviderGroup", "HeatmapBlock", "GitHubSection", "Footer", "FullPopup"}) {
+        for (const auto *name :
+             {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection", "ProviderGroup",
+              "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph", "CompactLabel"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }
