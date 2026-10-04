@@ -21,3 +21,7 @@ add_dependencies(tst_appletqml org.contribusage.widget)
 ecm_add_test(core/tst_display.cpp
     TEST_NAME tst_display
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_heatmap.cpp
+    TEST_NAME tst_heatmap
+    LINK_LIBRARIES contribusage_core Qt6::Test)
