@@ -1,14 +1,14 @@
 ---
 type: module
 status: active
-updated: 2026-10-04
+updated: 2026-10-05
 tracks: [src/core, tests/core]
 tags: [core, architecture]
 ---
 # ContribusageCore
 
 > Being ported to C++ for the Linux port (ADR-041), milestone M1. Until then this page describes the Swift implementation at the git tag `macos-reference` (commit `2603a21` on `main`).
-> In C++ so far: `display.h` and `heatmap.h` (L-4a); `reports.h` (SPEC §10.1, §10.3, §10.4 types and their JSON form), `snapshot.h` (snapshots, source states), `apppaths.h` and `jsonstore.h` (SPEC §10.7 in the XDG data folder) and `process.h` (the `ProcessRunning` seam and `LiveProcessRunner`, FR-7, NFR-18) from L-1a. Errors are values (`std::expected`), as KDE builds without exceptions. The process runner has no cancellation yet; it comes with the refresh coordinator (L-1c). `jsonstore::read` reads directly until the file reading seam lands (L-1b).
+> In C++ so far: `display.h` and `heatmap.h` (L-4a); `reports.h` (SPEC §10.1, §10.3, §10.4 types and their JSON form), `snapshot.h` (snapshots, source states), `apppaths.h` and `jsonstore.h` (SPEC §10.7 in the XDG data folder) and `process.h` (the `ProcessRunning` seam and `LiveProcessRunner`, FR-7, NFR-18) from L-1a. Errors are values (`std::expected`), as KDE builds without exceptions. The process runner takes a context object: when it is destroyed before the child ends (a widget removed during a probe), the result is dropped; call it from the GUI thread only. Cancelling a running child comes with the refresh coordinator (L-1c). Report JSON is read strictly: a missing or wrongly typed field rejects the whole report, so a damaged `history.json` never loads as zeros. `jsonstore::read` reads directly until the file reading seam lands (L-1b).
 
 The provider-neutral heart of the package: models, provider protocols and registry, the refresh scheduler, notification planning, generic activity infrastructure, persistence and the support seams (time, processes, HTTP, Keychain, file events, paths). It knows no concrete provider and nothing about GitHub (NFR-17).
 

@@ -1,7 +1,7 @@
 ---
 type: architecture
 status: active
-updated: 2026-10-04
+updated: 2026-10-05
 tracks: [.github, src, tests, CMakeLists.txt, docs, LICENSE]
 tags: [structure]
 ---

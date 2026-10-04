@@ -464,3 +464,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-04] feat | Core models, persistence and process runner (L-1a)
 - `reports.h`, `snapshot.h`, `apppaths.h`, `jsonstore.h` and `process.h` in `contribusage_core`, with the Swift tests ported to Qt Test.
 - L-1 is split into L-1a, L-1b and L-1c in SPEC §17.8.
+
+## [2026-10-05] fix | L-1a review fixes
+- Report JSON rejects wrongly typed fields and insights without periods; the process runner drops results for a destroyed context object.

@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QObject>
+#include <QPointer>
 #include <QProcess>
 #include <QTimer>
 
@@ -14,6 +15,8 @@ namespace {
 
 struct Job {
     ProcessRequest request;
+    QPointer<QObject> context; // null when there is none
+    bool hasContext = false;
     ProcessCallback done;
 };
 
@@ -60,16 +63,20 @@ void ProcessQueue::startNext() {
     deadline->setSingleShot(true);
     auto timedOut = std::make_shared<bool>(false);
     auto done = std::make_shared<ProcessCallback>(std::move(job.done));
+    const QPointer<QObject> context = job.context;
+    const bool hasContext = job.hasContext;
 
     // Reports once, frees the process, then starts the next job.
-    auto complete = [this, process, deadline, done](ProcessOutcome outcome) {
+    auto complete = [this, process, deadline, done, context, hasContext](ProcessOutcome outcome) {
         if (!*done) {
             return;
         }
         deadline->stop();
         const ProcessCallback callback = std::exchange(*done, nullptr);
         process->deleteLater();
-        callback(std::move(outcome));
+        if (!hasContext || context) {
+            callback(std::move(outcome));
+        }
         startNext();
     };
 
@@ -104,8 +111,9 @@ void ProcessQueue::startNext() {
 
 } // namespace
 
-void LiveProcessRunner::run(const ProcessRequest &request, ProcessCallback done) {
-    ProcessQueue::instance().enqueue(Job{.request = request, .done = std::move(done)});
+void LiveProcessRunner::run(const ProcessRequest &request, QObject *context, ProcessCallback done) {
+    ProcessQueue::instance().enqueue(
+        Job{.request = request, .context = context, .hasContext = context != nullptr, .done = std::move(done)});
 }
 
 } // namespace contribusage

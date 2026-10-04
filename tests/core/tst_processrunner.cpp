@@ -134,6 +134,34 @@ private Q_SLOTS:
         loop.exec();
         QCOMPARE(codes, (QList<int>{0, 0, 0}));
     }
+
+    // A widget removed during a probe: its view model is gone, so the result must not reach it.
+    void aDestroyedContextGetsNoCallbackAndTheQueueMovesOn() {
+        auto *owner = new QObject;
+        bool called = false;
+        LiveProcessRunner().run(request(QStringLiteral("/bin/sleep"), {QStringLiteral("0.2")}), owner,
+                                [&](ProcessOutcome) { called = true; });
+        delete owner;
+        const auto next = runAndWait(request(QStringLiteral("/bin/echo"), {QStringLiteral("after")}));
+        QVERIFY(next && next->has_value());
+        QCOMPARE(next->value().stdoutText, QStringLiteral("after\n"));
+        QVERIFY(!called);
+    }
+
+    void aLiveContextGetsItsCallback() {
+        QObject owner;
+        std::optional<ProcessOutcome> outcome;
+        QEventLoop loop;
+        LiveProcessRunner().run(request(QStringLiteral("/bin/echo"), {QStringLiteral("kept")}), &owner,
+                                [&](ProcessOutcome result) {
+                                    outcome = std::move(result);
+                                    loop.quit();
+                                });
+        QTimer::singleShot(15'000, &loop, &QEventLoop::quit);
+        loop.exec();
+        QVERIFY(outcome && outcome->has_value());
+        QCOMPARE(outcome->value().stdoutText, QStringLiteral("kept\n"));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestProcessRunner)
