@@ -457,3 +457,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-04] decision | Hidden week windows send no notifications
 - ADR-042: a per-model week window that the popup hides also triggers no notification; L-5 implements it.
+
+## [2026-10-04] docs | L-1a plan
+- `docs/superpowers/plans/2026-10-04-l1a-models-persistence-process.md`: report models with JSON, snapshots, the XDG data folder with atomic JSON files, and a non-blocking process runner; L-1 split into L-1a to L-1c.
