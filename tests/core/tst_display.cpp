@@ -25,6 +25,15 @@ private Q_SLOTS:
         QCOMPARE(barFraction(-5), 0.0);
     }
 
+    void aResetWindowDrawsEmptyAndNormal() {
+        // FR-11: past its reset the value is unknown, so the bar is empty and not red.
+        QCOMPARE(barFraction(97, now.addSecs(-60), now), 0.0);
+        QCOMPARE(meterLevel(97, now.addSecs(-60), now), MeterLevel::Normal);
+        QCOMPARE(barFraction(97, now.addSecs(60), now), 0.97);
+        QCOMPARE(meterLevel(97, now.addSecs(60), now), MeterLevel::Critical);
+        QCOMPARE(barFraction(97, std::nullopt, now), 0.97);
+    }
+
     void barFractionsScaleToTheBusiestDay() {
         QCOMPARE(barFractions({1, 2, 4}), (QList<double>{0.25, 0.5, 1.0}));
         QCOMPARE(barFractions({0, 0, 0}), (QList<double>{0.0, 0.0, 0.0}));

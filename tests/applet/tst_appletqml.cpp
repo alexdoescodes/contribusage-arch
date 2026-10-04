@@ -5,8 +5,11 @@
 #include <QPluginLoader>
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QQuickItem>
+#include <QQuickWindow>
 #include <QTest>
 
+#include <functional>
 #include <memory>
 
 // Loads the built applet and compiles its QML the way plasmashell would: a QML error or a missing type fails here,
@@ -114,6 +117,37 @@ private Q_SLOTS:
         std::unique_ptr<QObject> object(component.create());
         QVERIFY2(object, qPrintable(component.errorString()));
         QCOMPARE(object->property("width").toInt(), 360);
+    }
+
+    void insightsTabsShareOneRow() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        const auto insights = model->property("providers").toList().first().toMap().value(QStringLiteral("insights"));
+        QQuickWindow window;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/InsightsSection.qml")));
+        std::unique_ptr<QObject> object(component.createWithInitialProperties(
+            {{QStringLiteral("insights"), insights}, {QStringLiteral("expanded"), true}}));
+        QVERIFY2(object, qPrintable(component.errorString()));
+        auto *section = qobject_cast<QQuickItem *>(object.get());
+        section->setParentItem(window.contentItem());
+        section->setWidth(360);
+        window.resize(360, 400);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QList<QQuickItem *> tabs;
+        std::function<void(QQuickItem *)> collect = [&](QQuickItem *item) {
+            if (QByteArray(item->metaObject()->className()).contains("TabButton")) {
+                tabs.append(item);
+            }
+            for (auto *child : item->childItems()) {
+                collect(child);
+            }
+        };
+        collect(section);
+        QCOMPARE(tabs.size(), 2);
+        QTRY_COMPARE(tabs.at(0)->height(), tabs.at(1)->height());
+        QCOMPARE(tabs.at(0)->mapToScene({}).y(), tabs.at(1)->mapToScene({}).y());
     }
 };
 

@@ -16,6 +16,10 @@ MeterLevel meterLevel(double usedPercent);
 // How much of a meter is filled, 0 to 1: usage can exceed 100 %, a bar can't.
 double barFraction(double usedPercent);
 
+// FR-11: past its reset a window's value is unknown, so its bar is empty and its level normal.
+double barFraction(double usedPercent, const std::optional<QDateTime> &resetsAt, const QDateTime &now);
+MeterLevel meterLevel(double usedPercent, const std::optional<QDateTime> &resetsAt, const QDateTime &now);
+
 // Bar heights relative to the largest value; all 0 when nothing happened.
 QList<double> barFractions(const QList<qint64> &values);
 

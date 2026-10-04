@@ -26,15 +26,16 @@ ColumnLayout {
         spacing: 3
         Layout.fillWidth: true
 
-        RowLayout {
+        PlasmaComponents.TabBar {
+            currentIndex: period
+            Layout.fillWidth: true
+            onCurrentIndexChanged: period = currentIndex
+
             Repeater {
                 model: insights.periods
                 PlasmaComponents.TabButton {
                     required property var modelData
-                    required property int index
                     text: modelData.label
-                    checked: index === period
-                    onClicked: period = index
                 }
             }
         }

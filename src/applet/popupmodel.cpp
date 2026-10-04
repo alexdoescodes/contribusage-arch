@@ -30,8 +30,8 @@ QVariantMap window(const QString &label, double usedPercent, qint64 resetsIn, co
     return {
         {QStringLiteral("label"), label},
         {QStringLiteral("percentText"), percentText(usedPercent, false, resetsAt, now)},
-        {QStringLiteral("fraction"), barFraction(usedPercent)},
-        {QStringLiteral("level"), levelName(meterLevel(usedPercent))},
+        {QStringLiteral("fraction"), barFraction(usedPercent, resetsAt, now)},
+        {QStringLiteral("level"), levelName(meterLevel(usedPercent, resetsAt, now))},
         {QStringLiteral("resetText"), resetText(resetsAt, now).value_or(QString())},
     };
 }
@@ -191,7 +191,7 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     };
     m_label = {
         {QStringLiteral("text"), percentText(23, false, now.addSecs(7800), now)},
-        {QStringLiteral("fraction"), barFraction(23)},
-        {QStringLiteral("level"), levelName(meterLevel(23))},
+        {QStringLiteral("fraction"), barFraction(23, now.addSecs(7800), now)},
+        {QStringLiteral("level"), levelName(meterLevel(23, now.addSecs(7800), now))},
     };
 }

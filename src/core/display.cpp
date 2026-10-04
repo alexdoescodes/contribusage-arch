@@ -26,6 +26,14 @@ double barFraction(double usedPercent) {
     return std::clamp(usedPercent / 100.0, 0.0, 1.0);
 }
 
+double barFraction(double usedPercent, const std::optional<QDateTime> &resetsAt, const QDateTime &now) {
+    return isReset(resetsAt, now) ? 0.0 : barFraction(usedPercent);
+}
+
+MeterLevel meterLevel(double usedPercent, const std::optional<QDateTime> &resetsAt, const QDateTime &now) {
+    return isReset(resetsAt, now) ? MeterLevel::Normal : meterLevel(usedPercent);
+}
+
 QList<double> barFractions(const QList<qint64> &values) {
     const qint64 highest = values.isEmpty() ? 0 : *std::max_element(values.cbegin(), values.cend());
     QList<double> fractions;
