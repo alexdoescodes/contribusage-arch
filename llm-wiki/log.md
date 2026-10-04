@@ -443,3 +443,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-04] chore | Linux foundation (L-0)
 - CMake project with `contribusage_core` and the plasmoid `org.contribusage.widget`; Qt Test suites under `tests/`; CI in an Arch container.
 - The macOS tree is removed (tag `macos-reference`, commit `2603a21`); AGENTS.md, SPEC.md and the README describe the Linux port; ADR-041 records the decision.
+
+## [2026-10-04] docs | L-4a plan: base look first
+- `docs/superpowers/plans/2026-10-04-l4a-base-look-mock-data.md`: the panel label and the popup in the macOS look, on mock data, ahead of the logic milestones L-1 to L-3.
