@@ -467,3 +467,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-05] fix | L-1a review fixes
 - Report JSON rejects wrongly typed fields and insights without periods; the process runner drops results for a destroyed context object.
+
+## [2026-10-05] docs | L-2a plan: real Claude Code limits
+- `docs/superpowers/plans/2026-10-05-l2a-claude-code-limits.md`: parser, locator, probe, cache and the widget on real limits; Claude Code 2.1.289 prints reset times as "Oct 5, 6am", which P-7 did not cover.
