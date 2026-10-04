@@ -17,17 +17,33 @@ ColumnLayout {
             Layout.margins: Theme.padding
         }
     }
-    Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity) }
-    HeatmapBlock {
-        heatmap: PopupModel.heatmap
+    Rectangle {
+        visible: heatmapLoader.active
         Layout.fillWidth: true
-        Layout.margins: Theme.padding
+        implicitHeight: 1
+        color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity)
     }
-    Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity) }
-    GitHubSection {
-        github: PopupModel.github
+    Loader {
+        id: heatmapLoader
+        active: PopupModel.heatmap.cells !== undefined
+        visible: active
         Layout.fillWidth: true
         Layout.margins: Theme.padding
+        sourceComponent: HeatmapBlock { heatmap: PopupModel.heatmap }
+    }
+    Rectangle {
+        visible: githubLoader.active
+        Layout.fillWidth: true
+        implicitHeight: 1
+        color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity)
+    }
+    Loader {
+        id: githubLoader
+        active: PopupModel.github.login !== undefined
+        visible: active
+        Layout.fillWidth: true
+        Layout.margins: Theme.padding
+        sourceComponent: GitHubSection { github: PopupModel.github }
     }
     Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity) }
     Footer {

@@ -21,7 +21,11 @@ class TestAppletQml : public QObject {
     QPluginLoader m_loader{QStringLiteral(CONTRIBUSAGE_APPLET_PATH)};
 
 private Q_SLOTS:
-    void initTestCase() { QVERIFY2(m_loader.load(), qPrintable(m_loader.errorString())); }
+    void initTestCase() {
+        // The applet tests read the macOS preview data; live mode would run the real claude.
+        qputenv("CONTRIBUSAGE_FAKE_DATA", "1");
+        QVERIFY2(m_loader.load(), qPrintable(m_loader.errorString()));
+    }
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
@@ -150,6 +154,15 @@ private Q_SLOTS:
         QCOMPARE(tabs.size(), 2);
         QTRY_COMPARE(tabs.at(0)->height(), tabs.at(1)->height());
         QCOMPARE(tabs.at(0)->mapToScene({}).y(), tabs.at(1)->mapToScene({}).y());
+    }
+
+    void popupModelNotifiesChanges() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        QVERIFY(model);
+        QVERIFY(model->metaObject()->indexOfSignal("changed()") >= 0);
+        const auto property = model->metaObject()->property(model->metaObject()->indexOfProperty("providers"));
+        QVERIFY(property.hasNotifySignal());
     }
 };
 

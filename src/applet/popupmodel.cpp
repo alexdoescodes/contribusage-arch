@@ -1,7 +1,15 @@
 #include "popupmodel.h"
 
+#include "claudecode/claudecodelimits.h"
+#include "claudecode/claudelocator.h"
+#include "claudecode/limitsjob.h"
+#include "claudecode/limitsview.h"
+#include "core/apppaths.h"
 #include "core/display.h"
 #include "core/heatmap.h"
+#include "core/process.h"
+
+#include <QDir>
 
 #include <QLocale>
 
@@ -13,25 +21,13 @@ using namespace contribusage;
 
 namespace {
 
-QString levelName(MeterLevel level) {
-    switch (level) {
-    case MeterLevel::Critical:
-        return QStringLiteral("critical");
-    case MeterLevel::Warning:
-        return QStringLiteral("warning");
-    case MeterLevel::Normal:
-        break;
-    }
-    return QStringLiteral("normal");
-}
-
 QVariantMap window(const QString &label, double usedPercent, qint64 resetsIn, const QDateTime &now) {
     const std::optional<QDateTime> resetsAt = now.addSecs(resetsIn);
     return {
         {QStringLiteral("label"), label},
         {QStringLiteral("percentText"), percentText(usedPercent, false, resetsAt, now)},
         {QStringLiteral("fraction"), barFraction(usedPercent, resetsAt, now)},
-        {QStringLiteral("level"), levelName(meterLevel(usedPercent, resetsAt, now))},
+        {QStringLiteral("level"), meterLevelName(meterLevel(usedPercent, resetsAt, now))},
         {QStringLiteral("resetText"), resetText(resetsAt, now).value_or(QString())},
     };
 }
@@ -125,7 +121,7 @@ QHash<QDate, int> mockContributions(QDate today) {
 
 } // namespace
 
-PopupModel::PopupModel(QObject *parent) : QObject(parent) {
+void PopupModel::buildFakeData() {
     const QDateTime now = QDateTime::currentDateTime();
     const QDate today = now.date();
     const auto tokens = mockTokens(today);
@@ -208,6 +204,40 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_label = {
         {QStringLiteral("text"), percentText(23, false, now.addSecs(7800), now)},
         {QStringLiteral("fraction"), barFraction(23, now.addSecs(7800), now)},
-        {QStringLiteral("level"), levelName(meterLevel(23, now.addSecs(7800), now))},
+        {QStringLiteral("level"), meterLevelName(meterLevel(23, now.addSecs(7800), now))},
     };
+}
+
+PopupModel::PopupModel(QObject *parent) : QObject(parent) {
+    m_fake = qgetenv("CONTRIBUSAGE_FAKE_DATA") == "1";
+    if (m_fake) {
+        buildFakeData();
+        return;
+    }
+    const QString shell = qEnvironmentVariable("SHELL", QStringLiteral("/bin/sh"));
+    m_runner = std::make_unique<LiveProcessRunner>();
+    m_locator = std::make_unique<claudecode::ClaudeLocator>(*m_runner, QDir::homePath(), shell);
+    m_limits = std::make_unique<claudecode::ClaudeCodeLimits>(*m_runner, *m_locator, AppPaths::live());
+    m_job = std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), 5 * 60 * 1000); // ADR-039
+    connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
+    m_minute.setInterval(60 * 1000);
+    connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
+    m_minute.start();
+    m_job->start();
+}
+
+// Out of line, where the owned types are complete; the job goes first, so no probe outlives its limits object.
+PopupModel::~PopupModel() {
+    m_job.reset();
+}
+
+QVariantList PopupModel::providers() const {
+    if (m_fake) {
+        return m_providers;
+    }
+    return {claudecode::limitsView(m_job->state(), QDateTime::currentDateTime())};
+}
+
+QVariantMap PopupModel::label() const {
+    return m_fake ? m_label : claudecode::labelView(m_job->state(), QDateTime::currentDateTime());
 }
