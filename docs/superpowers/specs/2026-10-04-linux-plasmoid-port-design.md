@@ -24,7 +24,8 @@ The biggest resource cost is the `claude -p /usage` probe itself (about 1.7 s of
 plasmashell (already running)
 └── contribusage plasmoid
     ├── QML UI            panel label (compact representation), popup (full representation), config pages
-    └── C++ QML module    org.contribusage
+    └── C++ QML module    the applet's own module, built with plasma_add_applet (id org.contribusage.widget),
+        │                 linking a static logic library
         ├── core/         models, schedule, refresh coordinator, notification planner,
         │                 persistence (versioned atomic JSON), activity index
         ├── claudecode/   /usage probe and parser, transcript activity, insights
@@ -50,7 +51,7 @@ plasmashell (already running)
 
 - **Async only.** Nothing blocks the plasmashell GUI thread: the probe runs through `QProcess` signals, HTTP through `QNetworkAccessManager`, and the transcript scan through `QtConcurrent` on a worker thread.
 - **QML sees view models only.** A few `QObject` view models with properties and signals take the place of `AppState`. QML holds views and wiring, no logic, as the app target does today.
-- **Build:** CMake with KDE Extra CMake Modules, C++20, `-Werror`, clang-format. Installed through a PKGBUILD.
+- **Build:** CMake with KDE Extra CMake Modules, C++23 (for `std::expected`), `-Werror`, clang-format. Installed through a PKGBUILD.
 - **Rules carried over from SPEC §2 and AGENTS.md:** leave Claude Code's credentials untouched; call no vendor backend; run `claude` only with the arguments in SPEC §8.1.1 and FR-6; keep the GitHub token only in the secret store and never in logs; zero warnings; fix a failing test in the code.
 
 ## 2. Data flow and persistence
