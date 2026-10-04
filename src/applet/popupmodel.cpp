@@ -36,6 +36,25 @@ QVariantMap window(const QString &label, double usedPercent, qint64 resetsIn, co
     };
 }
 
+// The macOS preview's windows as /usage prints them, filtered and renamed for display (ADR-042).
+QVariantList shownWindows(const QDateTime &now) {
+    struct Printed {
+        QString label;
+        double usedPercent;
+        qint64 resetsIn;
+    };
+    const QList<Printed> printed{{QStringLiteral("Current session"), 23, 7800},
+                                 {QStringLiteral("Current week (all models)"), 74, 4 * 86400},
+                                 {QStringLiteral("Current week (Opus)"), 93, 4 * 86400}};
+    QVariantList windows;
+    for (const Printed &entry : printed) {
+        if (const auto label = shownWindowLabel(entry.label)) {
+            windows.append(window(*label, entry.usedPercent, entry.resetsIn, now));
+        }
+    }
+    return windows;
+}
+
 QVariantMap share(const QString &label, int percent) {
     return {{QStringLiteral("label"), label}, {QStringLiteral("percent"), QString(QString::number(percent) + u'%')}};
 }
@@ -134,10 +153,7 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
         {QStringLiteral("name"), QStringLiteral("Claude Code")},
         {QStringLiteral("symbol"), QStringLiteral("draw-star")},
         {QStringLiteral("updatedText"), ageText(now.addSecs(-120), now)},
-        {QStringLiteral("windows"),
-         QVariantList{window(QStringLiteral("Current session"), 23, 7800, now),
-                      window(QStringLiteral("Current week (all models)"), 74, 4 * 86400, now),
-                      window(QStringLiteral("Current week (Opus)"), 93, 4 * 86400, now)}},
+        {QStringLiteral("windows"), shownWindows(now)},
         {QStringLiteral("activity"), activity},
         {QStringLiteral("insights"), insights()},
     });

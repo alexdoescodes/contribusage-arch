@@ -37,4 +37,8 @@ QString ageText(const QDateTime &fetchedAt, const QDateTime &now);
 // SPEC §11.5: compact counts, "668", "1.2K", "812K", "4.2M".
 QString compactCount(qint64 value);
 
+// ADR-042: the popup shows one week bar. "Current week (all models)" reads "Current week"; a model's own week window,
+// "Current week (Opus)", is hidden (nullopt). Any other window keeps its printed label (FR-8).
+std::optional<QString> shownWindowLabel(const QString &printed);
+
 } // namespace contribusage

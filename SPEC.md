@@ -502,7 +502,7 @@ A real sample (September 2026, subscription plan) is in [Appendix A](#appendix-a
 | P-1 | Strip ANSI escape sequences (`ESC [ … letter`) before anything else. |
 | P-2 | Split into lines; each line is tested independently. |
 | P-3 | Window line grammar (Swift Regex, whole line): `\s*(?<label>[^:]+):\s*<?\s*(?<pct>\d+(?:\.\d+)?)%\s*used(?:.*?\bresets\s+(?<reset>.+?))?\s*` |
-| P-4 | Label is trimmed and kept verbatim. Known labels today: `Current session`, `Current week (all models)`. Model specific weekly windows may appear on some plans (for example `Current week (<model>)`). The UI shows these three forms translated, the model name as printed (ADR-033). |
+| P-4 | Label is trimmed and kept verbatim. Known labels today: `Current session`, `Current week (all models)`. Model specific weekly windows may appear on some plans (for example `Current week (<model>)`). Parsing keeps every form; the popup shows one week bar: `Current week (all models)` reads `Current week`, and a model's own week window is hidden (ADR-042). |
 | P-5 | `<1%` is parsed as 0.5 and displayed as `<1%` (keep a flag `isBelowOne`). |
 | P-6 | Reset clause: optional trailing `(<IANA zone>)`; if the identifier is unknown, use the Mac's time zone. |
 | P-7 | Reset formats tried in order: `MMM d 'at' h:mm a`, `MMM d 'at' h a`, `MMM d`, `h:mm a`, `h a` (after normalizing `am`/`pm` to `AM`/`PM`, locale `en_US_POSIX`). |
@@ -1094,7 +1094,7 @@ public struct HeatmapLayer: Sendable, Equatable {
 │ ◆ Claude Code                  updated 2m  │
 │ Current session                       23%  │
 │ ██████░░░░░░░░░░░░░░░░░░  resets in 2h 10m │
-│ Current week (all models)             41%  │
+│ Current week                          41%  │
 │ ██████████░░░░░░░░░░░░░░  resets Sun 18:59 │
 │ On this Mac                                │
 │ Today: 668 requests · 8 sessions · 4.2M    │

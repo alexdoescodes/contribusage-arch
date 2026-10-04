@@ -56,13 +56,15 @@ private Q_SLOTS:
         QCOMPARE(claude.value(QStringLiteral("name")).toString(), QStringLiteral("Claude Code"));
         QCOMPARE(claude.value(QStringLiteral("updatedText")).toString(), QStringLiteral("updated 2 min ago"));
         const auto windows = claude.value(QStringLiteral("windows")).toList();
-        QCOMPARE(windows.size(), 3);
+        // ADR-042: session and one week bar; the Opus week window of the mock is hidden.
+        QCOMPARE(windows.size(), 2);
         const auto session = windows.at(0).toMap();
         QCOMPARE(session.value(QStringLiteral("percentText")).toString(), QStringLiteral("23%"));
         QCOMPARE(session.value(QStringLiteral("level")).toString(), QStringLiteral("normal"));
         QCOMPARE(session.value(QStringLiteral("resetText")).toString(), QStringLiteral("resets in 2 hr 10 min"));
-        QCOMPARE(windows.at(1).toMap().value(QStringLiteral("level")).toString(), QStringLiteral("warning"));
-        QCOMPARE(windows.at(2).toMap().value(QStringLiteral("level")).toString(), QStringLiteral("critical"));
+        const auto week = windows.at(1).toMap();
+        QCOMPARE(week.value(QStringLiteral("label")).toString(), QStringLiteral("Current week"));
+        QCOMPARE(week.value(QStringLiteral("level")).toString(), QStringLiteral("warning"));
     }
 
     void popupModelHoldsTheMockActivity() {

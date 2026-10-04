@@ -34,6 +34,22 @@ private Q_SLOTS:
         QCOMPARE(barFraction(97, std::nullopt, now), 0.97);
     }
 
+    void shownWindowLabel_data() {
+        QTest::addColumn<QString>("printed");
+        QTest::addColumn<QString>("shown");
+        QTest::newRow("session") << QStringLiteral("Current session") << QStringLiteral("Current session");
+        QTest::newRow("all models") << QStringLiteral("Current week (all models)") << QStringLiteral("Current week");
+        QTest::newRow("one model") << QStringLiteral("Current week (Opus)") << QString();
+        QTest::newRow("another model") << QStringLiteral("Current week (Sonnet)") << QString();
+        QTest::newRow("unknown window") << QStringLiteral("Daily requests") << QStringLiteral("Daily requests");
+    }
+    void shownWindowLabel() {
+        // ADR-042: one week bar; a model's own week window is hidden, an empty result means hidden.
+        QFETCH(QString, printed);
+        QFETCH(QString, shown);
+        QCOMPARE(contribusage::shownWindowLabel(printed).value_or(QString()), shown);
+    }
+
     void barFractionsScaleToTheBusiestDay() {
         QCOMPARE(barFractions({1, 2, 4}), (QList<double>{0.25, 0.5, 1.0}));
         QCOMPARE(barFractions({0, 0, 0}), (QList<double>{0.0, 0.0, 0.0}));

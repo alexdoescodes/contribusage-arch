@@ -121,4 +121,15 @@ QString compactCount(qint64 value) {
     return QString::number(value);
 }
 
+std::optional<QString> shownWindowLabel(const QString &printed) {
+    const QString week = QStringLiteral("Current week");
+    if (!printed.startsWith(week + QStringLiteral(" (")) || !printed.endsWith(u')')) {
+        return printed;
+    }
+    if (printed == week + QStringLiteral(" (all models)")) {
+        return week;
+    }
+    return std::nullopt;
+}
+
 } // namespace contribusage

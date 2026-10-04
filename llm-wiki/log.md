@@ -451,3 +451,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 - The `prompt` panel label and the popup's blocks in the macOS look, filled with the macOS preview data through new core display and heatmap functions.
 - Built ahead of L-1 to L-3 so the look can be checked early; `Theme.qml` holds every color and size for the customization layers.
 - Review fixes: a window past its reset draws an empty, non-red bar (FR-11, `barFraction`/`meterLevel` with the reset time); the Insights periods sit in one `TabBar`.
+
+## [2026-10-04] decision | One week bar
+- ADR-042: the popup shows `Current week (all models)` as "Current week" and hides per-model week windows; parsing keeps them (`shownWindowLabel` in the core).
