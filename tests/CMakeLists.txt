@@ -47,3 +47,8 @@ ecm_add_test(claudecode/tst_usageparser.cpp
     LINK_LIBRARIES contribusage_claudecode Qt6::Test)
 target_compile_definitions(tst_usageparser PRIVATE
     CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/claudecode/fixtures")
+
+ecm_add_test(claudecode/tst_claudelocator.cpp
+    TEST_NAME tst_claudelocator
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+target_include_directories(tst_claudelocator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
