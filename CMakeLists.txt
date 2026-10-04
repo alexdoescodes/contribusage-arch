@@ -16,12 +16,16 @@ include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(FeatureSummary)
 
-find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Test)
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Qml Quick Test)
+# Config before Plasma: its CMake package links KF6::ConfigCore without finding it.
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons Config)
+find_package(Plasma REQUIRED)
 
 # After the KDE settings, so their warning flags are in place before warnings become errors.
 add_compile_options(-Werror)
 
 add_subdirectory(src/core)
+add_subdirectory(src/applet)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

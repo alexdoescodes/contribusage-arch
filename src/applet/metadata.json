@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "contribusage contributors" }],
+        "Category": "System Information",
+        "Description": "Limits and activity of your AI coding tools, and your GitHub contributions",
+        "Icon": "utilities-system-monitor",
+        "Id": "org.contribusage.widget",
+        "License": "MIT",
+        "Name": "contribusage",
+        "Version": "0.1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
