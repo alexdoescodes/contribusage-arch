@@ -25,6 +25,7 @@ find_package(Plasma REQUIRED)
 add_compile_options(-Werror)
 
 add_subdirectory(src/core)
+add_subdirectory(src/claudecode)
 add_subdirectory(src/applet)
 
 if(BUILD_TESTING)

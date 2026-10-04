@@ -41,3 +41,9 @@ ecm_add_test(core/tst_jsonstore.cpp
 ecm_add_test(core/tst_processrunner.cpp
     TEST_NAME tst_processrunner
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(claudecode/tst_usageparser.cpp
+    TEST_NAME tst_usageparser
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+target_compile_definitions(tst_usageparser PRIVATE
+    CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/claudecode/fixtures")
