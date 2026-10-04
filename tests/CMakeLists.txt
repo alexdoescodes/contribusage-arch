@@ -25,3 +25,7 @@ ecm_add_test(core/tst_display.cpp
 ecm_add_test(core/tst_heatmap.cpp
     TEST_NAME tst_heatmap
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_reports.cpp
+    TEST_NAME tst_reports
+    LINK_LIBRARIES contribusage_core Qt6::Test)
