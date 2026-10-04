@@ -22,7 +22,7 @@ contribusage/
 ├── CONTRIBUTING.md         the contributor guide: build, rules, pull requests
 ├── LICENSE                 MIT
 ├── Contribusage.xcodeproj  the Xcode project: one app target linking the package products
-├── docs/assets/            README art: header SVGs (light and dark) with the icon drawn flat, screenshots, the 1280×640 social preview (SVG source and the PNG uploaded under Settings → Social preview)
+├── docs/                   superpowers/: specs/ (designs) and plans/ (one implementation plan per milestone) for the Linux plasmoid port; agents/: configuration the engineering agent skills read (issue tracker, triage labels, domain docs; see AGENTS.md § Agent skills); assets/: README art: header SVGs (light and dark) with the icon drawn flat, screenshots, the 1280×640 social preview (SVG source and the PNG uploaded under Settings → Social preview)
 ├── Packages/               ContribusageKit: every target but the app; fixtures in a test target's `Fixtures/` (SPEC §16.2; so far Claude Code and GitHub); the core's String Catalog in its `Resources/`, declared as a resource in `Package.swift`
 ├── README.md
 ├── SECURITY.md             supported versions, private vulnerability reporting, what counts as a vulnerability

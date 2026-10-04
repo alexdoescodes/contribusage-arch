@@ -431,3 +431,11 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-04] chore | Release build provenance
 - The `release` job attests each DMG with `actions/attest` before creating the release; `SECURITY.md` shows the `gh attestation verify` check and the README links it.
 - [[decisions/0014-build-and-ci-foundation]] and SPEC T-6.8 say so.
+
+## [2026-10-04] chore | Agent skills configuration
+- `docs/agents/` holds the issue tracker (GitHub Issues on the fork, SPEC §17 stays the contract), the five default triage labels and the domain-docs rules; AGENTS.md § Agent skills points at them.
+- Domain docs map to the vault: ADRs in `decisions/`, a glossary at `concepts/glossary.md` once one is needed.
+
+## [2026-10-04] docs | Linux port design
+- `docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`: this fork becomes a KDE Plasma widget; a C++/Qt logic library as a QML module inside plasmashell, chosen for the least system resources.
+- Milestones M0 to M7; M0 rewrites SPEC.md and AGENTS.md for Linux and records ADR-041.

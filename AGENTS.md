@@ -113,3 +113,17 @@ A folder is created with its first page and added to the repo map. Page rules (l
 | CI | `.github/workflows/ci.yml` runs the package tests and lint, the Release build with the `arm64` check, and the wiki lint on every pull request; on `main` a green push with a new `MARKETING_VERSION` creates the GitHub release `v<version>` with the DMG |
 | Wiki | `llm-wiki/tools/wiki.sh context`, `new-session <slug> [agent]`, `lint` |
 | Wiki tooling test | `llm-wiki/tools/test-wiki.sh` (after changing `wiki.sh`) |
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on the fork `alexdoescodes/contribusage-arch`, through `gh`; SPEC §17 stays the contract. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default role names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: ADRs in `llm-wiki/decisions/`, glossary at `llm-wiki/concepts/glossary.md`. See `docs/agents/domain.md`.
