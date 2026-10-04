@@ -1,11 +1,13 @@
 ---
 type: overview
 status: active
-updated: 2026-09-29
+updated: 2026-10-04
 tracks: []
 tags: [hub]
 ---
 # contribusage
+
+> **Linux port.** This fork is being ported to a KDE Plasma 6 widget ([[decisions/0041-linux-plasmoid-port]]). The targets are `contribusage_core` ([[modules/core]]) and the applet ([[modules/applet]]); the macOS app ([[modules/app]]) is at the git tag `macos-reference`.
 
 A native macOS menu bar app for Apple Silicon that shows how much of an AI coding plan is left and when it resets (v1: Claude Code), coding activity on this Mac, and the GitHub contribution graph. It uses only official interfaces and never touches another app's credentials ([[decisions/0003-official-interfaces-only]]).
 

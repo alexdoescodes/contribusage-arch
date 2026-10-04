@@ -1,14 +1,14 @@
 # contribusage: Specification
 
-> A native macOS menu bar app for Apple Silicon that shows the usage of your AI coding tools (starting with Claude Code) and your GitHub contributions at a glance.
+> A KDE Plasma 6 widget for Arch Linux that shows the usage of your AI coding tools (starting with Claude Code) and your GitHub contributions at a glance. Ported from the macOS app (ADR-041).
 
 | | |
 |---|---|
 | **Product name** | contribusage (lowercase, one word: *contrib*utions + *usage*) |
 | **Spec version** | 0.1 (Draft) |
 | **Date** | 2026-09-28 |
-| **Platform** | macOS 14 Sonoma or later, **Apple Silicon (arm64) only** |
-| **Language** | Swift 6, SwiftUI |
+| **Platform** | Arch Linux, KDE Plasma 6 (Wayland) |
+| **Language** | C++23, Qt 6, QML |
 | **Providers in v1** | Claude Code (more AI coding tools later, see [section 7](#7-provider-model)) |
 | **Development style** | Spec Driven Development: this file is the source of truth. Code follows the spec, not the other way around. |
 
@@ -82,9 +82,8 @@ One glance at the menu bar tells me how much of my AI coding plan I have left an
 
 ### 1.3 Non-goals (for v1)
 
-- **No Intel Macs.** No universal binary, no x86_64 slice, no Rosetta testing ([ADR-009](llm-wiki/decisions/0009-apple-silicon-only.md)).
-- No Windows or Linux version.
-- No Mac App Store distribution (the app needs to launch tool binaries such as `claude` and read `~/.claude`, see [ADR-006](llm-wiki/decisions/0006-no-app-sandbox.md)).
+- **No macOS or Windows version in this fork.** The macOS app is at the git tag `macos-reference` ([ADR-041](llm-wiki/decisions/0041-linux-plasmoid-port.md)).
+- No desktop environments other than KDE Plasma 6.
 - **No AI coding tools other than Claude Code in v1.** The provider framework exists from day one, but further providers are future work ([7.6](#76-future-provider-candidates)).
 - No multi-account support (one login per provider, one GitHub account).
 - No data from claude.ai chat history, other devices, or tools that are not integrated as a provider.
@@ -106,7 +105,7 @@ These principles override any task, shortcut or "quick fix". If a task conflicts
 4. **Honest data.** Every value shows its age, its source and its provider. Unknown is shown as unknown, never as `0 %`. Stale data is visibly marked as stale.
 5. **Frugal.** Event driven wherever possible. Background work is bounded, scheduled with tolerance and paused when pointless (asleep, offline, Low Power Mode). Adding providers must not multiply idle cost.
 6. **Fail soft.** One broken source or provider never breaks the others. Parsing failures degrade to "show raw text", not to crashes or blank UIs.
-7. **Testable core.** All parsing and logic lives in the `ContribusageKit` Swift package, is covered by fixture based tests, and is written test first.
+7. **Testable core.** All parsing and logic lives in the `contribusage_core` library (`src/core/` and its provider and GitHub directories), is covered by fixture based Qt Test suites, and is written test first.
 8. **Provider isolation.** Everything specific to one tool lives in that tool's provider module. The core and the UI know only the provider protocols. The core never imports a provider module; this is enforced by the package's target graph.
 9. **Small increments.** One task, one focused change, tests green before the next task.
 
@@ -1234,6 +1233,8 @@ Global rules:
 
 ## 15. Project setup
 
+> **macOS reference.** This section describes the macOS app at the git tag `macos-reference`. The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
+
 ### 15.1 Prerequisites
 
 - A Mac with Apple Silicon (M1 or later).
@@ -1637,13 +1638,26 @@ Order: T-5.13, T-5.14, T-5.15, T-5.16, then T-5.10, T-5.11, T-5.12; T-5.17 and T
 - [ ] ~~**T-6.9** Second provider evaluation (research only).~~ Moved to T-5.17.
 - [ ] **T-6.10** Plan display: the plan in the group header, copy statistics and diagnostics. *(FR-50, US-15)* Depends: R-6. After v1; becomes relevant with a second provider whose data differs by plan (T-5.17).
 
+### 17.8 Linux port (ADR-041)
+
+The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §4). Each has its own plan in `docs/superpowers/plans/`.
+
+- [x] **L-0** Foundation: CMake project, `contribusage_core`, the plasmoid skeleton `org.contribusage.widget`, Linux CI, the macOS tree removed, this contract updated. Accept: the CI steps pass locally (CI on GitHub after the branch is pushed); `tst_version` and `tst_appletplugin` pass; the widget shows its version in `plasmoidviewer`.
+- [ ] **L-1** Core, seams and persistence in C++, with the core tests ported from `macos-reference`.
+- [ ] **L-2** Claude Code provider: probe, parser, transcripts, insights, with its tests and fixtures ported.
+- [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
+- [ ] **L-4** Widget with the base look: drawn label, popup blocks, states.
+- [ ] **L-5** Settings pages and notifications.
+- [ ] **L-6** Customization: look, theme tokens, QML overrides with fallback.
+- [ ] **L-7** PKGBUILD and the resource budget measurements.
+
 ### 17.7 Definition of Done
 
 - Tests written first and passing; new logic lives in `ContribusageKit`, in the correct target.
-- Zero warnings in Swift 6 language mode.
+- Zero warnings with `-Werror`; clang-format clean.
 - The core still imports no provider and no GitHub code.
-- Every new UI state has a preview; VoiceOver labels present.
-- No main actor blocking; no new timers while the popover is closed unless the spec allows it.
+- Every new UI state is checked in `plasmoidviewer`; accessible names set on interactive items.
+- Nothing blocks the plasmashell GUI thread; no new timers while the popup is closed unless the spec allows it.
 - Spec updated if anything differed; task box ticked; an ADR added to the decision log when a choice was made; vault updated per `AGENTS.md`.
 
 ---
@@ -1687,6 +1701,8 @@ Decisions are recorded as ADR pages in [`llm-wiki/decisions/`](llm-wiki/decision
 ---
 
 ## 20. Known macOS and Apple Silicon pitfalls
+
+> **macOS reference.** This section describes the macOS app at the git tag `macos-reference`. The Linux build is described in the port design (`docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`) and in AGENTS.md § Commands.
 
 - **GUI apps do not inherit your shell environment.** `PATH`, `CLAUDE_CONFIG_DIR` and friends are missing when launched from Finder. Resolve once through the login shell (FR-6, FR-22).
 - **Homebrew lives in `/opt/homebrew` on Apple Silicon**, which is not on the default GUI `PATH`. Never assume `/usr/local/bin` is the Homebrew prefix.

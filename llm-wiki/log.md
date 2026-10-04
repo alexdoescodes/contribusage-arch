@@ -439,3 +439,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-04] docs | Linux port design
 - `docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`: this fork becomes a KDE Plasma widget; a C++/Qt logic library as a QML module inside plasmashell, chosen for the least system resources.
 - Milestones M0 to M7; M0 rewrites SPEC.md and AGENTS.md for Linux and records ADR-041.
+
+## [2026-10-04] chore | Linux foundation (L-0)
+- CMake project with `contribusage_core` and the plasmoid `org.contribusage.widget`; Qt Test suites under `tests/`; CI in an Arch container.
+- The macOS tree is removed (tag `macos-reference`); AGENTS.md, SPEC.md and the README describe the Linux port; ADR-041 records the decision.
