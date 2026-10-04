@@ -5,6 +5,7 @@ import org.kde.plasma.components as PlasmaComponents
 // One provider: header, limits, activity, insights (FR-4, SPEC §11.2).
 ColumnLayout {
     property var provider
+    property QtObject insightsState: null
 
     spacing: Theme.spacing
 
@@ -40,6 +41,9 @@ ColumnLayout {
         active: provider.insights !== undefined
         visible: active
         Layout.fillWidth: true
-        sourceComponent: InsightsSection { insights: provider.insights }
+        sourceComponent: InsightsSection {
+            insights: provider.insights
+            viewState: insightsState
+        }
     }
 }

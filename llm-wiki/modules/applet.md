@@ -34,5 +34,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 - The panel label shows only inside a panel containment: `plasmoidviewer -c org.kde.panel -f horizontal -l topedge -s 500x220` (or `-f vertical -l leftedge -s 220x500`). With `-f` alone the viewer's desktop shows the popup inline.
 
 - In live mode the activity, heatmap and GitHub blocks are hidden until their data exists (L-2b, L-3); `CONTRIBUSAGE_FAKE_DATA=1 plasmoidviewer …` shows the full preview.
+- The Insights open state and period live in `FullPopup.insightsState`, not in the section: live mode rebuilds the provider rows every minute.
+
 ## Related
 - [[decisions/0041-linux-plasmoid-port]]

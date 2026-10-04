@@ -164,6 +164,32 @@ private Q_SLOTS:
         const auto property = model->metaObject()->property(model->metaObject()->indexOfProperty("providers"));
         QVERIFY(property.hasNotifySignal());
     }
+
+    // Live mode rebuilds the provider rows every minute; the open Insights and the chosen period must survive that.
+    void insightsStateSurvivesRecreation() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        const auto insights = model->property("providers").toList().first().toMap().value(QStringLiteral("insights"));
+        QQmlComponent stateComponent(&engine);
+        stateComponent.setData("import QtQuick\nQtObject { property bool expanded: false; property int period: 0 }",
+                               QUrl());
+        std::unique_ptr<QObject> state(stateComponent.create());
+        QVERIFY(state);
+        QQmlComponent section(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/InsightsSection.qml")));
+        const QVariantMap properties{{QStringLiteral("insights"), insights},
+                                     {QStringLiteral("viewState"), QVariant::fromValue(state.get())}};
+        {
+            std::unique_ptr<QObject> first(section.createWithInitialProperties(properties));
+            QVERIFY2(first, qPrintable(section.errorString()));
+            QVERIFY(QMetaObject::invokeMethod(first.get(), "toggle"));
+            QVERIFY(QMetaObject::invokeMethod(first.get(), "selectPeriod", Q_ARG(QVariant, QVariant(1))));
+        }
+        std::unique_ptr<QObject> second(section.createWithInitialProperties(properties));
+        QVERIFY(second);
+        QCOMPARE(second->property("expanded").toBool(), true);
+        QCOMPARE(second->property("period").toInt(), 1);
+    }
 };
 
 QTEST_MAIN(TestAppletQml)

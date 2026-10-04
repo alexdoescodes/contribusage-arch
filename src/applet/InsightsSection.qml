@@ -6,17 +6,39 @@ import org.kde.plasma.components as PlasmaComponents
 
 // FR-38: collapsed by default; one period at a time, its shares, then the top three of each ranking.
 ColumnLayout {
+    id: section
+
     property var insights
-    property bool expanded: false
-    property int period: 0
+    // Owned by the popup, so the open state and the period survive the rows being rebuilt every minute.
+    property QtObject viewState: null
+    readonly property bool expanded: viewState ? viewState.expanded : localExpanded
+    readonly property int period: Math.min(viewState ? viewState.period : localPeriod, insights.periods.length - 1)
     readonly property var shown: insights.periods[period]
+    property bool localExpanded: false
+    property int localPeriod: 0
+
+    function toggle() {
+        if (viewState) {
+            viewState.expanded = !expanded;
+        } else {
+            localExpanded = !expanded;
+        }
+    }
+
+    function selectPeriod(index) {
+        if (viewState) {
+            viewState.period = index;
+        } else {
+            localPeriod = index;
+        }
+    }
 
     spacing: 4
 
     PlasmaComponents.ToolButton {
         text: "Insights"
         icon.name: parent.expanded ? "arrow-down" : "arrow-right"
-        onClicked: parent.expanded = !parent.expanded
+        onClicked: section.toggle()
         QQC2.ToolTip.text: insights.note
         QQC2.ToolTip.visible: hovered
         QQC2.ToolTip.delay: 200
@@ -29,7 +51,7 @@ ColumnLayout {
         PlasmaComponents.TabBar {
             currentIndex: period
             Layout.fillWidth: true
-            onCurrentIndexChanged: period = currentIndex
+            onCurrentIndexChanged: section.selectPeriod(currentIndex)
 
             Repeater {
                 model: insights.periods

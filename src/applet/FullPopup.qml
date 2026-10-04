@@ -4,6 +4,14 @@ import org.kde.kirigami as Kirigami
 
 // SPEC §11.2: the blocks in the default order, separated by dividers, then the footer.
 ColumnLayout {
+    id: popup
+
+    // The Insights open state and period, kept while the provider rows are rebuilt (one provider so far).
+    property QtObject insightsState: QtObject {
+        property bool expanded: false
+        property int period: 0
+    }
+
     implicitWidth: Theme.popupWidth
     Layout.preferredWidth: Theme.popupWidth
     spacing: 0
@@ -13,6 +21,7 @@ ColumnLayout {
         ProviderGroup {
             required property var modelData
             provider: modelData
+            insightsState: popup.insightsState
             Layout.fillWidth: true
             Layout.margins: Theme.padding
         }

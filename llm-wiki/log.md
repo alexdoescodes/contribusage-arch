@@ -474,3 +474,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Real Claude Code limits (L-2a)
 - `src/claudecode/`: parser, locator, probe, limits job and view; the widget shows the real limits and insights, cached in `state.json`.
 - Claude Code 2.1.289 prints reset times as "Oct 5, 6am"; P-7 gained the comma forms. L-2c records synced transcripts from another machine as a later task.
+
+## [2026-10-05] fix | L-2a review fix
+- The Insights open state and period survive the minute refresh in live mode.
