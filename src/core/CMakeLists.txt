@@ -1,4 +1,6 @@
 add_library(contribusage_core STATIC
+    display.cpp
+    display.h
     version.cpp
     version.h)
 target_compile_definitions(contribusage_core PRIVATE CONTRIBUSAGE_VERSION="${PROJECT_VERSION}")

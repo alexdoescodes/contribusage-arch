@@ -17,3 +17,7 @@ target_compile_definitions(tst_appletqml PRIVATE
     CONTRIBUSAGE_APPLET_PATH="$<TARGET_FILE:org.contribusage.widget>")
 set_tests_properties(tst_appletqml PROPERTIES ENVIRONMENT QT_QPA_PLATFORM=offscreen)
 add_dependencies(tst_appletqml org.contribusage.widget)
+
+ecm_add_test(core/tst_display.cpp
+    TEST_NAME tst_display
+    LINK_LIBRARIES contribusage_core Qt6::Test)
