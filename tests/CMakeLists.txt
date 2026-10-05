@@ -78,3 +78,10 @@ ecm_add_test(claudecode/tst_limitsview.cpp
 ecm_add_test(github/tst_githubreport.cpp
     TEST_NAME tst_githubreport
     LINK_LIBRARIES contribusage_github Qt6::Test)
+
+ecm_add_test(github/tst_githubclient.cpp
+    TEST_NAME tst_githubclient
+    LINK_LIBRARIES contribusage_github Qt6::Test)
+target_include_directories(tst_githubclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(tst_githubclient PRIVATE
+    CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/github/fixtures")

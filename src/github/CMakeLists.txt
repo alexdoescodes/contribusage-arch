@@ -1,6 +1,8 @@
 add_library(contribusage_github STATIC
     githubreport.cpp
-    githubreport.h)
+    githubreport.h
+    githubclient.cpp
+    githubclient.h)
 target_include_directories(contribusage_github PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_link_libraries(contribusage_github PUBLIC contribusage_core)
 # Linked into the shared applet library.
