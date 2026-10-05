@@ -106,6 +106,57 @@ private Q_SLOTS:
         const QVariantMap stale = labelView(SourceState<LimitsReport>::loaded(snapshot(31 * 60)), now);
         QCOMPARE(stale.value(QStringLiteral("text")).toString(), QStringLiteral("~23%"));
     }
+
+    // Review Focus 1: no data yet is a skeleton, without a status line.
+    void firstLoadIsASkeleton() {
+        const QVariantMap view = limitsView(SourceState<LimitsReport>::loading(std::nullopt), now);
+        QVERIFY(view.value(QStringLiteral("skeleton")).toBool());
+        QVERIFY(!limitsView(SourceState<LimitsReport>::loaded(snapshot(60)), now)
+                     .value(QStringLiteral("skeleton"))
+                     .toBool());
+    }
+
+    // Review Focus 2: SPEC §11.3, failed: an error line and Retry.
+    void failureOffersRetry() {
+        const QVariantMap view =
+            limitsView(SourceState<LimitsReport>::failed({.kind = SourceError::Kind::TimedOut}, snapshot(60)), now);
+        const QVariantMap action = view.value(QStringLiteral("action")).toMap();
+        QCOMPARE(action.value(QStringLiteral("kind")).toString(), QStringLiteral("retry"));
+        QCOMPARE(action.value(QStringLiteral("text")).toString(), QStringLiteral("Retry"));
+    }
+
+    // Review Focus 3: unparseable output can be shown.
+    void unparseableOffersRawOutput() {
+        const QVariantMap view = limitsView(
+            SourceState<LimitsReport>::failed(
+                {.kind = SourceError::Kind::Unparseable, .text = QStringLiteral("odd output")}, snapshot(60)),
+            now);
+        QCOMPARE(view.value(QStringLiteral("action")).toMap().value(QStringLiteral("kind")).toString(),
+                 QStringLiteral("raw"));
+        QCOMPARE(view.value(QStringLiteral("rawOutput")).toString(), QStringLiteral("odd output"));
+    }
+
+    void notFoundOffersLocate() {
+        const QVariantMap view =
+            limitsView(SourceState<LimitsReport>::notConfigured(NotConfiguredReason::ToolNotInstalled), now);
+        const QVariantMap action = view.value(QStringLiteral("action")).toMap();
+        QCOMPARE(action.value(QStringLiteral("kind")).toString(), QStringLiteral("configure"));
+        QCOMPARE(action.value(QStringLiteral("text")).toString(), QStringLiteral("Locate…"));
+        QVERIFY(!limitsView(SourceState<LimitsReport>::loaded(snapshot(60)), now).contains(QStringLiteral("action")));
+    }
+
+    // FR-51: what the label styles need besides the text.
+    void labelCarriesTitleCompanionAndStale() {
+        const QVariantMap label = labelView(SourceState<LimitsReport>::loaded(snapshot(60)), now);
+        QCOMPARE(label.value(QStringLiteral("title")).toString(), QStringLiteral("Claude Code"));
+        QVERIFY(label.value(QStringLiteral("companion")).toDouble() >= 0);
+        QVERIFY(!label.value(QStringLiteral("stale")).toBool());
+        QCOMPARE(label.value(QStringLiteral("source")).toString(), QStringLiteral("claude-code"));
+        QCOMPARE(labelView(SourceState<LimitsReport>::loading(std::nullopt), now)
+                     .value(QStringLiteral("companion"))
+                     .toDouble(),
+                 -1.0);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestLimitsView)

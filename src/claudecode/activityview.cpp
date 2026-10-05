@@ -9,7 +9,10 @@ namespace contribusage::claudecode {
 QVariantMap activityView(const SourceState<ActivityReport> &state, QDate today) {
     const auto snapshot = state.snapshot();
     if (!snapshot) {
-        return {};
+        if (state.phase == SourceState<ActivityReport>::Phase::NotConfigured) {
+            return {{QStringLiteral("statusText"), QStringLiteral("No Claude Code sessions found on this machine")}};
+        }
+        return {{QStringLiteral("skeleton"), true}};
     }
     QHash<QDate, ActivityDay> byDay;
     for (const ActivityDay &day : snapshot->value.days) {

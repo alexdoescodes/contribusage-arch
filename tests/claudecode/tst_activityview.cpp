@@ -64,9 +64,15 @@ private Q_SLOTS:
                  QString(QStringLiteral("Today: 0 requests · 0 sessions · ") + compactCount(0)));
     }
 
-    void withoutASnapshotTheBlockIsHidden() {
-        QVERIFY(activityView(SourceState<ActivityReport>::notConfigured(NotConfiguredReason::NoLocalData), today)
-                    .isEmpty());
+    // SPEC §11.3: no transcripts is a message, the first scan a skeleton; the heatmap layer waits for data.
+    void statesWithoutASnapshot() {
+        const QVariantMap none =
+            activityView(SourceState<ActivityReport>::notConfigured(NotConfiguredReason::NoLocalData), today);
+        QCOMPARE(none.value(QStringLiteral("statusText")).toString(),
+                 QStringLiteral("No Claude Code sessions found on this machine"));
+        QVERIFY(activityView(SourceState<ActivityReport>::loading(std::nullopt), today)
+                    .value(QStringLiteral("skeleton"))
+                    .toBool());
         QVERIFY(!activityLayer(SourceState<ActivityReport>::loading(std::nullopt), today));
     }
 
@@ -93,7 +99,8 @@ private Q_SLOTS:
         const auto githubState = GitHubState::loaded(
             {.value = report, .fetchedAt = QDateTime::currentDateTimeUtc(), .origin = origins::github()});
         QList<HeatmapLayer> layers;
-        for (const auto &layer : {activityLayer(loaded({day(today, 991)}), today), github::githubLayer(githubState)}) {
+        for (const auto &layer : {activityLayer(loaded({day(today, 991)}), today),
+                                  github::githubLayer(githubState, QDateTime::currentDateTimeUtc())}) {
             if (layer) {
                 layers.append(*layer);
             }

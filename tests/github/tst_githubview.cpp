@@ -88,6 +88,27 @@ private Q_SLOTS:
         QCOMPARE(heatmap.value(QStringLiteral("layers")).toList().size(), 1);
         QVERIFY(githubHeatmap(SourceState<GitHubReport>::loading(std::nullopt), now.date()).isEmpty());
     }
+
+    void loadingIsASkeletonAndFailuresOfferRetry() {
+        const QVariantMap loading = githubView(SourceState<GitHubReport>::loading(std::nullopt), now);
+        QVERIFY(loading.value(QStringLiteral("skeleton")).toBool());
+        QCOMPARE(loading.value(QStringLiteral("statusText")).toString(), QString());
+        const QVariantMap offline =
+            githubView(SourceState<GitHubReport>::failed({.kind = SourceError::Kind::Offline}, snapshot(60)), now);
+        QCOMPARE(offline.value(QStringLiteral("action")).toMap().value(QStringLiteral("kind")).toString(),
+                 QStringLiteral("retry"));
+        const QVariantMap rejected =
+            githubView(SourceState<GitHubReport>::failed({.kind = SourceError::Kind::Unauthorized}, snapshot(60)), now);
+        QVERIFY(!rejected.contains(QStringLiteral("action"))); // the token form is the action (ADR-043)
+    }
+
+    // SPEC §11.3: a stale layer is dimmed like its section.
+    void staleLayerIsDimmed() {
+        QVERIFY(!githubLayer(SourceState<GitHubReport>::loaded(snapshot(60)), now)->dimmed);
+        QVERIFY(githubLayer(SourceState<GitHubReport>::loaded(snapshot(3 * 3600)), now)->dimmed);
+        QVERIFY(githubLayer(SourceState<GitHubReport>::failed({.kind = SourceError::Kind::Offline}, snapshot(60)), now)
+                    ->dimmed);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestGitHubView)

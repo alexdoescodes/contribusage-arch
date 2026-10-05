@@ -74,6 +74,20 @@ private Q_SLOTS:
         QVERIFY(yesterday.value(QStringLiteral("stripes")).toList().isEmpty());
         QVERIFY(heatmapView({}, today).isEmpty());
     }
+
+    void dimmedLayersMarkTheirStripes() {
+        const QDate today(2026, 10, 5);
+        const HeatmapLayer layer{.name = QStringLiteral("GitHub"),
+                                 .hue = QStringLiteral("github"),
+                                 .levels = {{today, 3}},
+                                 .texts = {},
+                                 .dimmed = true};
+        const QVariantMap view = heatmapView({layer}, today);
+        QVERIFY(view.value(QStringLiteral("layers")).toList().first().toMap().value(QStringLiteral("dimmed")).toBool());
+        const QVariantList stripes =
+            view.value(QStringLiteral("cells")).toList().last().toMap().value(QStringLiteral("stripes")).toList();
+        QVERIFY(stripes.first().toMap().value(QStringLiteral("dimmed")).toBool());
+    }
 };
 
 QTEST_GUILESS_MAIN(TestHeatmap)

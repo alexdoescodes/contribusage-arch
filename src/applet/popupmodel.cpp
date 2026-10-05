@@ -268,8 +268,8 @@ QVariantMap PopupModel::heatmap() const {
     }
     const QDate today = QDate::currentDate();
     QList<HeatmapLayer> layers;
-    for (const auto &layer :
-         {claudecode::activityLayer(m_activityJob->state(), today), github::githubLayer(m_githubJob->state())}) {
+    for (const auto &layer : {claudecode::activityLayer(m_activityJob->state(), today),
+                              github::githubLayer(m_githubJob->state(), QDateTime::currentDateTime())}) {
         if (layer) {
             layers.append(*layer);
         }

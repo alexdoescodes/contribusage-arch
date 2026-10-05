@@ -43,7 +43,9 @@ QVariantMap heatmapView(const QList<HeatmapLayer> &layers, QDate today) {
     }
     QVariantList layerList;
     for (const HeatmapLayer &layer : layers) {
-        layerList.append(QVariantMap{{QStringLiteral("name"), layer.name}, {QStringLiteral("hue"), layer.hue}});
+        layerList.append(QVariantMap{{QStringLiteral("name"), layer.name},
+                                     {QStringLiteral("hue"), layer.hue},
+                                     {QStringLiteral("dimmed"), layer.dimmed}});
     }
     const QList<QDate> days = heatmapDays(today);
     QVariantList cells;
@@ -54,7 +56,9 @@ QVariantMap heatmapView(const QList<HeatmapLayer> &layers, QDate today) {
             line += QStringLiteral(" · ") + layer.name + QStringLiteral(": ") +
                     layer.texts.value(date, QStringLiteral("no data"));
             if (const int level = layer.levels.value(date); level > 0) {
-                stripes.append(QVariantMap{{QStringLiteral("hue"), layer.hue}, {QStringLiteral("level"), level}});
+                stripes.append(QVariantMap{{QStringLiteral("hue"), layer.hue},
+                                           {QStringLiteral("level"), level},
+                                           {QStringLiteral("dimmed"), layer.dimmed}});
             }
         }
         cells.append(QVariantMap{{QStringLiteral("line"), line}, {QStringLiteral("stripes"), stripes}});

@@ -91,6 +91,20 @@ QVariantMap limitsView(const SourceState<LimitsReport> &state, const QDateTime &
     if (const auto snapshot = state.snapshot(); snapshot && snapshot->value.insights) {
         view.insert(QStringLiteral("insights"), insightsView(*snapshot->value.insights));
     }
+    using Phase = SourceState<LimitsReport>::Phase;
+    view.insert(QStringLiteral("skeleton"), state.phase == Phase::Loading && !state.snapshot());
+    const auto action = [&view](const QString &kind, const QString &text) {
+        view.insert(QStringLiteral("action"),
+                    QVariantMap{{QStringLiteral("kind"), kind}, {QStringLiteral("text"), text}});
+    };
+    if (state.phase == Phase::NotConfigured && state.reason == NotConfiguredReason::ToolNotInstalled) {
+        action(QStringLiteral("configure"), QStringLiteral("Locate…"));
+    } else if (state.phase == Phase::Failed && state.error->kind == SourceError::Kind::Unparseable) {
+        action(QStringLiteral("raw"), QStringLiteral("Show raw output"));
+        view.insert(QStringLiteral("rawOutput"), state.error->text);
+    } else if (state.phase == Phase::Failed) {
+        action(QStringLiteral("retry"), QStringLiteral("Retry"));
+    }
     return view;
 }
 
@@ -105,7 +119,10 @@ QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &n
     return {{QStringLiteral("text"), label.text},
             {QStringLiteral("fraction"), meter},
             {QStringLiteral("level"), meterLevelName(meterLevel(meter * 100))},
-            {QStringLiteral("stale"), label.stale}};
+            {QStringLiteral("stale"), label.stale},
+            {QStringLiteral("title"), label.title},
+            {QStringLiteral("companion"), label.companion.value_or(-1.0)},
+            {QStringLiteral("source"), label.source}};
 }
 
 } // namespace contribusage::claudecode

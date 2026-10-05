@@ -21,6 +21,7 @@ struct HeatmapLayer {
     QString hue; // the Theme color key: "claude", "github"
     QHash<QDate, int> levels;
     QHash<QDate, QString> texts;
+    bool dimmed = false; // stale or failed source: drawn at half strength (SPEC §11.3)
 };
 
 // The heatmap block for QML: `layers` (name, hue), `columns` and one cell per heatmapDays() day with its stripes (one
