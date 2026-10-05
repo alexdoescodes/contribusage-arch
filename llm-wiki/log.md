@@ -506,3 +506,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] fix | L-1c review fixes
 - The 6 h unsupported-plan re-check is an interval override, not a hold, so Refresh still runs; a source back online runs within its manual floor, and an offline failure does not grow the backoff.
 - A run that never answers ends after 2 min; a late answer for an ended run is ignored.
+
+
+## [2026-10-05] feat | Widget states, label styles, heatmap keys (L-4)
+- SPEC §11.3's states in the popup: skeletons, Retry, Locate…, Show raw output, no local data, dimmed stale layers.
+- The panel label in all seven FR-51 styles and tints from the plasmoid configuration; the heatmap walks with the arrow keys.
