@@ -74,4 +74,25 @@ QVariantMap githubHeatmap(const SourceState<GitHubReport> &state, QDate today) {
     return layer ? heatmapView({*layer}, today) : QVariantMap();
 }
 
+std::optional<MenuBarGitHub> githubMenuBar(const SourceState<GitHubReport> &state, QDate today,
+                                           Qt::DayOfWeek firstDayOfWeek, const QDateTime &now) {
+    const auto snapshot = state.snapshot();
+    if (!snapshot) {
+        return std::nullopt;
+    }
+    MenuBarGitHub data;
+    const QDate weekStart = today.addDays(-((today.dayOfWeek() - int(firstDayOfWeek) + 7) % 7));
+    for (const ContributionDay &day : snapshot->value.calendar.days()) {
+        if (day.date == today) {
+            data.today = day.count;
+            data.level = day.level;
+        }
+        if (day.date >= weekStart && day.date <= today && day.count > 0) {
+            ++data.activeDays;
+        }
+    }
+    data.stale = snapshot->isStale(now, staleAfterSeconds) || state.phase == SourceState<GitHubReport>::Phase::Failed;
+    return data;
+}
+
 } // namespace contribusage::github

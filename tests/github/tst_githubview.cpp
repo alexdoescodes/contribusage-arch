@@ -109,6 +109,17 @@ private Q_SLOTS:
         QVERIFY(githubLayer(SourceState<GitHubReport>::failed({.kind = SourceError::Kind::Offline}, snapshot(60)), now)
                     ->dimmed);
     }
+
+    // FR-12, FR-20: the GitHub label modes' data.
+    void menuBarDataIsTodayAndTheWeek() {
+        const auto data = githubMenuBar(SourceState<GitHubReport>::loaded(snapshot(60)), now.date(), Qt::Monday, now);
+        QVERIFY(data);
+        QCOMPARE(data->today, 4);
+        QCOMPARE(data->level, 3);
+        QVERIFY(data->activeDays >= 1 && data->activeDays <= 7);
+        QVERIFY(!data->stale);
+        QVERIFY(!githubMenuBar(SourceState<GitHubReport>::loading(std::nullopt), now.date(), Qt::Monday, now));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestGitHubView)

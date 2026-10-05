@@ -30,6 +30,14 @@ private Q_SLOTS:
         QVERIFY(!target.conditions().asleep);
         QVERIFY(target.conditions().lastWake.has_value());
     }
+
+    // Review Focus 5, SPEC §12 rule 3.
+    void powerSaverIsLowPower() {
+        QVERIFY(lowPowerFromProfile(QStringLiteral("power-saver")));
+        QVERIFY(!lowPowerFromProfile(QStringLiteral("balanced")));
+        QVERIFY(!lowPowerFromProfile(QStringLiteral("performance")));
+        QVERIFY(!lowPowerFromProfile(QString()));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSystemConditions)

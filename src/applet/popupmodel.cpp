@@ -538,6 +538,9 @@ QVariantList PopupModel::providers() const {
 }
 
 QVariantMap PopupModel::label() const {
-    return m_fake ? m_label
-                  : claudecode::labelView(m_job->state(), QDateTime::currentDateTime(), MenuBarMode(m_menuBarMode));
+    return m_fake
+               ? m_label
+               : claudecode::labelView(m_job->state(), QDateTime::currentDateTime(), MenuBarMode(m_menuBarMode),
+                                       github::githubMenuBar(m_githubJob->state(), QDate::currentDate(),
+                                                             QLocale().firstDayOfWeek(), QDateTime::currentDateTime()));
 }

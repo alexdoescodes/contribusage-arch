@@ -15,6 +15,6 @@ QVariantMap limitsView(const SourceState<LimitsReport> &state, const QDateTime &
 
 // SPEC §11.1: the session window's text, fraction and level for the panel label; "?" without one.
 QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now,
-                      MenuBarMode mode = MenuBarMode::Primary);
+                      MenuBarMode mode = MenuBarMode::Primary, std::optional<MenuBarGitHub> github = std::nullopt);
 
 } // namespace contribusage::claudecode
