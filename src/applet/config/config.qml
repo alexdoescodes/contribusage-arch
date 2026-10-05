@@ -14,6 +14,11 @@ ConfigModel {
         source: "ConfigPopover.qml"
     }
     ConfigCategory {
+        name: "Appearance"
+        icon: "preferences-desktop-theme"
+        source: "ConfigAppearance.qml"
+    }
+    ConfigCategory {
         name: "Claude Code"
         icon: "draw-star"
         source: "ConfigClaudeCode.qml"

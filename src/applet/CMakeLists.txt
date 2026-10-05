@@ -5,7 +5,7 @@ plasma_add_applet(org.contribusage.widget
         ProviderGroup.qml HeatmapBlock.qml GitHubSection.qml Footer.qml FullPopup.qml
         PromptGlyph.qml CompactLabel.qml Skeleton.qml ActionButton.qml
         LabelContent.qml RingGlyph.qml LineGlyph.qml MiniHeatmap.qml
-        ConfigGeneral.qml ConfigClaudeCode.qml ConfigGitHub.qml ConfigAdvanced.qml ConfigPopover.qml
+        ConfigGeneral.qml ConfigClaudeCode.qml ConfigGitHub.qml ConfigAdvanced.qml ConfigPopover.qml ConfigAppearance.qml
     CPP_SOURCES appinfo.cpp appinfo.h popupmodel.cpp popupmodel.h
     GENERATE_APPLET_CLASS)
 # The configuration schema (main.xml) and the dialog's model (config.qml) at the module root, where Plasma looks for

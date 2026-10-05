@@ -52,14 +52,31 @@ private Q_SLOTS:
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
-        for (const auto *name : {"main",          "Theme",           "SectionHeader",
-                                 "LimitBar",      "ActivitySection", "InsightsSection",
-                                 "ProviderGroup", "HeatmapBlock",    "GitHubSection",
-                                 "Footer",        "FullPopup",       "PromptGlyph",
-                                 "CompactLabel",  "Skeleton",        "ActionButton",
-                                 "LabelContent",  "RingGlyph",       "LineGlyph",
-                                 "MiniHeatmap",   "ConfigGeneral",   "ConfigClaudeCode",
-                                 "ConfigGitHub",  "ConfigAdvanced"}) {
+        for (const auto *name : {"main",
+                                 "Theme",
+                                 "SectionHeader",
+                                 "LimitBar",
+                                 "ActivitySection",
+                                 "InsightsSection",
+                                 "ProviderGroup",
+                                 "HeatmapBlock",
+                                 "GitHubSection",
+                                 "Footer",
+                                 "FullPopup",
+                                 "PromptGlyph",
+                                 "CompactLabel",
+                                 "Skeleton",
+                                 "ActionButton",
+                                 "LabelContent",
+                                 "RingGlyph",
+                                 "LineGlyph",
+                                 "MiniHeatmap",
+                                 "ConfigGeneral",
+                                 "ConfigClaudeCode",
+                                 "ConfigGitHub",
+                                 "ConfigAdvanced",
+                                 "ConfigPopover",
+                                 "ConfigAppearance"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }
@@ -445,8 +462,8 @@ private Q_SLOTS:
         QFile file(QStringLiteral(":/qt/qml/plasma/applet/org/contribusage/widget/config.qml"));
         QVERIFY(file.open(QIODevice::ReadOnly));
         const QByteArray text = file.readAll();
-        for (const char *page :
-             {"ConfigGeneral.qml", "ConfigClaudeCode.qml", "ConfigGitHub.qml", "ConfigAdvanced.qml"}) {
+        for (const char *page : {"ConfigGeneral.qml", "ConfigClaudeCode.qml", "ConfigGitHub.qml", "ConfigAdvanced.qml",
+                                 "ConfigPopover.qml", "ConfigAppearance.qml"}) {
             QVERIFY2(text.contains(page), page);
         }
     }
