@@ -146,3 +146,7 @@ ecm_add_test(core/tst_schedule.cpp
 ecm_add_test(core/tst_sourceschedule.cpp
     TEST_NAME tst_sourceschedule
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(platform/tst_systemconditions.cpp
+    TEST_NAME tst_systemconditions
+    LINK_LIBRARIES contribusage_platform Qt6::Test)
