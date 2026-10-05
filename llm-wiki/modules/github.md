@@ -7,7 +7,7 @@ tags: [github]
 ---
 # ContribusageGitHub
 
-> In C++ (`src/github/`, target `contribusage_github`, links only the core): `githubreport` (types, FR-19 statistics, JSON), `githubclient` (GraphQL over the `HttpTransport` seam, §8.4.3 mapping), `githubaccount` (validated token in the `SecretStore` seam), `githubjob` (30 min, `state.json` under `github`, 401 pause, rate-limit wait) and `githubview` (block and heatmap layer for QML). The live seams are `src/platform/` (`NetworkTransport`, `KWalletSecretStore`). Below: the Swift implementation at `macos-reference` (`2603a21`).
+> In C++ (`src/github/`, target `contribusage_github`, links only the core): `githubreport` (types, FR-19 statistics, JSON), `githubclient` (GraphQL over the `HttpTransport` seam, §8.4.3 mapping), `githubaccount` (validated token in the `SecretStore` seam), `githubjob` (30 min, `state.json` under `github`, a pause after a 401, a missing token or a refused wallet, rate-limit wait; a token change drops the old account and any fetch still running with it) and `githubview` (block and heatmap layer for QML). The live seams are `src/platform/` (`NetworkTransport`, `KWalletSecretStore`). Below: the Swift implementation at `macos-reference` (`2603a21`).
 
 GitHub contributions: the GraphQL client, token validation and contribution statistics (today, week, streaks). GitHub is a separate, always-available source, not a provider. The token is read only through `SecretStore` and never logged.
 

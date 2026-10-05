@@ -10,8 +10,10 @@
 class FakeSecretStore final : public contribusage::SecretStore {
 public:
     void read(const QString &key, QObject *context, std::function<void(contribusage::SecretRead)> done) override {
-        const contribusage::SecretRead outcome =
-            values.contains(key) ? std::optional<QString>(values.value(key)) : std::optional<QString>();
+        ++reads;
+        const contribusage::SecretRead outcome = failure ? contribusage::SecretRead(std::unexpected(*failure))
+                                                 : values.contains(key) ? std::optional<QString>(values.value(key))
+                                                                        : std::optional<QString>();
         later(context, [outcome, done = std::move(done)] { done(outcome); });
     }
     void write(const QString &key, const QString &value, QObject *context,
@@ -20,11 +22,17 @@ public:
         later(context, [done = std::move(done)] { done({}); });
     }
     void remove(const QString &key, QObject *context, std::function<void(contribusage::SecretWrite)> done) override {
-        values.remove(key);
-        later(context, [done = std::move(done)] { done({}); });
+        const contribusage::SecretWrite outcome =
+            failure ? contribusage::SecretWrite(std::unexpected(*failure)) : contribusage::SecretWrite();
+        if (!failure) {
+            values.remove(key);
+        }
+        later(context, [outcome, done = std::move(done)] { done(outcome); });
     }
 
     QMap<QString, QString> values;
+    std::optional<contribusage::SourceError> failure; // read and remove answer with it (KWallet unavailable or denied)
+    int reads = 0;
 
 private:
     static void later(QObject *context, std::function<void()> action) {

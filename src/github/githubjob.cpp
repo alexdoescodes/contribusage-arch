@@ -33,6 +33,12 @@ std::optional<Snapshot<GitHubReport>> load(const AppPaths &paths) {
         .value = *report, .fetchedAt = fetchedAt, .origin = entry.value(QStringLiteral("origin")).toString()};
 }
 
+bool clear(const AppPaths &paths) {
+    QJsonObject root = state(paths);
+    root.remove(QStringLiteral("github"));
+    return jsonstore::write(file(paths), limitscache::schemaVersion, root).has_value();
+}
+
 bool save(const AppPaths &paths, const Snapshot<GitHubReport> &snapshot) {
     QJsonObject root = state(paths);
     root.insert(QStringLiteral("github"),
@@ -63,13 +69,33 @@ void GitHubJob::refresh() {
     }
     m_fetching = true;
     m_account.report(QDateTime::currentDateTime(), QLocale().firstDayOfWeek(), this,
-                     [this](std::expected<GitHubReport, SourceError> outcome) { finish(std::move(outcome)); });
+                     [this, generation = m_generation](std::expected<GitHubReport, SourceError> outcome) {
+                         if (generation == m_generation) {
+                             finish(std::move(outcome));
+                         }
+                     });
 }
 
 void GitHubJob::tokenChanged() {
+    ++m_generation;
+    m_fetching = false;
     m_paused = false;
     m_waitUntil = {};
+    githubcache::clear(m_paths);
+    m_state = SourceState<GitHubReport>::loading(std::nullopt);
+    Q_EMIT stateChanged();
     refresh();
+}
+
+void GitHubJob::disconnectAccount() {
+    m_account.disconnect(this, [this](SecretWrite removed) {
+        if (removed) {
+            tokenChanged();
+            return;
+        }
+        m_state = SourceState<GitHubReport>::failed(removed.error(), m_state.snapshot());
+        Q_EMIT stateChanged();
+    });
 }
 
 void GitHubJob::finish(std::expected<GitHubReport, SourceError> outcome) {
@@ -80,10 +106,12 @@ void GitHubJob::finish(std::expected<GitHubReport, SourceError> outcome) {
         githubcache::save(m_paths, snapshot);
         m_state = SourceState<GitHubReport>::loaded(snapshot);
     } else if (outcome.error().kind == SourceError::Kind::TokenMissing) {
+        m_paused = true;
         m_state = SourceState<GitHubReport>::notConfigured(NotConfiguredReason::GithubTokenMissing);
     } else {
-        if (outcome.error().kind == SourceError::Kind::Unauthorized) {
-            m_paused = true; // ADR-022
+        // ADR-022; Io comes only from the secret store here: a denied or missing wallet is not asked again.
+        if (outcome.error().kind == SourceError::Kind::Unauthorized || outcome.error().kind == SourceError::Kind::Io) {
+            m_paused = true;
         } else if (outcome.error().kind == SourceError::Kind::RateLimited) {
             m_waitUntil = outcome.error().until; // ADR-020
         }

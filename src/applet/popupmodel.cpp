@@ -283,7 +283,7 @@ void PopupModel::disconnectGitHub() {
     if (m_fake) {
         return;
     }
-    m_githubAccount->disconnect(this, [this](SecretWrite) { m_githubJob->tokenChanged(); });
+    m_githubJob->disconnectAccount();
 }
 
 QVariantList PopupModel::providers() const {

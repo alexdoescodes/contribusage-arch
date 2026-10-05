@@ -20,7 +20,11 @@ QVariantMap githubView(const SourceState<GitHubReport> &state, const QDateTime &
                      {QStringLiteral("updatedText"), QString()},
                      {QStringLiteral("statusText"), QString()},
                      {QStringLiteral("connected"), state.phase != Phase::NotConfigured},
-                     {QStringLiteral("stale"), false}};
+                     {QStringLiteral("stale"), false},
+                     // ADR-043: the token form shows while no token is saved and after GitHub rejected it.
+                     {QStringLiteral("needsToken"),
+                      state.phase == Phase::NotConfigured ||
+                          (state.phase == Phase::Failed && state.error->kind == SourceError::Kind::Unauthorized)}};
     if (const auto snapshot = state.snapshot()) {
         const GitHubReport &report = snapshot->value;
         view.insert(QStringLiteral("login"), QString(u'@' + report.calendar.login));

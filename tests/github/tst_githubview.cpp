@@ -58,6 +58,21 @@ private Q_SLOTS:
         QVERIFY(view.value(QStringLiteral("stale")).toBool());
     }
 
+    // A rejected token brings the token form back (ADR-043); a working account does not show it.
+    void needsTokenWhenMissingOrRejected() {
+        using State = SourceState<GitHubReport>;
+        QVERIFY(githubView(State::notConfigured(NotConfiguredReason::GithubTokenMissing), now)
+                    .value(QStringLiteral("needsToken"))
+                    .toBool());
+        QVERIFY(githubView(State::failed({.kind = SourceError::Kind::Unauthorized}, snapshot(60)), now)
+                    .value(QStringLiteral("needsToken"))
+                    .toBool());
+        QVERIFY(!githubView(State::failed({.kind = SourceError::Kind::Offline}, snapshot(60)), now)
+                     .value(QStringLiteral("needsToken"))
+                     .toBool());
+        QVERIFY(!githubView(State::loaded(snapshot(60)), now).value(QStringLiteral("needsToken")).toBool());
+    }
+
     // FR-20: GitHub's levels as the heatmap's green layer over the shown range.
     void heatmapLayer() {
         const QVariantMap heatmap = githubHeatmap(SourceState<GitHubReport>::loaded(snapshot(60)), now.date());

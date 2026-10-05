@@ -484,3 +484,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | GitHub contributions (L-3)
 - `src/github/` and `src/platform/`: the GraphQL client, statistics, the account, a 30 min job and the view; the token in KWallet after validation.
 - The popup's GitHub block takes the token inline (ADR-043) and shows the green heatmap layer.
+
+## [2026-10-05] fix | L-3 review fixes
+- A token change drops a fetch still running and the old account in `state.json` (ADR-022); a refused disconnect shows as a failure.
+- The token form returns after a 401 (ADR-043); a missing token or a refused wallet pauses polling until the token changes.

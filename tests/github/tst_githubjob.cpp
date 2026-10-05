@@ -139,6 +139,75 @@ private Q_SLOTS:
         QTest::qWait(400); // several intervals pass, the reset does not
         QCOMPARE(fixture.transport.requests.size(), sent);
     }
+
+    // ADR-022: a fetch still running when the token changes finishes into nothing; its 401 does not pause the new
+    // token.
+    void staleFetchAfterTokenChangeIsDropped() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_old"));
+        fixture.transport.respond(401, "{}");
+        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        job.start();
+        QTRY_COMPARE(fixture.transport.requests.size(), qsizetype(1));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        job.tokenChanged();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        QTest::qWait(50);
+        QCOMPARE(job.state().phase, Phase::Loaded);
+    }
+
+    // ADR-022: a token change drops the old account from the view and from state.json.
+    void tokenChangeDropsTheCachedAccount() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        fixture.secrets.values.clear();
+        job.tokenChanged();
+        QVERIFY(!job.state().snapshot());
+        QVERIFY(!githubcache::load(fixture.paths()));
+        QTRY_COMPARE(job.state().phase, Phase::NotConfigured);
+    }
+
+    // A disconnect the wallet refuses is shown, and the account stays.
+    void disconnectFailureIsShown() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        fixture.secrets.failure =
+            SourceError{.kind = SourceError::Kind::Io, .text = QStringLiteral("KWallet is not available")};
+        job.disconnectAccount();
+        QTRY_COMPARE(job.state().phase, Phase::Failed);
+        QCOMPARE(job.state().error->kind, SourceError::Kind::Io);
+        QVERIFY(job.state().snapshot());
+        QVERIFY(fixture.secrets.values.contains(QStringLiteral("token")));
+    }
+
+    // A denied wallet or a missing token is not asked again on every interval; a token change asks again.
+    void walletFailureAndMissingTokenPausePolling_data() {
+        QTest::addColumn<bool>("denied");
+        QTest::newRow("wallet denied") << true;
+        QTest::newRow("no token") << false;
+    }
+    void walletFailureAndMissingTokenPausePolling() {
+        QFETCH(bool, denied);
+        Fixture fixture;
+        if (denied) {
+            fixture.secrets.failure = SourceError{.kind = SourceError::Kind::Io};
+        }
+        GitHubJob job(fixture.account, fixture.paths(), 100);
+        job.start();
+        QTRY_COMPARE(fixture.secrets.reads, 1);
+        QTest::qWait(400); // several intervals
+        QCOMPARE(fixture.secrets.reads, 1);
+        job.tokenChanged();
+        QTRY_COMPARE(fixture.secrets.reads, 2);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestGitHubJob)

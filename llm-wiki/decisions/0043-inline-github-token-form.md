@@ -21,7 +21,7 @@ SPEC §11.3 had the not-connected GitHub block open Settings, where the token is
 | Import from `gh auth token` (FR-21) | No typing | Reads another tool's credential store; FR-21 is P3 and button-only |
 
 ## Decision
-While no token is saved, the GitHub block shows a password field, Connect and a link to create a read-only token. The token is validated with `viewer { login }`, then saved in KWallet; the field is cleared on submit and the token never becomes a QML property.
+While no token is saved, and after GitHub rejected the saved one (401), the GitHub block shows a password field, Connect and a link to create a read-only token. The token is validated with `viewer { login }`, then saved in KWallet; the field is cleared on submit and the token never becomes a QML property.
 
 ## Consequences
 - The Settings pages (L-5) add Replace and Disconnect there; the popup form stays as the not-configured state.

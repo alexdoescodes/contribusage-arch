@@ -10,7 +10,7 @@ ColumnLayout {
     id: section
 
     property var github
-    readonly property bool connected: github.connected !== false
+    readonly property bool connected: github.connected !== false && github.needsToken !== true
 
     signal tokenSubmitted(string token)
 
