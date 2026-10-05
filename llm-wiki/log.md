@@ -480,3 +480,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-05] docs | L-3 plan: GitHub contributions
 - `docs/superpowers/plans/2026-10-05-l3-github.md`: the GraphQL client, statistics, the token in KWallet after validation, a 30 min job and an inline token form.
+
+## [2026-10-05] feat | GitHub contributions (L-3)
+- `src/github/` and `src/platform/`: the GraphQL client, statistics, the account, a 30 min job and the view; the token in KWallet after validation.
+- The popup's GitHub block takes the token inline (ADR-043) and shows the green heatmap layer.

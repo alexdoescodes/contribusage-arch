@@ -21,6 +21,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 ## Contract
 - QML singletons `AppInfo` (`version`), `PopupModel` (`providers`, `heatmap`, `github`, `label`; real Claude Code limits and insights since L-2a; the macOS preview data under CONTRIBUSAGE_FAKE_DATA=1) and `Theme` (every color, size and opacity; the customization layers of L-6 override it).
 - `main.qml`: a `PlasmoidItem` with `CompactLabel` (the `prompt` style) and `FullPopup` (the blocks of SPEC §11.2: `ProviderGroup` with `LimitBar`, `ActivitySection` and `InsightsSection`, then `HeatmapBlock`, `GitHubSection` and `Footer`).
+- `PopupModel.connectGitHub(token)` and `disconnectGitHub()`; `github` and `heatmap` are live (GitHub layer) since L-3.
 
 ## How it works
 `plasma_add_applet(org.contribusage.widget … GENERATE_APPLET_CLASS)` builds one shared library holding the QML and the C++ types, with `metadata.json` embedded by moc. It is written to `build/bin/plasma/applets/`; Plasma finds it by id under `plasma/applets` in the Qt plugin paths. `tests/applet/tst_appletplugin.cpp` finds it the same way, and `tst_appletqml.cpp` loads the plugin, compiles `main.qml` and resolves the `AppInfo` singleton, because the build itself does not reject an unknown QML type.
@@ -33,7 +34,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 - `switchWidth`/`switchHeight` make a desktop (and `plasmoidviewer -f planar`) show the popup inline, which is how its look is checked.
 - The panel label shows only inside a panel containment: `plasmoidviewer -c org.kde.panel -f horizontal -l topedge -s 500x220` (or `-f vertical -l leftedge -s 220x500`). With `-f` alone the viewer's desktop shows the popup inline.
 
-- In live mode the activity, heatmap and GitHub blocks are hidden until their data exists (L-2b, L-3); `CONTRIBUSAGE_FAKE_DATA=1 plasmoidviewer …` shows the full preview.
+- In live mode the activity block is hidden until its data exists (L-2b); the GitHub block shows an inline token form until a token is connected, and the heatmap shows GitHub's layer once contributions are fetched; `CONTRIBUSAGE_FAKE_DATA=1 plasmoidviewer …` shows the full preview.
 - The Insights open state and period live in `FullPopup.insightsState`, not in the section: live mode rebuilds the provider rows every minute.
 
 ## Related

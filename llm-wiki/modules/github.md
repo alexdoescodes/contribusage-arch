@@ -1,13 +1,13 @@
 ---
 type: module
-status: planned
-updated: 2026-10-04
-tracks: []
+status: active
+updated: 2026-10-05
+tracks: [src/github, tests/github]
 tags: [github]
 ---
 # ContribusageGitHub
 
-> Being ported to C++ for the Linux port (ADR-041), milestone M3. Until then this page describes the Swift implementation at the git tag `macos-reference` (commit `2603a21` on `main`).
+> In C++ (`src/github/`, target `contribusage_github`, links only the core): `githubreport` (types, FR-19 statistics, JSON), `githubclient` (GraphQL over the `HttpTransport` seam, §8.4.3 mapping), `githubaccount` (validated token in the `SecretStore` seam), `githubjob` (30 min, `state.json` under `github`, 401 pause, rate-limit wait) and `githubview` (block and heatmap layer for QML). The live seams are `src/platform/` (`NetworkTransport`, `KWalletSecretStore`). Below: the Swift implementation at `macos-reference` (`2603a21`).
 
 GitHub contributions: the GraphQL client, token validation and contribution statistics (today, week, streaks). GitHub is a separate, always-available source, not a provider. The token is read only through `SecretStore` and never logged.
 

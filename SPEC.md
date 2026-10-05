@@ -201,7 +201,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 ### US-4 (P1): See my GitHub contributions
 
 - **Given** a valid GitHub token is stored, **then** the popover shows GitHub's layer in the shared heatmap of the last 26 weeks (US-14), today's count, the current streak and the total for the last year.
-- **Given** no token is configured, **then** the GitHub section shows a "Connect GitHub" button that opens Settings.
+- **Given** no token is configured, **then** the GitHub section shows a token form: field, Connect, link to create a token (ADR-043).
 - **Given** the token is invalid or revoked, **then** the section says so and offers "Change token…", which opens Settings. Other sections keep working.
 
 ### US-5 (P2): See my Claude Code activity on this Mac
@@ -312,7 +312,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 
 | ID | Pri | Requirement |
 |---|---|---|
-| FR-16 | P1 | Store the GitHub token only in the Keychain (generic password, service `<bundle id>.github`, account `token`). Never in UserDefaults, files or logs. |
+| FR-16 | P1 | Store the GitHub token only in KWallet (Secret Service API), network wallet, folder contribusage, key token. Never in settings, files or logs. |
 | FR-17 | P1 | Validate a token by querying `viewer { login }`. Show the resolved login in Settings ("@login", "Connected"). |
 | FR-18 | P1 | Fetch the contribution calendar for the last 365 days via GraphQL ([8.4](#84-github-contributions)). |
 | FR-19 | P1 | Compute: today's count, this week's count (week starts per user locale), total for the range, current streak, longest streak within the range ([8.4.4](#844-statistics-rules)). |
@@ -1125,7 +1125,7 @@ public struct HeatmapLayer: Sendable, Equatable {
 |---|---|---|---|
 | Provider disabled | Group hidden | Group hidden | n/a |
 | Hidden by the user (FR-44), GitHub off (FR-43) | Section hidden | Section hidden | Block hidden |
-| Not configured | "Claude Code not found" + "Locate…" button | "No Claude Code sessions found on this Mac" | "Connect GitHub" button |
+| Not configured | "Claude Code not found" + "Locate…" button | "No Claude Code sessions found on this Mac" | token form: field, Connect, link to create a token (ADR-043) |
 | First load | Skeleton bars | Skeleton rows | Skeleton grid |
 | Loaded | Values | Values | Values |
 | Stale | Values dimmed + "updated 42 min ago" | n/a | Values dimmed + age |
@@ -1650,7 +1650,7 @@ The milestones of the port design (`docs/superpowers/specs/2026-10-04-linux-plas
 - [x] **L-2a** Claude Code limits live: locate `claude` (FR-6, Linux paths), the `/usage` probe every 5 min (FR-7, ADR-039), the parser with the comma reset format of 2.1.289, the error mapping (P-10, FR-9, §13), the last snapshot in `state.json` (FR-10), and the widget showing the real bars, insights and status; blocks without data hidden in live mode, the preview data under `CONTRIBUSAGE_FAKE_DATA=1`. Accept: `tst_usageparser`, `tst_claudelocator`, `tst_claudecodelimits`, `tst_limitscache`, `tst_limitsjob` and `tst_limitsview` pass; the viewer shows the same percentages as `claude -p /usage`.
 - [ ] **L-2b** Claude Code activity from local transcripts (needs L-1b).
 - [ ] **L-2c** Activity from transcripts synced from another machine where Claude Code also runs, counted with the local ones; after L-2b works locally. Decide first how it fits the §1.3 non-goal "no data from other devices".
-- [ ] **L-3** GitHub: client, token validation, statistics, with its tests ported.
+- [x] **L-3** GitHub: the GraphQL client (FR-17, FR-18, §8.4.3), statistics (FR-19), the token validated before KWallet saves it (FR-16, §14), a 30 min job with the 401 pause and the rate-limit wait (ADR-020, ADR-022), the green heatmap layer (FR-20), and the inline token form (ADR-043). Accept: `tst_githubreport`, `tst_githubclient`, `tst_githubaccount`, `tst_networktransport`, `tst_githubjob` and `tst_githubview` pass; with a real token the widget shows the login, the stats and the layer.
 - [ ] **L-4** Widget with the base look on real data: the remaining label styles, the section states of SPEC §11.3, keyboard navigation in the heatmap.
 - [ ] **L-5** Settings pages and notifications.
 - [ ] **L-6** Customization: look, theme tokens, QML overrides with fallback.
