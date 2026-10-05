@@ -94,13 +94,17 @@ private Q_SLOTS:
         QVERIFY(failed.value(QStringLiteral("stale")).toBool());              // and are dimmed
     }
 
+    // SPEC §11.1: the session's percent; "?" padded to two digits without data; "~" when stale.
     void labelShowsTheSessionOrUnknown() {
         const QVariantMap loaded = labelView(SourceState<LimitsReport>::loaded(snapshot(60)), now);
         QCOMPARE(loaded.value(QStringLiteral("text")).toString(), QStringLiteral("23%"));
         QCOMPARE(loaded.value(QStringLiteral("fraction")).toDouble(), 0.23);
         const QVariantMap unknown = labelView(SourceState<LimitsReport>::loading(std::nullopt), now);
-        QCOMPARE(unknown.value(QStringLiteral("text")).toString(), QStringLiteral("?"));
+        QCOMPARE(unknown.value(QStringLiteral("text")).toString(),
+                 QString(QString(QChar(0x2007)).repeated(2) + QStringLiteral("?")));
         QCOMPARE(unknown.value(QStringLiteral("fraction")).toDouble(), 0.0);
+        const QVariantMap stale = labelView(SourceState<LimitsReport>::loaded(snapshot(31 * 60)), now);
+        QCOMPARE(stale.value(QStringLiteral("text")).toString(), QStringLiteral("~23%"));
     }
 };
 

@@ -1,5 +1,9 @@
 #include "claudecode/limitsview.h"
 
+#include "claudecode/limitsjob.h"
+#include "claudecode/usageparser.h"
+#include "core/menubarlabel.h"
+
 #include "core/display.h"
 
 #include <QVariantList>
@@ -91,19 +95,17 @@ QVariantMap limitsView(const SourceState<LimitsReport> &state, const QDateTime &
 }
 
 QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now) {
-    if (const auto snapshot = state.snapshot()) {
-        for (const UsageWindow &window : snapshot->value.windows) {
-            if (window.kind == WindowKind::Session) {
-                return {
-                    {QStringLiteral("text"), percentText(window.usedPercent, window.isBelowOne, window.resetsAt, now)},
-                    {QStringLiteral("fraction"), barFraction(window.usedPercent, window.resetsAt, now)},
-                    {QStringLiteral("level"), meterLevelName(meterLevel(window.usedPercent, window.resetsAt, now))}};
-            }
-        }
-    }
-    return {{QStringLiteral("text"), QStringLiteral("?")},
-            {QStringLiteral("fraction"), 0.0},
-            {QStringLiteral("level"), QStringLiteral("normal")}};
+    const MenuBarProvider provider{.id = providerId(),
+                                   .displayName = QStringLiteral("Claude Code"),
+                                   .symbol = QStringLiteral("draw-star"),
+                                   .staleAfterMs = LimitsJob::defaultPolicy().staleAfterMs,
+                                   .limits = state.snapshot()};
+    const MenuBarLabel label = menuBarLabel(MenuBarMode::Primary, provider.id, {provider}, std::nullopt, now);
+    const double meter = label.meter.value_or(0.0);
+    return {{QStringLiteral("text"), label.text},
+            {QStringLiteral("fraction"), meter},
+            {QStringLiteral("level"), meterLevelName(meterLevel(meter * 100))},
+            {QStringLiteral("stale"), label.stale}};
 }
 
 } // namespace contribusage::claudecode

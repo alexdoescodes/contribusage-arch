@@ -13,4 +13,7 @@ PlasmoidItem {
     }
 
     fullRepresentation: FullPopup {}
+
+    // SPEC §12: the popup opening is a trigger for sources whose data is old (ADR-019).
+    onExpandedChanged: if (expanded) PopupModel.popupOpened()
 }

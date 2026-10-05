@@ -7,13 +7,13 @@ import org.kde.plasma.plasmoid
 // Refresh, Settings and Copy as icons with tooltips (SPEC §11.2). A widget has no Quit; Plasma removes it.
 RowLayout {
     PlasmaComponents.ToolButton {
+        objectName: "refreshButton"
         icon.name: "view-refresh"
         display: QQC2.AbstractButton.IconOnly
         text: "Refresh"
         QQC2.ToolTip.text: text
         QQC2.ToolTip.visible: hovered
-        // Wired to the refresh coordinator in L-5.
-        enabled: false
+        onClicked: PopupModel.refresh()
     }
     Item { Layout.fillWidth: true }
     PlasmaComponents.ToolButton {

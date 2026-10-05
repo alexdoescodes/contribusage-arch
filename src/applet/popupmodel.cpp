@@ -10,6 +10,7 @@
 #include "core/display.h"
 #include "core/heatmap.h"
 #include "core/process.h"
+#include "core/sourceschedule.h"
 #include "core/version.h"
 #include "github/githubaccount.h"
 #include "github/githubclient.h"
@@ -17,6 +18,7 @@
 #include "github/githubview.h"
 #include "platform/kwalletsecretstore.h"
 #include "platform/networktransport.h"
+#include "platform/systemconditions.h"
 
 #include <QDir>
 
@@ -224,11 +226,13 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
         return;
     }
     const QString shell = qEnvironmentVariable("SHELL", QStringLiteral("/bin/sh"));
+    m_conditions = std::make_unique<ScheduleConditionsSource>();
+    m_system = std::make_unique<SystemConditions>(*m_conditions);
     m_runner = std::make_unique<LiveProcessRunner>();
     m_locator = std::make_unique<claudecode::ClaudeLocator>(*m_runner, QDir::homePath(), shell);
     m_limits = std::make_unique<claudecode::ClaudeCodeLimits>(*m_runner, *m_locator, AppPaths::live());
-    m_job =
-        std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), claudecode::LimitsJob::defaultPolicy());
+    m_job = std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), claudecode::LimitsJob::defaultPolicy(),
+                                                    m_conditions.get());
     connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
     m_minute.setInterval(60 * 1000);
     connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
@@ -243,8 +247,8 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_secrets = std::make_unique<KWalletSecretStore>();
     m_githubClient = std::make_unique<github::GitHubClient>(*m_transport, version());
     m_githubAccount = std::make_unique<github::GitHubAccount>(*m_secrets, *m_githubClient);
-    m_githubJob =
-        std::make_unique<github::GitHubJob>(*m_githubAccount, AppPaths::live(), github::GitHubJob::defaultPolicy());
+    m_githubJob = std::make_unique<github::GitHubJob>(*m_githubAccount, AppPaths::live(),
+                                                      github::GitHubJob::defaultPolicy(), m_conditions.get());
     connect(m_githubJob.get(), &github::GitHubJob::stateChanged, this, &PopupModel::changed);
     m_githubJob->start();
 }
@@ -254,6 +258,8 @@ PopupModel::~PopupModel() {
     m_activityJob.reset();
     m_githubJob.reset();
     m_job.reset();
+    m_system.reset();
+    m_conditions.reset();
 }
 
 QVariantMap PopupModel::heatmap() const {
@@ -280,6 +286,24 @@ QVariantMap PopupModel::github() const {
     view.insert(QStringLiteral("connectError"), m_githubConnectError);
     view.insert(QStringLiteral("canDisconnect"), true);
     return view;
+}
+
+void PopupModel::refresh() {
+    if (m_fake) {
+        return;
+    }
+    m_job->refresh();
+    m_githubJob->refresh();
+    m_activityJob->rescan();
+}
+
+void PopupModel::popupOpened() {
+    if (m_fake) {
+        return;
+    }
+    m_job->popupOpened();
+    m_githubJob->popupOpened();
+    m_activityJob->rescan(); // SPEC §12: transcripts on popup open
 }
 
 void PopupModel::connectGitHub(const QString &token) {

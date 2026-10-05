@@ -208,6 +208,18 @@ private Q_SLOTS:
         QVERIFY(QMetaObject::invokeMethod(section.get(), "submit"));
         QCOMPARE(field->property("text").toString(), QString());
     }
+
+    // SPEC §11.2: the footer's Refresh is live.
+    void refreshButtonIsEnabled() {
+        QQmlEngine engine;
+        QQmlComponent component(&engine,
+                                QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/Footer.qml")));
+        std::unique_ptr<QObject> footer(component.create());
+        QVERIFY2(footer, qPrintable(component.errorString()));
+        auto *refresh = footer->findChild<QObject *>(QStringLiteral("refreshButton"));
+        QVERIFY(refresh);
+        QVERIFY(refresh->property("enabled").toBool());
+    }
 };
 
 QTEST_MAIN(TestAppletQml)

@@ -10,6 +10,8 @@
 
 namespace contribusage {
 class LiveProcessRunner;
+class ScheduleConditionsSource;
+class SystemConditions;
 class NetworkTransport;
 class KWalletSecretStore;
 namespace github {
@@ -45,6 +47,8 @@ public:
     QVariantMap heatmap() const;
     QVariantMap github() const;
     QVariantMap label() const;
+    Q_INVOKABLE void refresh();
+    Q_INVOKABLE void popupOpened();
     Q_INVOKABLE void connectGitHub(const QString &token);
     Q_INVOKABLE void disconnectGitHub();
 
@@ -59,6 +63,8 @@ private:
     QVariantMap m_heatmap;    // fake mode
     QVariantMap m_github;     // fake mode
     QVariantMap m_label;      // fake mode
+    std::unique_ptr<contribusage::ScheduleConditionsSource> m_conditions;
+    std::unique_ptr<contribusage::SystemConditions> m_system;
     std::unique_ptr<contribusage::LiveProcessRunner> m_runner;
     std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;
     std::unique_ptr<contribusage::claudecode::ClaudeCodeLimits> m_limits;
