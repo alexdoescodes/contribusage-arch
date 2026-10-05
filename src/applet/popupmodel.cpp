@@ -227,7 +227,8 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_runner = std::make_unique<LiveProcessRunner>();
     m_locator = std::make_unique<claudecode::ClaudeLocator>(*m_runner, QDir::homePath(), shell);
     m_limits = std::make_unique<claudecode::ClaudeCodeLimits>(*m_runner, *m_locator, AppPaths::live());
-    m_job = std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), 5 * 60 * 1000); // ADR-039
+    m_job =
+        std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), claudecode::LimitsJob::defaultPolicy());
     connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
     m_minute.setInterval(60 * 1000);
     connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
@@ -242,7 +243,8 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_secrets = std::make_unique<KWalletSecretStore>();
     m_githubClient = std::make_unique<github::GitHubClient>(*m_transport, version());
     m_githubAccount = std::make_unique<github::GitHubAccount>(*m_secrets, *m_githubClient);
-    m_githubJob = std::make_unique<github::GitHubJob>(*m_githubAccount, AppPaths::live(), 30 * 60 * 1000); // SPEC §12
+    m_githubJob =
+        std::make_unique<github::GitHubJob>(*m_githubAccount, AppPaths::live(), github::GitHubJob::defaultPolicy());
     connect(m_githubJob.get(), &github::GitHubJob::stateChanged, this, &PopupModel::changed);
     m_githubJob->start();
 }

@@ -7,6 +7,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include "core/sourceschedule.h"
+
 using namespace contribusage;
 using namespace contribusage::claudecode;
 
@@ -53,7 +55,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.runner.answer(claude, QStringLiteral("-p"),
                               FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
-        LimitsJob job(fixture.limits, fixture.paths(), 60'000);
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
         QSignalSpy changed(&job, &LimitsJob::stateChanged);
         job.start();
         QCOMPARE(job.state().phase, Phase::Loading);
@@ -73,7 +75,7 @@ private Q_SLOTS:
                                             .fetchedAt = QDateTime::currentDateTimeUtc().addSecs(-3600),
                                             .origin = origins::poll()};
         QVERIFY(limitscache::save(fixture.paths(), cached));
-        LimitsJob job(fixture.limits, fixture.paths(), 60'000);
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QCOMPARE(job.state().phase, Phase::Loading);
         QVERIFY(job.state().snapshot() == cached);
@@ -84,7 +86,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.runner.answer(claude, QStringLiteral("-p"),
                               FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
-        LimitsJob job(fixture.limits, fixture.paths(), 60'000);
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         fixture.runner.rules.last().outcome = std::unexpected(SourceError{.kind = SourceError::Kind::TimedOut});
@@ -97,14 +99,14 @@ private Q_SLOTS:
     void notFoundAndUnsupportedPlanAreNotConfigured() {
         Fixture missing;
         missing.runner.rules.clear();
-        LimitsJob missingJob(missing.limits, missing.paths(), 60'000);
+        LimitsJob missingJob(missing.limits, missing.paths(), SchedulePolicy::every(60'000));
         missingJob.start();
         QTRY_COMPARE(missingJob.state().phase, Phase::NotConfigured);
         QCOMPARE(missingJob.state().reason, NotConfiguredReason::ToolNotInstalled);
 
         Fixture apiKey;
         apiKey.runner.answer(claude, QStringLiteral("-p"), FakeProcessRunner::exited(0, ::fixture("not-subscription")));
-        LimitsJob apiKeyJob(apiKey.limits, apiKey.paths(), 60'000);
+        LimitsJob apiKeyJob(apiKey.limits, apiKey.paths(), SchedulePolicy::every(60'000));
         apiKeyJob.start();
         QTRY_COMPARE(apiKeyJob.state().phase, Phase::NotConfigured);
         QCOMPARE(apiKeyJob.state().reason, NotConfiguredReason::UnsupportedPlan);
@@ -115,7 +117,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.runner.answer(claude, QStringLiteral("-p"),
                               FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
-        LimitsJob job(fixture.limits, fixture.paths(), 100);
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(100));
         job.start();
         QTRY_VERIFY(fixture.probes() >= 3);
     }
@@ -124,11 +126,52 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.runner.answer(claude, QStringLiteral("-p"),
                               FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
-        auto *job = new LimitsJob(fixture.limits, fixture.paths(), 60'000);
+        auto *job = new LimitsJob(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
         job->start();
         delete job;
         QTest::qWait(100); // the fake's answers arrive now and must not touch the deleted job
         QVERIFY(!limitscache::load(fixture.paths(), QStringLiteral("claude-code")));
+    }
+
+    // Review Focus 1: pressing Refresh again within the floor runs once.
+    void manualRefreshRunsOnceWithinTheFloor() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"),
+                              FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
+        SchedulePolicy policy = SchedulePolicy::every(60'000);
+        policy.manualFloorMs = 60'000;
+        LimitsJob job(fixture.limits, fixture.paths(), policy);
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        const qsizetype probes = fixture.probes();
+        job.refresh();
+        job.refresh();
+        QTest::qWait(100);
+        QCOMPARE(fixture.probes(), probes);
+    }
+
+    // Review Focus 4: a window's reset time is a trigger.
+    void aResetTimeTriggersARun() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"),
+                              FakeProcessRunner::exited(0, ::fixture("subscription-basic")));
+        SchedulePolicy policy = SchedulePolicy::every(3'600'000);
+        policy.minimumMs = 0;
+        LimitsJob job(fixture.limits, fixture.paths(), policy);
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        const qsizetype probes = fixture.probes();
+        job.addResetTrigger(QDateTime::currentDateTimeUtc().addMSecs(200));
+        QTRY_VERIFY(fixture.probes() > probes);
+    }
+
+    void policiesFollowSpec() {
+        const SchedulePolicy limits = LimitsJob::defaultPolicy();
+        QCOMPARE(limits.defaultMs, qint64(5 * 60'000));
+        QCOMPARE(limits.minimumMs, qint64(60'000));
+        QCOMPARE(limits.maximumMs, qint64(60 * 60'000));
+        QCOMPARE(limits.manualFloorMs, qint64(30'000));
+        QVERIFY(limits.needsNetwork);
     }
 };
 

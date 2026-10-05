@@ -50,24 +50,39 @@ bool save(const AppPaths &paths, const Snapshot<GitHubReport> &snapshot) {
 
 } // namespace githubcache
 
-GitHubJob::GitHubJob(GitHubAccount &account, AppPaths paths, int intervalMs, QObject *parent)
-    : QObject(parent), m_account(account), m_paths(std::move(paths)), m_interval(intervalMs) {
-    m_timer.setInterval(intervalMs);
-    connect(&m_timer, &QTimer::timeout, this, &GitHubJob::refresh);
+GitHubJob::GitHubJob(GitHubAccount &account, AppPaths paths, SchedulePolicy policy,
+                     ScheduleConditionsSource *conditions, QObject *parent)
+    : QObject(parent), m_account(account), m_paths(std::move(paths)), m_schedule(policy, conditions) {
+    connect(&m_schedule, &SourceSchedule::due, this, &GitHubJob::run);
+}
+
+SchedulePolicy GitHubJob::defaultPolicy() {
+    return {.defaultMs = 30 * 60'000,
+            .minimumMs = 10 * 60'000,
+            .maximumMs = 6 * 3600'000,
+            .staleAfterMs = 2 * 3600'000,
+            .manualFloorMs = 30'000,
+            .needsNetwork = true};
 }
 
 void GitHubJob::start() {
     m_state = SourceState<GitHubReport>::loading(githubcache::load(m_paths));
     Q_EMIT stateChanged();
-    refresh();
-    m_timer.start();
+    m_schedule.start();
 }
 
 void GitHubJob::refresh() {
-    if (m_fetching || m_paused || (m_waitUntil.isValid() && QDateTime::currentDateTimeUtc() < m_waitUntil)) {
-        return;
+    m_schedule.requestManual();
+}
+
+void GitHubJob::popupOpened() {
+    const auto snapshot = m_state.snapshot();
+    if (!snapshot || snapshot->fetchedAt.msecsTo(QDateTime::currentDateTimeUtc()) > 10 * 60'000) {
+        m_schedule.triggerIfDue();
     }
-    m_fetching = true;
+}
+
+void GitHubJob::run() {
     m_account.report(QDateTime::currentDateTime(), QLocale().firstDayOfWeek(), this,
                      [this, generation = m_generation](std::expected<GitHubReport, SourceError> outcome) {
                          if (generation == m_generation) {
@@ -78,13 +93,10 @@ void GitHubJob::refresh() {
 
 void GitHubJob::tokenChanged() {
     ++m_generation;
-    m_fetching = false;
-    m_paused = false;
-    m_waitUntil = {};
     githubcache::clear(m_paths);
     m_state = SourceState<GitHubReport>::loading(std::nullopt);
     Q_EMIT stateChanged();
-    refresh();
+    m_schedule.reset();
 }
 
 void GitHubJob::disconnectAccount() {
@@ -99,21 +111,22 @@ void GitHubJob::disconnectAccount() {
 }
 
 void GitHubJob::finish(std::expected<GitHubReport, SourceError> outcome) {
-    m_fetching = false;
+    m_schedule.finished(outcome.has_value());
     if (outcome) {
         const Snapshot<GitHubReport> snapshot{
             .value = std::move(*outcome), .fetchedAt = QDateTime::currentDateTimeUtc(), .origin = origins::github()};
         githubcache::save(m_paths, snapshot);
         m_state = SourceState<GitHubReport>::loaded(snapshot);
+        m_schedule.setPaused(false);
     } else if (outcome.error().kind == SourceError::Kind::TokenMissing) {
-        m_paused = true;
+        m_schedule.setPaused(true);
         m_state = SourceState<GitHubReport>::notConfigured(NotConfiguredReason::GithubTokenMissing);
     } else {
         // ADR-022; Io comes only from the secret store here: a denied or missing wallet is not asked again.
         if (outcome.error().kind == SourceError::Kind::Unauthorized || outcome.error().kind == SourceError::Kind::Io) {
-            m_paused = true;
+            m_schedule.setPaused(true);
         } else if (outcome.error().kind == SourceError::Kind::RateLimited) {
-            m_waitUntil = outcome.error().until; // ADR-020
+            m_schedule.holdUntil(outcome.error().until); // ADR-020
         }
         m_state = SourceState<GitHubReport>::failed(outcome.error(), m_state.snapshot());
     }

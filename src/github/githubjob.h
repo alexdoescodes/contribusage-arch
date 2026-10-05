@@ -4,8 +4,8 @@
 #include "core/snapshot.h"
 #include "github/githubaccount.h"
 
+#include "core/sourceschedule.h"
 #include <QObject>
-#include <QTimer>
 
 namespace contribusage::github {
 
@@ -23,12 +23,18 @@ class GitHubJob : public QObject {
     Q_OBJECT
 
 public:
-    GitHubJob(GitHubAccount &account, AppPaths paths, int intervalMs, QObject *parent = nullptr);
+    GitHubJob(GitHubAccount &account, AppPaths paths, SchedulePolicy policy,
+              ScheduleConditionsSource *conditions = nullptr, QObject *parent = nullptr);
+
+    static SchedulePolicy defaultPolicy(); // SPEC §12 GitHub row: 30 min, 10 min to 6 h, stale 2 h, floor 30 s, network
 
     const SourceState<GitHubReport> &state() const { return m_state; }
 
     void start();
+    // The manual refresh: runs also while paused (ADR-022), never before a rate limit's reset (ADR-020).
     void refresh();
+    // SPEC §12: the popup opened; runs when the data is older than 10 min and the minimum interval has passed.
+    void popupOpened();
     // After a connect or a disconnect: drops the old account and any fetch still running with it (ADR-022), ends a
     // pause and fetches now.
     void tokenChanged();
@@ -39,16 +45,13 @@ Q_SIGNALS:
     void stateChanged();
 
 private:
+    void run();
     void finish(std::expected<GitHubReport, SourceError> outcome);
 
     GitHubAccount &m_account;
     AppPaths m_paths;
-    int m_interval;
-    QTimer m_timer;
-    bool m_fetching = false;
-    bool m_paused = false; // a 401, a missing token or a refused wallet: nothing to ask until the token changes
-    int m_generation = 0;  // bumped by tokenChanged(); a fetch from an older one finishes into nothing
-    QDateTime m_waitUntil;
+    SourceSchedule m_schedule; // paused after a 401, a missing token or a refused wallet; held by a rate limit
+    int m_generation = 0;      // bumped by tokenChanged(); a fetch from an older one finishes into nothing
     SourceState<GitHubReport> m_state = SourceState<GitHubReport>::loading(std::nullopt);
 };
 

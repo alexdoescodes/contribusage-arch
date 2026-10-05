@@ -3,36 +3,43 @@
 #include "claudecode/claudecodelimits.h"
 #include "core/snapshot.h"
 
+#include "core/sourceschedule.h"
 #include <QObject>
-#include <QTimer>
 
 namespace contribusage::claudecode {
 
-// The limits source on an interval (ADR-039), with FR-10's cache and SPEC §11.3's states. A stand-in for the refresh
-// coordinator of L-1c, which takes over the schedule and its triggers.
+// The limits source (ADR-039) with FR-10's cache and SPEC §11.3's states, run by its SourceSchedule (SPEC §12).
 class LimitsJob : public QObject {
     Q_OBJECT
 
 public:
-    LimitsJob(ClaudeCodeLimits &limits, AppPaths paths, int intervalMs, QObject *parent = nullptr);
+    LimitsJob(ClaudeCodeLimits &limits, AppPaths paths, SchedulePolicy policy,
+              ScheduleConditionsSource *conditions = nullptr, QObject *parent = nullptr);
+
+    // SPEC §12, Claude Code row: 5 min, 1 min to 60 min, stale after 30 min, manual floor 30 s, needs the network.
+    static SchedulePolicy defaultPolicy();
 
     const SourceState<LimitsReport> &state() const { return m_state; }
 
-    // Shows the cached snapshot, probes now, then every interval.
+    // Shows the cached snapshot and runs the schedule.
     void start();
-    // Probes now unless a probe is running.
+    // The manual refresh (SPEC §12 rule 4).
     void refresh();
+    // SPEC §12: the popup opened; runs when the data is older than 5 min and the minimum interval has passed.
+    void popupOpened();
+    // A window's reset time (rule 8); the job adds its windows' times after each success.
+    void addResetTrigger(const QDateTime &at);
 
 Q_SIGNALS:
     void stateChanged();
 
 private:
+    void run();
     void finish(LimitsOutcome outcome);
 
     ClaudeCodeLimits &m_limits;
     AppPaths m_paths;
-    QTimer m_timer;
-    bool m_fetching = false;
+    SourceSchedule m_schedule;
     SourceState<LimitsReport> m_state = SourceState<LimitsReport>::loading(std::nullopt);
 };
 

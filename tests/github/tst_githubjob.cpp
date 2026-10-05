@@ -7,6 +7,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include "core/sourceschedule.h"
+
 using namespace contribusage;
 using namespace contribusage::github;
 
@@ -38,7 +40,7 @@ class TestGitHubJob : public QObject {
 private Q_SLOTS:
     void withoutATokenItIsNotConfigured() {
         Fixture fixture;
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::NotConfigured);
         QCOMPARE(job.state().reason, NotConfiguredReason::GithubTokenMissing);
@@ -56,7 +58,7 @@ private Q_SLOTS:
                                                                           .rawOutput = {}},
                                                     .fetchedAt = QDateTime::currentDateTimeUtc(),
                                                     .origin = origins::poll()}));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         QCOMPARE(job.state().snapshot()->value.calendar.login, QStringLiteral("octocat"));
@@ -69,7 +71,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_secret_value"));
         fixture.transport.respond(200, ::fixture("calendar"));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         QFile state(fixture.temporary.path() + QStringLiteral("/state.json"));
@@ -86,7 +88,7 @@ private Q_SLOTS:
             .fetchedAt = QDateTime::currentDateTimeUtc().addSecs(-3600),
             .origin = origins::github()};
         QVERIFY(githubcache::save(fixture.paths(), cached));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QCOMPARE(job.state().phase, Phase::Loading);
         QVERIFY(job.state().snapshot() == cached);
@@ -96,7 +98,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
         fixture.transport.respond(200, ::fixture("calendar"));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         fixture.transport.failure = SourceError{.kind = SourceError::Kind::Offline};
@@ -111,13 +113,12 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_old"));
         fixture.transport.respond(401, "{}");
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Failed);
         QCOMPARE(job.state().error->kind, SourceError::Kind::Unauthorized);
         const qsizetype sent = fixture.transport.requests.size();
-        job.refresh();
-        QTest::qWait(50);
+        QTest::qWait(400); // several intervals pass
         QCOMPARE(fixture.transport.requests.size(), sent);
         fixture.transport.respond(200, ::fixture("calendar"));
         job.tokenChanged();
@@ -131,7 +132,7 @@ private Q_SLOTS:
         const qint64 reset = QDateTime::currentSecsSinceEpoch() + 3600;
         fixture.transport.respond(403, "{}",
                                   {{"x-ratelimit-remaining", "0"}, {"x-ratelimit-reset", QByteArray::number(reset)}});
-        GitHubJob job(fixture.account, fixture.paths(), 100);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Failed);
         QCOMPARE(job.state().error->kind, SourceError::Kind::RateLimited);
@@ -146,7 +147,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_old"));
         fixture.transport.respond(401, "{}");
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(fixture.transport.requests.size(), qsizetype(1));
         fixture.transport.respond(200, ::fixture("calendar"));
@@ -161,7 +162,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
         fixture.transport.respond(200, ::fixture("calendar"));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         fixture.secrets.values.clear();
@@ -176,7 +177,7 @@ private Q_SLOTS:
         Fixture fixture;
         fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
         fixture.transport.respond(200, ::fixture("calendar"));
-        GitHubJob job(fixture.account, fixture.paths(), 60'000);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
         job.start();
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
         fixture.secrets.failure =
@@ -200,13 +201,35 @@ private Q_SLOTS:
         if (denied) {
             fixture.secrets.failure = SourceError{.kind = SourceError::Kind::Io};
         }
-        GitHubJob job(fixture.account, fixture.paths(), 100);
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
         job.start();
         QTRY_COMPARE(fixture.secrets.reads, 1);
         QTest::qWait(400); // several intervals
         QCOMPARE(fixture.secrets.reads, 1);
         job.tokenChanged();
         QTRY_COMPARE(fixture.secrets.reads, 2);
+    }
+
+    // ADR-022: a manual refresh runs while paused; ADR-020: never before the rate limit's reset.
+    void manualRefreshRunsWhilePausedButNotBeforeTheReset() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(401, "{}");
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(60'000));
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Failed);
+        fixture.transport.respond(200, ::fixture("calendar"));
+        job.refresh();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        const qint64 reset = QDateTime::currentSecsSinceEpoch() + 3600;
+        fixture.transport.respond(403, "{}",
+                                  {{"x-ratelimit-remaining", "0"}, {"x-ratelimit-reset", QByteArray::number(reset)}});
+        job.refresh();
+        QTRY_COMPARE(job.state().phase, Phase::Failed);
+        const qsizetype sent = fixture.transport.requests.size();
+        job.refresh();
+        QTest::qWait(100);
+        QCOMPARE(fixture.transport.requests.size(), sent);
     }
 };
 
