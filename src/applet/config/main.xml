@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <!-- FR-51: the panel label's style and color (SPEC §10.7 menuBarStyle, menuBarTint, menuBarColor). -->
+  <group name="General">
+    <entry name="menuBarStyle" type="String"><default>prompt</default></entry>
+    <entry name="menuBarTint" type="String"><default>provider</default></entry>
+    <entry name="menuBarColor" type="String"><default>#ff9f0a</default></entry>
+  </group>
+</kcfg>

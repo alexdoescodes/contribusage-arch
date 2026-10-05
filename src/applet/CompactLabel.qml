@@ -11,31 +11,24 @@ MouseArea {
     id: label
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
-    readonly property real glyphHeight: Math.min(height, Kirigami.Units.iconSizes.smallMedium)
 
     signal toggled
 
-    Layout.minimumWidth: row.implicitWidth
-    Layout.preferredWidth: row.implicitWidth
-    Layout.minimumHeight: vertical ? glyphHeight : 0
-    Accessible.name: "Claude Code " + PopupModel.label.text
+    Layout.minimumWidth: content.implicitWidth
+    Layout.preferredWidth: content.implicitWidth
+    Layout.minimumHeight: vertical ? Kirigami.Units.iconSizes.small : 0
+    Accessible.name: content.Accessible.name
     onClicked: toggled()
 
-    RowLayout {
-        id: row
+    LabelContent {
+        id: content
         anchors.centerIn: parent
-        spacing: 4
-
-        PromptGlyph {
-            fraction: PopupModel.label.fraction
-            fillColor: Theme.meterColor(PopupModel.label.level)
-            Layout.preferredHeight: label.glyphHeight
-            Layout.preferredWidth: implicitWidth
-        }
-        PlasmaComponents.Label {
-            visible: !label.vertical
-            text: PopupModel.label.text
-            font.features: ({ "tnum": 1 })
-        }
+        style: Plasmoid.configuration.menuBarStyle ?? "prompt"
+        tint: Plasmoid.configuration.menuBarTint ?? "provider"
+        customColor: Plasmoid.configuration.menuBarColor ?? Theme.claudeHue
+        label: PopupModel.label
+        heatmap: PopupModel.heatmap
+        vertical: label.vertical
     }
+
 }

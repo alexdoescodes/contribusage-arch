@@ -29,9 +29,10 @@ private Q_SLOTS:
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
-        for (const auto *name : {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection",
-                                 "ProviderGroup", "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph",
-                                 "CompactLabel", "Skeleton", "ActionButton"}) {
+        for (const auto *name :
+             {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection", "ProviderGroup",
+              "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph", "CompactLabel", "Skeleton",
+              "ActionButton", "LabelContent", "RingGlyph", "LineGlyph", "MiniHeatmap"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }
@@ -262,6 +263,75 @@ private Q_SLOTS:
         QVERIFY(button->property("visible").toBool());
         QCOMPARE(button->property("text").toString(), QStringLiteral("Retry"));
     }
+
+    QObject *labelContent(QQmlEngine &engine, const QString &style, std::unique_ptr<QObject> &holder) {
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/LabelContent.qml")));
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        holder.reset(component.createWithInitialProperties({{QStringLiteral("style"), style},
+                                                            {QStringLiteral("tint"), QStringLiteral("provider")},
+                                                            {QStringLiteral("label"), model->property("label")},
+                                                            {QStringLiteral("heatmap"), model->property("heatmap")},
+                                                            {QStringLiteral("vertical"), false}}));
+        if (!holder) {
+            qWarning() << component.errorString();
+        }
+        return holder.get();
+    }
+
+    // FR-51: every style draws.
+    void everyStyleDraws_data() {
+        QTest::addColumn<QString>("style");
+        for (const auto *style : {"prompt", "rings", "ring", "line", "heatmap", "sharedHeatmap", "text"}) {
+            QTest::newRow(style) << QString::fromLatin1(style);
+        }
+    }
+    void everyStyleDraws() {
+        QFETCH(QString, style);
+        QQmlEngine engine;
+        std::unique_ptr<QObject> holder;
+        QObject *content = labelContent(engine, style, holder);
+        QVERIFY(content);
+        QCOMPARE(content->property("shownStyle").toString(), style);
+        QVERIFY(content->property("implicitWidth").toReal() > 0);
+    }
+
+    // FR-51 text style: the source's name and the value.
+    void textStyleNamesTheSource() {
+        QQmlEngine engine;
+        std::unique_ptr<QObject> holder;
+        QObject *content = labelContent(engine, QStringLiteral("text"), holder);
+        QVERIFY(content);
+        auto *text = content->findChild<QObject *>(QStringLiteral("labelText"));
+        QVERIFY(text);
+        QCOMPARE(text->property("text").toString(), QStringLiteral("Claude Code 23%"));
+    }
+
+    // Review Focus 4: an unknown style draws the prompt.
+    void unknownStyleFallsBackToPrompt() {
+        QQmlEngine engine;
+        std::unique_ptr<QObject> holder;
+        QObject *content = labelContent(engine, QStringLiteral("sparkles"), holder);
+        QVERIFY(content);
+        QCOMPARE(content->property("shownStyle").toString(), QStringLiteral("prompt"));
+    }
+
+    // Every style laid out in a real window keeps a panel's size: a size loop here would freeze plasmashell.
+    void everyStyleStaysSmallInAWindow() {
+        QFETCH(QString, style);
+        QQmlEngine engine;
+        std::unique_ptr<QObject> holder;
+        auto *content = qobject_cast<QQuickItem *>(labelContent(engine, style, holder));
+        QVERIFY(content);
+        QQuickWindow window;
+        content->setParentItem(window.contentItem());
+        window.resize(300, 40);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        QTest::qWait(50);
+        QVERIFY2(content->implicitHeight() < 64, qPrintable(QString::number(content->implicitHeight())));
+    }
+    void everyStyleStaysSmallInAWindow_data() { everyStyleDraws_data(); }
 };
 
 QTEST_MAIN(TestAppletQml)

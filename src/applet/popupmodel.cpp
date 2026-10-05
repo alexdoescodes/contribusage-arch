@@ -216,6 +216,10 @@ void PopupModel::buildFakeData() {
         {QStringLiteral("text"), percentText(23, false, now.addSecs(7800), now)},
         {QStringLiteral("fraction"), barFraction(23, now.addSecs(7800), now)},
         {QStringLiteral("level"), meterLevelName(meterLevel(23, now.addSecs(7800), now))},
+        {QStringLiteral("stale"), false},
+        {QStringLiteral("title"), QStringLiteral("Claude Code")},
+        {QStringLiteral("companion"), 0.74}, // the preview's "Current week (all models)"
+        {QStringLiteral("source"), QStringLiteral("claude-code")},
     };
 }
 

@@ -36,4 +36,24 @@ QtObject {
     function levelOpacity(level) {
         return 0.2 + 0.2 * level;
     }
+
+    // FR-51: the label's color; from 90 % red in every tint but monochrome.
+    function labelColor(tint, level, hueName, customColor, textColor, accentColor) {
+        if (tint === "monochrome") {
+            return textColor;
+        }
+        if (level === "critical") {
+            return critical;
+        }
+        if (tint === "usage") {
+            return meterColor(level);
+        }
+        if (tint === "accent") {
+            return accentColor;
+        }
+        if (tint === "custom") {
+            return customColor;
+        }
+        return hue(hueName);
+    }
 }
