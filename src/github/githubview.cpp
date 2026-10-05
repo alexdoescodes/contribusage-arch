@@ -43,35 +43,22 @@ QVariantMap githubView(const SourceState<GitHubReport> &state, const QDateTime &
     return view;
 }
 
-QVariantMap githubHeatmap(const SourceState<GitHubReport> &state, QDate today) {
+std::optional<HeatmapLayer> githubLayer(const SourceState<GitHubReport> &state) {
     const auto snapshot = state.snapshot();
     if (!snapshot) {
-        return {};
+        return std::nullopt;
     }
-    QHash<QDate, ContributionDay> byDate;
+    HeatmapLayer layer{.name = QStringLiteral("GitHub"), .hue = QStringLiteral("github"), .levels = {}, .texts = {}};
     for (const ContributionDay &day : snapshot->value.calendar.days()) {
-        byDate.insert(day.date, day);
+        layer.levels.insert(day.date, day.level);
+        layer.texts.insert(day.date, QString::number(day.count) + QStringLiteral(" contributions"));
     }
-    const auto days = heatmapDays(today);
-    QVariantList cells;
-    for (const QDate &date : days) {
-        QVariantList stripes;
-        QString text = QStringLiteral("no data");
-        if (const auto it = byDate.constFind(date); it != byDate.cend()) {
-            text = QString::number(it->count) + QStringLiteral(" contributions");
-            if (it->level > 0) {
-                stripes.append(QVariantMap{{QStringLiteral("hue"), QStringLiteral("github")},
-                                           {QStringLiteral("level"), it->level}});
-            }
-        }
-        cells.append(QVariantMap{
-            {QStringLiteral("line"), QString(date.toString(Qt::ISODate) + QStringLiteral(" · GitHub: ") + text)},
-            {QStringLiteral("stripes"), stripes}});
-    }
-    return {{QStringLiteral("layers"), QVariantList{QVariantMap{{QStringLiteral("name"), QStringLiteral("GitHub")},
-                                                                {QStringLiteral("hue"), QStringLiteral("github")}}}},
-            {QStringLiteral("columns"), int((days.size() + 6) / 7)},
-            {QStringLiteral("cells"), cells}};
+    return layer;
+}
+
+QVariantMap githubHeatmap(const SourceState<GitHubReport> &state, QDate today) {
+    const auto layer = githubLayer(state);
+    return layer ? heatmapView({*layer}, today) : QVariantMap();
 }
 
 } // namespace contribusage::github
