@@ -1,6 +1,8 @@
 add_library(contribusage_core STATIC
     apppaths.cpp
     apppaths.h
+    directorywatcher.cpp
+    directorywatcher.h
     display.cpp
     display.h
     heatmap.cpp
