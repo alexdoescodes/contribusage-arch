@@ -1,4 +1,6 @@
 add_library(contribusage_core STATIC
+    appearance.cpp
+    appearance.h
     apppaths.cpp
     apppaths.h
     directorywatcher.cpp

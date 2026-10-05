@@ -170,3 +170,7 @@ ecm_add_test(core/tst_widgetsettings.cpp
 ecm_add_test(core/tst_popoverlayout.cpp
     TEST_NAME tst_popoverlayout
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_appearance.cpp
+    TEST_NAME tst_appearance
+    LINK_LIBRARIES contribusage_core Qt6::Test)
