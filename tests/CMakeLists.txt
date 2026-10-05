@@ -150,3 +150,11 @@ ecm_add_test(core/tst_sourceschedule.cpp
 ecm_add_test(platform/tst_systemconditions.cpp
     TEST_NAME tst_systemconditions
     LINK_LIBRARIES contribusage_platform Qt6::Test)
+
+ecm_add_test(core/tst_notificationplanner.cpp
+    TEST_NAME tst_notificationplanner
+    LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_menubarlabel.cpp
+    TEST_NAME tst_menubarlabel
+    LINK_LIBRARIES contribusage_core Qt6::Test)

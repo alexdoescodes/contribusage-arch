@@ -15,6 +15,10 @@ add_library(contribusage_core STATIC
     jsonlreader.h
     limitscache.cpp
     limitscache.h
+    menubarlabel.cpp
+    menubarlabel.h
+    notificationplanner.cpp
+    notificationplanner.h
     process.cpp
     process.h
     reports.cpp
