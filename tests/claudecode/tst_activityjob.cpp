@@ -177,6 +177,22 @@ private Q_SLOTS:
         QTRY_VERIFY(inputOn(*job, old.date()) <= 0); // gone; with no transcript left there is no local data at all
         QVERIFY(!QFile::exists(history));
     }
+
+    // Review Focus 4, FR-46: inactive, the job neither watches nor scans; active again, it catches up.
+    void hiddenActivityStopsTheWatcher() {
+        Fixture fixture;
+        const QDateTime now = QDateTime::currentDateTime();
+        write(fixture.transcript(), entry(now, "m1", 10));
+        auto job = fixture.job();
+        job->start();
+        QTRY_COMPARE(inputOn(*job, now.date()), qint64(10));
+        job->setActive(false);
+        write(fixture.transcript(), entry(now, "m2", 5), QIODevice::Append);
+        QTest::qWait(300);
+        QCOMPARE(inputOn(*job, now.date()), qint64(10));
+        job->setActive(true);
+        QTRY_COMPARE(inputOn(*job, now.date()), qint64(15));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestActivityJob)

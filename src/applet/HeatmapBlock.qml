@@ -4,8 +4,8 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 
-// The shared heatmap, Combined style (FR-48, FR-49, ADR-032): a legend, then one grid of week columns from Sunday;
-// a cell holds a stripe per layer active that day, or the neutral fill.
+// The shared heatmap (FR-48, FR-49, ADR-032): a legend, then one grid of week columns from Sunday; a cell holds a
+// stripe per layer active that day, or the neutral fill. Stacked draws one grid per layer, the first one walkable.
 ColumnLayout {
     id: block
 
@@ -21,6 +21,12 @@ ColumnLayout {
         return index >= 0 && index < cells.length ? cells[index].line : "";
     }
     property string hoveredLine: ""
+    readonly property bool stacked: heatmap.style === "stacked" && (heatmap.layers ?? []).length > 1
+    readonly property string firstHue: stacked ? heatmap.layers[0].hue : ""
+
+    function stripesOf(cell, hue) {
+        return hue.length === 0 ? cell.stripes : cell.stripes.filter(stripe => stripe.hue === hue);
+    }
 
     spacing: 6
 
@@ -42,6 +48,12 @@ ColumnLayout {
         }
     }
 
+    PlasmaComponents.Label {
+        visible: block.stacked
+        text: block.stacked ? heatmap.layers[0].name : ""
+        font: Kirigami.Theme.smallFont
+        opacity: Theme.secondaryOpacity
+    }
     Grid {
         id: grid
         objectName: "heatmapGrid"
@@ -77,11 +89,12 @@ ColumnLayout {
                 id: cell
                 required property var modelData
                 required property int index
+                readonly property var shown: block.stripesOf(modelData, block.firstHue)
                 width: grid.side
                 height: grid.side
                 radius: 2
                 clip: true
-                color: modelData.stripes.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
+                color: shown.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
                                                       : "transparent"
                 Accessible.name: modelData.line
                 border.width: grid.activeFocus && index === block.focusedIndex ? 2 : 0
@@ -90,10 +103,10 @@ ColumnLayout {
                 Row {
                     anchors.fill: parent
                     Repeater {
-                        model: modelData.stripes
+                        model: cell.shown
                         Rectangle {
                             required property var modelData
-                            width: grid.side / cell.modelData.stripes.length
+                            width: grid.side / cell.shown.length
                             height: grid.side
                             color: Theme.hue(modelData.hue)
                             opacity: Theme.levelOpacity(modelData.level) * (modelData.dimmed ? 0.5 : 1)
@@ -107,6 +120,46 @@ ColumnLayout {
                 QQC2.ToolTip.text: modelData.line
                 QQC2.ToolTip.visible: hoverHandler.hovered
                 QQC2.ToolTip.delay: 200
+            }
+        }
+    }
+
+    Repeater {
+        model: block.stacked ? heatmap.layers.slice(1) : []
+        ColumnLayout {
+            id: layerGrid
+            required property var modelData
+            Layout.fillWidth: true
+            spacing: 6
+
+            PlasmaComponents.Label {
+                text: layerGrid.modelData.name
+                font: Kirigami.Theme.smallFont
+                opacity: Theme.secondaryOpacity
+            }
+            Grid {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 7 * grid.side + 6 * Theme.cellGap
+                rows: 7
+                flow: Grid.TopToBottom
+                spacing: Theme.cellGap
+                Accessible.name: "Heatmap, " + layerGrid.modelData.name
+
+                Repeater {
+                    model: heatmap.cells
+                    Rectangle {
+                        id: stackedCell
+                        required property var modelData
+                        readonly property var shown: block.stripesOf(modelData, layerGrid.modelData.hue)
+                        width: grid.side
+                        height: grid.side
+                        radius: 2
+                        color: shown.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
+                                                  : Theme.hue(shown[0].hue)
+                        opacity: shown.length === 0 ? 1 : Theme.levelOpacity(shown[0].level) * (shown[0].dimmed ? 0.5 : 1)
+                        Accessible.name: modelData.line
+                    }
+                }
             }
         }
     }

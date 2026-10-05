@@ -15,5 +15,6 @@
     <entry name="claudePathOverride" type="String"><default></default></entry>
     <entry name="githubEnabled" type="Bool"><default>true</default></entry>
     <entry name="githubIntervalMinutes" type="Int"><default>30</default></entry>
+    <entry name="popoverLayout" type="String"><default></default></entry>
   </group>
 </kcfg>

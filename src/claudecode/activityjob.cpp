@@ -88,6 +88,16 @@ void ActivityJob::startWatching(const QString &configDir) {
     rescan();
 }
 
+void ActivityJob::setActive(bool active) {
+    if (active == m_active) {
+        return;
+    }
+    m_active = active;
+    if (active) {
+        rescan();
+    }
+}
+
 void ActivityJob::deleteHistory() {
     if (!m_worker) {
         return;
@@ -102,6 +112,9 @@ void ActivityJob::deleteHistory() {
 }
 
 void ActivityJob::rescan() {
+    if (!m_active) {
+        return;
+    }
     if (!m_worker) {
         return;
     }

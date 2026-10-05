@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/popoverlayout.h"
+
 #include <QObject>
 #include <QTimer>
 #include <QVariantList>
@@ -40,6 +42,8 @@ class PopupModel : public QObject {
     Q_PROPERTY(QVariantMap github READ github NOTIFY changed)
     Q_PROPERTY(QVariantMap label READ label NOTIFY changed)
     Q_PROPERTY(QString dataFolder READ dataFolder CONSTANT)
+    Q_PROPERTY(QStringList blocks READ blocks NOTIFY changed)
+    Q_PROPERTY(bool nothingToShow READ nothingToShow NOTIFY changed)
 
 public:
     explicit PopupModel(QObject *parent = nullptr);
@@ -50,6 +54,8 @@ public:
     QVariantMap github() const;
     QVariantMap label() const;
     QString dataFolder() const;
+    QStringList blocks() const;
+    bool nothingToShow() const;
     Q_INVOKABLE void applySettings(const QVariantMap &configuration);
     Q_INVOKABLE void deleteClaudeCodeData();
     Q_INVOKABLE void resetCaches();
@@ -63,6 +69,8 @@ Q_SIGNALS:
 
 private:
     void buildFakeData();
+    QSet<QString> sourcesOn() const;
+    void applyDemand();
 
     bool m_fake = false;
     QVariantList m_providers; // fake mode
@@ -73,6 +81,9 @@ private:
     std::unique_ptr<contribusage::SystemConditions> m_system;
     std::unique_ptr<contribusage::DesktopNotifier> m_notifier;
     int m_menuBarMode = 0; // MenuBarMode
+    contribusage::PopoverLayout m_layout;
+    QString m_menuBarStyle;
+    bool m_githubOn = true;
     std::unique_ptr<contribusage::LiveProcessRunner> m_runner;
     std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;
     std::unique_ptr<contribusage::claudecode::ClaudeCodeLimits> m_limits;

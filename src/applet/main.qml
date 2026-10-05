@@ -24,7 +24,9 @@ PlasmoidItem {
             "probeIntervalMinutes": c.probeIntervalMinutes,
             "claudePathOverride": c.claudePathOverride,
             "githubEnabled": c.githubEnabled,
-            "githubIntervalMinutes": c.githubIntervalMinutes
+            "githubIntervalMinutes": c.githubIntervalMinutes,
+            "popoverLayout": c.popoverLayout,
+            "menuBarStyle": c.menuBarStyle
         });
     }
     Component.onCompleted: applySettings()

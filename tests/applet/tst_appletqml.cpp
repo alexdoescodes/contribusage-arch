@@ -13,6 +13,23 @@
 #include <functional>
 #include <memory>
 
+// Repeater delegates have only a visual parent, so QObject::findChild does not reach them.
+QQuickItem *findItem(QObject *root, const QString &name) {
+    auto *item = qobject_cast<QQuickItem *>(root);
+    if (!item) {
+        return nullptr;
+    }
+    if (item->objectName() == name) {
+        return item;
+    }
+    for (QQuickItem *child : item->childItems()) {
+        if (QQuickItem *found = findItem(child, name)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
 // Loads the built applet and compiles its QML the way plasmashell would: a QML error or a missing type fails here,
 // not as an empty widget in the panel.
 class TestAppletQml : public QObject {
@@ -241,7 +258,7 @@ private Q_SLOTS:
                                    {QStringLiteral("windows"), QVariantList()}};
         std::unique_ptr<QObject> group(component.createWithInitialProperties({{QStringLiteral("provider"), provider}}));
         QVERIFY2(group, qPrintable(component.errorString()));
-        auto *skeleton = group->findChild<QObject *>(QStringLiteral("skeleton"));
+        auto *skeleton = findItem(group.get(), QStringLiteral("skeleton"));
         QVERIFY(skeleton);
         QVERIFY(skeleton->property("visible").toBool());
     }
@@ -263,7 +280,7 @@ private Q_SLOTS:
             {QStringLiteral("windows"), QVariantList()}};
         std::unique_ptr<QObject> group(component.createWithInitialProperties({{QStringLiteral("provider"), provider}}));
         QVERIFY2(group, qPrintable(component.errorString()));
-        auto *button = group->findChild<QObject *>(QStringLiteral("actionButton"));
+        auto *button = findItem(group.get(), QStringLiteral("actionButton"));
         QVERIFY(button);
         QVERIFY(button->property("visible").toBool());
         QCOMPARE(button->property("text").toString(), QStringLiteral("Retry"));
@@ -449,6 +466,57 @@ private Q_SLOTS:
             model, "applySettings",
             Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("menuBarMode"), QStringLiteral("weekly")}}))));
         QVERIFY(!model->property("dataFolder").toString().isEmpty());
+    }
+
+    QObject *model(QQmlEngine &engine) {
+        return engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+    }
+
+    // FR-44: the popup's blocks follow the saved layout.
+    void blocksFollowTheLayout() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QCOMPARE(popup->property("blocks").toStringList(),
+                 (QStringList{QStringLiteral("claude-code"), QStringLiteral("heatmap"), QStringLiteral("github")}));
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("popoverLayout"),
+                                             QStringLiteral(R"({"order":["github"],"hiddenBlocks":["heatmap"]})")}})));
+        QCOMPARE(popup->property("blocks").toStringList(),
+                 (QStringList{QStringLiteral("github"), QStringLiteral("claude-code")}));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+    }
+
+    // Review Focus 2, FR-47.
+    void nothingToShowWhenEverythingIsHidden() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QVERIFY(!popup->property("nothingToShow").toBool());
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap,
+                  (QVariantMap{{QStringLiteral("popoverLayout"),
+                                QStringLiteral(R"({"hiddenBlocks":["claude-code","heatmap","github"]})")}})));
+        QVERIFY(popup->property("nothingToShow").toBool());
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+    }
+
+    // FR-44, ADR-034: a provider's sections in order, hidden ones left out.
+    void sectionsFollowTheLayout() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(
+                QVariantMap,
+                (QVariantMap{
+                    {QStringLiteral("popoverLayout"),
+                     QStringLiteral(
+                         R"({"hiddenSections":{"claude-code":["insights"]},"sectionOrder":{"claude-code":["activity","limits"]}})")}})));
+        const QVariantMap claude = popup->property("providers").toList().first().toMap();
+        QCOMPARE(claude.value(QStringLiteral("sections")).toStringList(),
+                 (QStringList{QStringLiteral("activity"), QStringLiteral("limits")}));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
     }
 };
 

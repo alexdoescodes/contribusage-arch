@@ -59,6 +59,8 @@ public:
     void rescan();
     // US-12: deletes the frozen history on the worker thread, then rescans: days whose transcripts are gone are gone.
     void deleteHistory();
+    // FR-46: inactive, the job neither watches nor scans; active again, it rescans.
+    void setActive(bool active);
 
 Q_SIGNALS:
     void stateChanged();
@@ -76,6 +78,7 @@ private:
     QThread m_thread;
     ActivityWorker *m_worker = nullptr; // lives in m_thread, deleted after it stops
     std::unique_ptr<DirectoryWatcher> m_watcher;
+    bool m_active = true;
     bool m_scanning = false;
     bool m_scanAgain = false;
     SourceState<ActivityReport> m_state = SourceState<ActivityReport>::loading(std::nullopt);

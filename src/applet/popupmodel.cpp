@@ -276,17 +276,26 @@ PopupModel::~PopupModel() {
 
 QVariantMap PopupModel::heatmap() const {
     if (m_fake) {
-        return m_heatmap;
+        QVariantMap view = m_heatmap;
+        view.insert(QStringLiteral("style"), m_layout.heatmapStyle);
+        return view;
     }
     const QDate today = QDate::currentDate();
+    // FR-48: the layers in the heatmap, in block order.
     QList<HeatmapLayer> layers;
-    for (const auto &layer : {claudecode::activityLayer(m_activityJob->state(), today),
-                              github::githubLayer(m_githubJob->state(), QDateTime::currentDateTime())}) {
+    for (const QString &source : m_layout.heatmapLayers({QStringLiteral("claude-code")}, sourcesOn())) {
+        const auto layer = source == githubBlockId()
+                               ? github::githubLayer(m_githubJob->state(), QDateTime::currentDateTime())
+                               : claudecode::activityLayer(m_activityJob->state(), today);
         if (layer) {
             layers.append(*layer);
         }
     }
-    return heatmapView(layers, today);
+    QVariantMap view = heatmapView(layers, today);
+    if (!view.isEmpty()) {
+        view.insert(QStringLiteral("style"), m_layout.heatmapStyle);
+    }
+    return view;
 }
 
 QVariantMap PopupModel::github() const {
@@ -300,6 +309,41 @@ QVariantMap PopupModel::github() const {
     return view;
 }
 
+// FR-47, FR-2: which sources are on. Claude Code is the one provider and always on; GitHub with its switch.
+QSet<QString> PopupModel::sourcesOn() const {
+    QSet<QString> on{QStringLiteral("claude-code")};
+    if (m_githubOn) {
+        on.insert(githubBlockId());
+    }
+    return on;
+}
+
+QStringList PopupModel::blocks() const {
+    return m_layout.blocks({QStringLiteral("claude-code")}, sourcesOn());
+}
+
+bool PopupModel::nothingToShow() const {
+    return blocks().isEmpty();
+}
+
+// FR-46: activity runs while its section or layer shows or the label's heatmap styles draw it; GitHub likewise.
+void PopupModel::applyDemand() {
+    if (m_fake) {
+        return;
+    }
+    QSet<QString> menuBar;
+    if (m_menuBarStyle == QStringLiteral("heatmap") || m_menuBarStyle == QStringLiteral("sharedHeatmap")) {
+        menuBar.insert(QStringLiteral("claude-code"));
+    }
+    if (m_menuBarStyle == QStringLiteral("sharedHeatmap") || m_menuBarMode == int(MenuBarMode::GithubToday) ||
+        m_menuBarMode == int(MenuBarMode::PrimaryAndGitHub)) {
+        menuBar.insert(githubBlockId());
+    }
+    const Demand demand = m_layout.demand(sourcesOn(), menuBar);
+    m_activityJob->setActive(demand.activity.contains(QStringLiteral("claude-code")));
+    m_githubJob->setEnabled(demand.github);
+}
+
 QString PopupModel::dataFolder() const {
     return AppPaths::live().root;
 }
@@ -307,13 +351,16 @@ QString PopupModel::dataFolder() const {
 void PopupModel::applySettings(const QVariantMap &configuration) {
     const WidgetSettings settings = widgetSettingsFromMap(configuration);
     m_menuBarMode = int(settings.menuBarMode);
+    m_githubOn = settings.githubEnabled;
+    m_layout = popoverLayoutFromText(configuration.value(QStringLiteral("popoverLayout")).toString());
+    m_menuBarStyle = configuration.value(QStringLiteral("menuBarStyle")).toString();
     if (!m_fake) {
         m_job->setInterval(settings.probeIntervalMinutes);
         m_job->setNotifications(m_notifier.get(), settings.notifications);
         m_limits->setOverride(settings.claudePathOverride);
         m_githubJob->setInterval(settings.githubIntervalMinutes);
-        m_githubJob->setEnabled(settings.githubEnabled);
     }
+    applyDemand();
     Q_EMIT changed();
 }
 
@@ -381,14 +428,24 @@ void PopupModel::disconnectGitHub() {
 }
 
 QVariantList PopupModel::providers() const {
+    // FR-44, ADR-034: the provider's shown sections in their order.
+    QStringList sections;
+    for (const SectionKind kind : m_layout.shownSections(QStringLiteral("claude-code"))) {
+        sections.append(sectionName(kind));
+    }
     if (m_fake) {
-        return m_providers;
+        QVariantList providers = m_providers;
+        QVariantMap first = providers.first().toMap();
+        first.insert(QStringLiteral("sections"), sections);
+        providers[0] = first;
+        return providers;
     }
     QVariantMap provider = claudecode::limitsView(m_job->state(), QDateTime::currentDateTime());
     const QVariantMap activity = claudecode::activityView(m_activityJob->state(), QDate::currentDate());
     if (!activity.isEmpty()) {
         provider.insert(QStringLiteral("activity"), activity);
     }
+    provider.insert(QStringLiteral("sections"), sections);
     return {provider};
 }
 
