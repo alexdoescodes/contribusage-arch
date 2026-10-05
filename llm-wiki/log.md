@@ -497,3 +497,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] fix | L-2b review fixes
 - The directory watcher scans only the folder that changed and keeps its watch sets, so a change costs milliseconds on the GUI thread instead of a whole-tree walk; failed inotify watches are logged.
 - A day is frozen into `history.json` only by a scan that read every transcript.
+
+
+## [2026-10-05] feat | Schedule, refresh and planning (L-1c)
+- `src/core/`: SPEC §12's `nextRun`, a `SourceSchedule` per polled source (ADR-045), the notification planner and the menu bar label.
+- The limits and GitHub jobs follow their §12 policies with backoff, triggers and the manual floor; suspend and network come from logind and QNetworkInformation; the Refresh button works.
