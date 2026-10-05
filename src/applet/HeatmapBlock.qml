@@ -62,7 +62,7 @@ ColumnLayout {
                             width: grid.side / cell.modelData.stripes.length
                             height: grid.side
                             color: Theme.hue(modelData.hue)
-                            opacity: Theme.levelOpacity(modelData.level)
+                            opacity: Theme.levelOpacity(modelData.level) * (modelData.dimmed ? 0.5 : 1)
                         }
                     }
                 }

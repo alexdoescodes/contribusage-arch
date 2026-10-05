@@ -29,9 +29,9 @@ private Q_SLOTS:
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
-        for (const auto *name :
-             {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection", "ProviderGroup",
-              "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph", "CompactLabel"}) {
+        for (const auto *name : {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection",
+                                 "ProviderGroup", "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph",
+                                 "CompactLabel", "Skeleton", "ActionButton"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }
@@ -219,6 +219,48 @@ private Q_SLOTS:
         auto *refresh = footer->findChild<QObject *>(QStringLiteral("refreshButton"));
         QVERIFY(refresh);
         QVERIFY(refresh->property("enabled").toBool());
+    }
+
+    // Review Focus 1: the first load shows skeleton bars.
+    void skeletonShowsWhileLoading() {
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/ProviderGroup.qml")));
+        const QVariantMap provider{{QStringLiteral("name"), QStringLiteral("Claude Code")},
+                                   {QStringLiteral("symbol"), QStringLiteral("draw-star")},
+                                   {QStringLiteral("updatedText"), QString()},
+                                   {QStringLiteral("statusText"), QString()},
+                                   {QStringLiteral("stale"), false},
+                                   {QStringLiteral("skeleton"), true},
+                                   {QStringLiteral("windows"), QVariantList()}};
+        std::unique_ptr<QObject> group(component.createWithInitialProperties({{QStringLiteral("provider"), provider}}));
+        QVERIFY2(group, qPrintable(component.errorString()));
+        auto *skeleton = group->findChild<QObject *>(QStringLiteral("skeleton"));
+        QVERIFY(skeleton);
+        QVERIFY(skeleton->property("visible").toBool());
+    }
+
+    // Review Focus 2: a failure shows its action.
+    void retryButtonShows() {
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/ProviderGroup.qml")));
+        const QVariantMap provider{
+            {QStringLiteral("name"), QStringLiteral("Claude Code")},
+            {QStringLiteral("symbol"), QStringLiteral("draw-star")},
+            {QStringLiteral("updatedText"), QString()},
+            {QStringLiteral("statusText"), QStringLiteral("Claude Code didn't answer in time")},
+            {QStringLiteral("stale"), true},
+            {QStringLiteral("skeleton"), false},
+            {QStringLiteral("action"), QVariantMap{{QStringLiteral("kind"), QStringLiteral("retry")},
+                                                   {QStringLiteral("text"), QStringLiteral("Retry")}}},
+            {QStringLiteral("windows"), QVariantList()}};
+        std::unique_ptr<QObject> group(component.createWithInitialProperties({{QStringLiteral("provider"), provider}}));
+        QVERIFY2(group, qPrintable(component.errorString()));
+        auto *button = group->findChild<QObject *>(QStringLiteral("actionButton"));
+        QVERIFY(button);
+        QVERIFY(button->property("visible").toBool());
+        QCOMPARE(button->property("text").toString(), QStringLiteral("Retry"));
     }
 };
 

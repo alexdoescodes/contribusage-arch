@@ -57,6 +57,12 @@ ColumnLayout {
         wrapMode: Text.Wrap
         Layout.fillWidth: true
     }
+    ActionButton { stateAction: github.action }
+    Skeleton {
+        visible: github.skeleton === true
+        rows: 1
+        Layout.fillWidth: true
+    }
     RowLayout {
         visible: !section.connected
         Layout.fillWidth: true

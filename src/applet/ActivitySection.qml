@@ -10,15 +10,17 @@ ColumnLayout {
     spacing: 4
 
     PlasmaComponents.Label { text: "On this machine"; opacity: Theme.secondaryOpacity }
-    PlasmaComponents.Label { text: activity.todayText }
+    PlasmaComponents.Label { visible: activity.todayText !== undefined; text: activity.todayText ?? "" }
     PlasmaComponents.Label {
-        text: activity.categoriesText
+        visible: activity.todayText !== undefined
+        text: activity.categoriesText ?? ""
         font: Kirigami.Theme.smallFont
         opacity: Theme.secondaryOpacity
         wrapMode: Text.Wrap
         Layout.fillWidth: true
     }
     RowLayout {
+        visible: activity.todayText !== undefined
         Layout.fillWidth: true
 
         Row {
@@ -29,7 +31,7 @@ ColumnLayout {
             Accessible.name: "Tokens per day, last 7 days"
 
             Repeater {
-                model: activity.week
+                model: activity.week ?? []
                 Rectangle {
                     required property var modelData
                     width: (bars.width - bars.spacing * 6) / 7
@@ -47,5 +49,17 @@ ColumnLayout {
             opacity: Theme.secondaryOpacity
             Layout.alignment: Qt.AlignBottom
         }
+    }
+    PlasmaComponents.Label {
+        visible: (activity.statusText ?? "").length > 0
+        text: activity.statusText ?? ""
+        opacity: Theme.secondaryOpacity
+        wrapMode: Text.Wrap
+        Layout.fillWidth: true
+    }
+    Skeleton {
+        visible: activity.skeleton === true
+        rows: 3
+        Layout.fillWidth: true
     }
 }

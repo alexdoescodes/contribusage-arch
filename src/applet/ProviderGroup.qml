@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.plasma.components as PlasmaComponents
 
@@ -20,6 +21,26 @@ ColumnLayout {
         text: provider.statusText ?? ""
         wrapMode: Text.Wrap
         opacity: Theme.secondaryOpacity
+        Layout.fillWidth: true
+    }
+    ActionButton {
+        id: actionButton
+        stateAction: provider.action
+        onRaw: rawOutput.visible = !rawOutput.visible
+    }
+    QQC2.TextArea {
+        id: rawOutput
+        visible: false
+        readOnly: true
+        wrapMode: TextEdit.Wrap
+        text: provider.rawOutput ?? ""
+        font.family: "monospace"
+        Accessible.name: "Raw output"
+        Layout.fillWidth: true
+    }
+    Skeleton {
+        visible: provider.skeleton === true
+        rows: 2
         Layout.fillWidth: true
     }
     Repeater {
