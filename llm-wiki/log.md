@@ -520,3 +520,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Notifications and settings (L-5a)
 - Limit notifications reach the desktop once per threshold and cycle, also across restarts (ADR-046).
 - Settings pages for the label, notifications, Claude Code, GitHub and data, applied live from the plasmoid configuration.
+
+## [2026-10-05] fix | L-5a review fixes
+- A token change while GitHub is off keeps it off and hidden.
+- "Delete data for Claude Code" drops the cached limits and notification cycles and has the activity worker delete its own history.json, so no thread races the file.

@@ -30,6 +30,8 @@ public:
     // Brings the index up to date, merges it with the frozen history and calls `done` (on this thread) with the report
     // and whether there is any local data at all.
     void scan(const std::function<void(ActivityReport, bool)> &done);
+    // US-12: deletes history.json here, on the thread that writes it.
+    void deleteHistory();
 
 private:
     QStringList m_roots;
@@ -55,6 +57,8 @@ public:
 
     void start();
     void rescan();
+    // US-12: deletes the frozen history on the worker thread, then rescans: days whose transcripts are gone are gone.
+    void deleteHistory();
 
 Q_SIGNALS:
     void stateChanged();

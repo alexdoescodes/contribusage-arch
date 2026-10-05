@@ -237,6 +237,24 @@ private Q_SLOTS:
         QTest::qWait(50);
         QVERIFY(second.notes.isEmpty());
     }
+
+    // Review I-2, US-12: forgetting drops the cached limits and the notification cycles, then probes afresh.
+    void forgetDataDropsCacheAndCycles() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"), FakeProcessRunner::exited(0, highUsage()));
+        FakeNotificationSink sink;
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
+        job.setNotifications(&sink, {.thresholds = {50, 60}, .notifyOnReset = false});
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        QVERIFY(!notificationstore::load(fixture.paths()).isEmpty());
+        const qsizetype probes = fixture.probes();
+        job.forgetData();
+        QVERIFY(!job.state().snapshot());
+        QVERIFY(!limitscache::load(fixture.paths(), QStringLiteral("claude-code")));
+        QVERIFY(!notificationstore::load(fixture.paths()).contains(QStringLiteral("claude-code")));
+        QTRY_VERIFY(fixture.probes() > probes);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestLimitsJob)

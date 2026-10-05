@@ -17,5 +17,7 @@ std::optional<Snapshot<LimitsReport>> load(const AppPaths &paths, const QString 
 
 // Replaces this provider's snapshot and keeps everything else; an unreadable cache is started afresh.
 bool save(const AppPaths &paths, const Snapshot<LimitsReport> &snapshot);
+// US-12: drops a provider's cached limits, keeping the file's other entries.
+bool remove(const AppPaths &paths, const QString &providerId);
 
 } // namespace contribusage::limitscache

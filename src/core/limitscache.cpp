@@ -42,4 +42,12 @@ bool save(const AppPaths &paths, const Snapshot<LimitsReport> &snapshot) {
     return jsonstore::write(file(paths), schemaVersion, root).has_value();
 }
 
+bool remove(const AppPaths &paths, const QString &providerId) {
+    QJsonObject root = state(paths);
+    QJsonObject limits = root.value(QStringLiteral("limits")).toObject();
+    limits.remove(providerId);
+    root.insert(QStringLiteral("limits"), limits);
+    return jsonstore::write(file(paths), schemaVersion, root).has_value();
+}
+
 } // namespace contribusage::limitscache

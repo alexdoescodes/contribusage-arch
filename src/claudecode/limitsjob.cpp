@@ -51,6 +51,15 @@ void LimitsJob::setInterval(int minutes) {
     m_schedule.setPolicy(policy);
 }
 
+void LimitsJob::forgetData() {
+    limitscache::remove(m_paths, providerId());
+    m_sent.remove(providerId());
+    notificationstore::save(m_paths, m_sent);
+    m_state = SourceState<LimitsReport>::loading(std::nullopt);
+    Q_EMIT stateChanged();
+    m_schedule.requestManual();
+}
+
 void LimitsJob::addResetTrigger(const QDateTime &at) {
     m_schedule.trigger(at);
 }

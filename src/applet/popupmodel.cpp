@@ -319,7 +319,9 @@ void PopupModel::applySettings(const QVariantMap &configuration) {
 
 void PopupModel::deleteClaudeCodeData() {
     if (!m_fake) {
-        jsonstore::deleteProviderData(QStringLiteral("claude-code"), AppPaths::live()); // US-12
+        // US-12: the cached limits, the notification cycles and the frozen history; each owner deletes its own.
+        m_job->forgetData();
+        m_activityJob->deleteHistory();
     }
 }
 

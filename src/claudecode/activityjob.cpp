@@ -2,6 +2,7 @@
 
 #include "core/directorywatcher.h"
 
+#include <QFile>
 #include <QPointer>
 
 namespace contribusage::claudecode {
@@ -33,6 +34,12 @@ void ActivityWorker::scan(const std::function<void(ActivityReport, bool)> &done)
                                                : m_history->shown(live);
     done({.provider = providerId, .days = days, .skippedLines = m_index.skippedLines()},
          !files.isEmpty() || !days.isEmpty());
+}
+
+void ActivityWorker::deleteHistory() {
+    QFile::remove(m_paths.providerFolder(providerId) + QStringLiteral("/history.json"));
+    m_history.reset();
+    m_historyOpened = false;
 }
 
 ActivityJob::ActivityJob(ProcessRunning &runner, QString home, QString shell, QString probeFolder, AppPaths paths,
@@ -79,6 +86,19 @@ void ActivityJob::startWatching(const QString &configDir) {
     connect(m_watcher.get(), &DirectoryWatcher::changed, this, &ActivityJob::rescan);
     m_watcher->start();
     rescan();
+}
+
+void ActivityJob::deleteHistory() {
+    if (!m_worker) {
+        return;
+    }
+    ActivityWorker *worker = m_worker;
+    // Queued on the worker thread, so it runs after a scan in progress and before the next one.
+    QMetaObject::invokeMethod(m_worker, [worker] { worker->deleteHistory(); });
+    m_scanAgain = m_scanning;
+    if (!m_scanning) {
+        rescan();
+    }
 }
 
 void ActivityJob::rescan() {

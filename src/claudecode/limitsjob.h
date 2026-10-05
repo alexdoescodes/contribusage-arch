@@ -33,6 +33,8 @@ public:
     void addResetTrigger(const QDateTime &at);
     // The probe interval setting (SPEC §11.6, 1 to 60 min).
     void setInterval(int minutes);
+    // US-12: drops the cached limits and the notification cycles, shows no data, and probes afresh.
+    void forgetData();
     // FR-13 to FR-15: after each success the planner's notes go to `sink` (nullptr: none); its cycles persist in
     // state.json so a restart does not repeat them.
     void setNotifications(NotificationSink *sink, NotificationSettings settings);

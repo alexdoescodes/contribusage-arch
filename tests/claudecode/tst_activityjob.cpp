@@ -160,6 +160,23 @@ private Q_SLOTS:
         job->rescan();
         QTRY_COMPARE(inputOn(*job, old.date()), qint64(12));
     }
+
+    // Review I-2, US-12: the history is deleted on the worker's own thread; days whose transcripts are gone go with it.
+    void deleteHistoryForgetsFrozenDays() {
+        Fixture fixture;
+        const QDateTime old = QDateTime::currentDateTime().addDays(-10);
+        write(fixture.transcript(), entry(old, "m1", 7));
+        auto job = fixture.job();
+        job->start();
+        QTRY_COMPARE(inputOn(*job, old.date()), qint64(7));
+        const QString history =
+            fixture.paths().providerFolder(QStringLiteral("claude-code")) + QStringLiteral("/history.json");
+        QTRY_VERIFY(QFile::exists(history));
+        QVERIFY(QFile::remove(fixture.transcript()));
+        job->deleteHistory();
+        QTRY_VERIFY(inputOn(*job, old.date()) <= 0); // gone; with no transcript left there is no local data at all
+        QVERIFY(!QFile::exists(history));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestActivityJob)

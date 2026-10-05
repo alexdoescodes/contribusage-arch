@@ -134,6 +134,9 @@ void GitHubJob::run() {
 void GitHubJob::tokenChanged() {
     ++m_generation;
     githubcache::clear(m_paths);
+    if (!m_enabled) {
+        return; // FR-43: off stays off and hidden; switching on fetches with the new token
+    }
     m_state = SourceState<GitHubReport>::loading(std::nullopt);
     Q_EMIT stateChanged();
     m_schedule.reset();

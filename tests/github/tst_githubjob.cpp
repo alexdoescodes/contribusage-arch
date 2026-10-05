@@ -250,6 +250,22 @@ private Q_SLOTS:
         job.setEnabled(true);
         QTRY_COMPARE(job.state().phase, Phase::Loaded);
     }
+
+    // Review I-1, FR-43: connecting or disconnecting while off keeps GitHub off and hidden.
+    void tokenChangeWhileOffStaysOff() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
+        job.setEnabled(false);
+        job.start();
+        job.tokenChanged();
+        QCOMPARE(job.state().phase, Phase::NotConfigured);
+        QCOMPARE(job.state().reason, NotConfiguredReason::ProviderDisabled);
+        QTest::qWait(300);
+        QVERIFY(fixture.transport.requests.isEmpty());
+        QCOMPARE(job.state().reason, NotConfiguredReason::ProviderDisabled);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestGitHubJob)
