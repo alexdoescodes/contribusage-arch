@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/notificationplanner.h"
+
 #include "core/reports.h"
 
 #include <QByteArray>
@@ -52,6 +54,14 @@ public:
     virtual void write(const QString &key, const QString &value, QObject *context,
                        std::function<void(SecretWrite)> done) = 0;
     virtual void remove(const QString &key, QObject *context, std::function<void(SecretWrite)> done) = 0;
+};
+
+// Delivers a planned notification to the desktop (FR-13, FR-14). Fire and forget: a missing notification server must
+// not change what the planner counts as sent.
+class NotificationSink {
+public:
+    virtual ~NotificationSink() = default;
+    virtual void notify(const NotificationNote &note) = 0;
 };
 
 } // namespace contribusage

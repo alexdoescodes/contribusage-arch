@@ -19,6 +19,8 @@ add_library(contribusage_core STATIC
     menubarlabel.h
     notificationplanner.cpp
     notificationplanner.h
+    notificationstore.cpp
+    notificationstore.h
     process.cpp
     process.h
     reports.cpp

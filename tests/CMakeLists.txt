@@ -158,3 +158,7 @@ ecm_add_test(core/tst_notificationplanner.cpp
 ecm_add_test(core/tst_menubarlabel.cpp
     TEST_NAME tst_menubarlabel
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_notificationstore.cpp
+    TEST_NAME tst_notificationstore
+    LINK_LIBRARIES contribusage_core Qt6::Test)
