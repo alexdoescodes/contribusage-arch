@@ -332,6 +332,43 @@ private Q_SLOTS:
         QVERIFY2(content->implicitHeight() < 64, qPrintable(QString::number(content->implicitHeight())));
     }
     void everyStyleStaysSmallInAWindow_data() { everyStyleDraws_data(); }
+
+    // Review Focus 5, SPEC §11.7: arrows walk the grid and stay inside it; the line follows.
+    void arrowKeysWalkTheGrid() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        const QVariantMap heatmap = model->property("heatmap").toMap();
+        const QVariantList cells = heatmap.value(QStringLiteral("cells")).toList();
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/HeatmapBlock.qml")));
+        QQuickWindow window;
+        std::unique_ptr<QObject> object(component.createWithInitialProperties({{QStringLiteral("heatmap"), heatmap}}));
+        QVERIFY2(object, qPrintable(component.errorString()));
+        auto *block = qobject_cast<QQuickItem *>(object.get());
+        block->setParentItem(window.contentItem());
+        block->setWidth(340);
+        window.resize(360, 300);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        auto *grid = block->findChild<QQuickItem *>(QStringLiteral("heatmapGrid"));
+        QVERIFY(grid);
+        grid->forceActiveFocus();
+        const int last = int(cells.size()) - 1;
+        QTRY_COMPARE(block->property("focusedIndex").toInt(), last);
+        QTest::keyClick(&window, Qt::Key_Left);
+        QCOMPARE(block->property("focusedIndex").toInt(), last - 7);
+        QTest::keyClick(&window, Qt::Key_Up);
+        QCOMPARE(block->property("focusedIndex").toInt(), last - 8);
+        auto *line = block->findChild<QObject *>(QStringLiteral("heatmapLine"));
+        QCOMPARE(line->property("text").toString(),
+                 cells.at(last - 8).toMap().value(QStringLiteral("line")).toString());
+        QTest::keyClick(&window, Qt::Key_End);
+        QTest::keyClick(&window, Qt::Key_Right);
+        QCOMPARE(block->property("focusedIndex").toInt(), last); // stays inside
+        QTest::keyClick(&window, Qt::Key_Home);
+        QTest::keyClick(&window, Qt::Key_Up);
+        QCOMPARE(block->property("focusedIndex").toInt(), 0);
+    }
 };
 
 QTEST_MAIN(TestAppletQml)

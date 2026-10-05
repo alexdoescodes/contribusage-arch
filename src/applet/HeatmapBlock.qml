@@ -7,7 +7,10 @@ import org.kde.plasma.components as PlasmaComponents
 // The shared heatmap, Combined style (FR-48, FR-49, ADR-032): a legend, then one grid of week columns from Sunday;
 // a cell holds a stripe per layer active that day, or the neutral fill.
 ColumnLayout {
+    id: block
+
     property var heatmap
+    property int focusedIndex: -1
     property string hoveredLine: ""
 
     spacing: 6
@@ -32,6 +35,25 @@ ColumnLayout {
 
     Grid {
         id: grid
+        objectName: "heatmapGrid"
+        activeFocusOnTab: true
+        focus: true
+        Accessible.role: Accessible.Table
+        Accessible.name: "Heatmap, " + (block.focusedIndex >= 0 ? heatmap.cells[block.focusedIndex].line : "")
+        onActiveFocusChanged: if (activeFocus && block.focusedIndex < 0) block.focusedIndex = heatmap.cells.length - 1
+        Keys.onPressed: event => {
+            const last = heatmap.cells.length - 1;
+            let next = block.focusedIndex;
+            if (event.key === Qt.Key_Left) next -= 7;
+            else if (event.key === Qt.Key_Right) next += 7;
+            else if (event.key === Qt.Key_Up) next -= 1;
+            else if (event.key === Qt.Key_Down) next += 1;
+            else if (event.key === Qt.Key_Home) next = 0;
+            else if (event.key === Qt.Key_End) next = last;
+            else return;
+            block.focusedIndex = Math.max(0, Math.min(last, next));
+            event.accepted = true;
+        }
         readonly property real side: (width - Theme.cellGap * (heatmap.columns - 1)) / heatmap.columns
 
         Layout.fillWidth: true
@@ -45,6 +67,7 @@ ColumnLayout {
             Rectangle {
                 id: cell
                 required property var modelData
+                required property int index
                 width: grid.side
                 height: grid.side
                 radius: 2
@@ -52,6 +75,8 @@ ColumnLayout {
                 color: modelData.stripes.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
                                                       : "transparent"
                 Accessible.name: modelData.line
+                border.width: grid.activeFocus && index === block.focusedIndex ? 2 : 0
+                border.color: Kirigami.Theme.highlightColor
 
                 Row {
                     anchors.fill: parent
@@ -78,7 +103,9 @@ ColumnLayout {
     }
 
     PlasmaComponents.Label {
-        text: hoveredLine.length > 0 ? hoveredLine : heatmap.cells[heatmap.cells.length - 1].line
+        objectName: "heatmapLine"
+        text: block.focusedIndex >= 0 && grid.activeFocus ? heatmap.cells[block.focusedIndex].line
+            : (hoveredLine.length > 0 ? hoveredLine : heatmap.cells[heatmap.cells.length - 1].line)
         font: Kirigami.Theme.smallFont
         opacity: Theme.secondaryOpacity
         elide: Text.ElideRight
