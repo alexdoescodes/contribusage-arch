@@ -1,4 +1,8 @@
 add_library(contribusage_claudecode STATIC
+    activityjob.cpp
+    activityjob.h
+    activityview.cpp
+    activityview.h
     claudecodelimits.cpp
     claudecodelimits.h
     claudelocator.cpp

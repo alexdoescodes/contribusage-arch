@@ -129,3 +129,12 @@ ecm_add_test(claudecode/tst_transcriptline.cpp
 ecm_add_test(claudecode/tst_transcriptindex.cpp
     TEST_NAME tst_transcriptindex
     LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+
+ecm_add_test(claudecode/tst_activityjob.cpp
+    TEST_NAME tst_activityjob
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+target_include_directories(tst_activityjob PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+ecm_add_test(claudecode/tst_activityview.cpp
+    TEST_NAME tst_activityview
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
