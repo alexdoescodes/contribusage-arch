@@ -19,7 +19,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 - libplasma 6 (`plasma_add_applet`), KF6 CoreAddons and Config, Qt Quick
 
 ## Contract
-- QML singletons `AppInfo` (`version`), `PopupModel` (`providers`, `heatmap`, `github`, `label`; real Claude Code limits and insights since L-2a; the macOS preview data under CONTRIBUSAGE_FAKE_DATA=1) and `Theme` (every color, size and opacity; the customization layers of L-6 override it).
+- QML singletons `AppInfo` (`version`), `PopupModel` (`providers`, `heatmap`, `github`, `label`; real Claude Code limits and insights since L-2a, activity (`providers[0].activity`) and a heatmap stacking the Claude Code and GitHub layers since L-2b; the macOS preview data under CONTRIBUSAGE_FAKE_DATA=1) and `Theme` (every color, size and opacity; the customization layers of L-6 override it).
 - `main.qml`: a `PlasmoidItem` with `CompactLabel` (the `prompt` style) and `FullPopup` (the blocks of SPEC §11.2: `ProviderGroup` with `LimitBar`, `ActivitySection` and `InsightsSection`, then `HeatmapBlock`, `GitHubSection` and `Footer`).
 - `PopupModel.connectGitHub(token)` and `disconnectGitHub()`; `github` and `heatmap` are live (GitHub layer) since L-3.
 

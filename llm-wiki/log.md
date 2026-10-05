@@ -488,3 +488,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] fix | L-3 review fixes
 - A token change drops a fetch still running and the old account in `state.json` (ADR-022); a refused disconnect shows as a failure.
 - The token form returns after a 401 (ADR-043); a missing token or a refused wallet pauses polling until the token changes.
+
+
+## [2026-10-05] feat | Claude Code activity (L-1b, L-2b)
+- `src/core/`: incremental JSONL reader, history store, recursive debounced directory watcher, layered heatmap view.
+- `src/claudecode/`: transcript decoding, discovery and live index on a worker thread (ADR-044); the widget shows today, the week and the Claude Code heatmap layer.
