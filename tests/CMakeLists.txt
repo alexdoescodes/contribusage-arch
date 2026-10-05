@@ -97,3 +97,15 @@ target_compile_definitions(tst_githubaccount PRIVATE
 ecm_add_test(platform/tst_networktransport.cpp
     TEST_NAME tst_networktransport
     LINK_LIBRARIES contribusage_platform Qt6::Test)
+
+ecm_add_test(github/tst_githubjob.cpp
+    TEST_NAME tst_githubjob
+    LINK_LIBRARIES contribusage_github Qt6::Test)
+target_include_directories(tst_githubjob PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(tst_githubjob PRIVATE
+    CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/github/fixtures")
+
+ecm_add_test(github/tst_githubview.cpp
+    TEST_NAME tst_githubview
+    LINK_LIBRARIES contribusage_github Qt6::Test)
+

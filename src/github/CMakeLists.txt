@@ -4,7 +4,11 @@ add_library(contribusage_github STATIC
     githubclient.cpp
     githubclient.h
     githubaccount.cpp
-    githubaccount.h)
+    githubaccount.h
+    githubjob.cpp
+    githubjob.h
+    githubview.cpp
+    githubview.h)
 target_include_directories(contribusage_github PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_link_libraries(contribusage_github PUBLIC contribusage_core)
 # Linked into the shared applet library.
