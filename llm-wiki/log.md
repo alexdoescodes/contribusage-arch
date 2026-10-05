@@ -477,3 +477,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-05] fix | L-2a review fix
 - The Insights open state and period survive the minute refresh in live mode.
+
+## [2026-10-05] docs | L-3 plan: GitHub contributions
+- `docs/superpowers/plans/2026-10-05-l3-github.md`: the GraphQL client, statistics, the token in KWallet after validation, a 30 min job and an inline token form.
