@@ -524,3 +524,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] fix | L-5a review fixes
 - A token change while GitHub is off keeps it off and hidden.
 - "Delete data for Claude Code" drops the cached limits and notification cycles and has the activity worker delete its own history.json, so no thread races the file.
+
+
+## [2026-10-05] feat | Popup layout, label GitHub data, Low Power (L-5b)
+- The popup follows a saved layout (order, visibility, sections, heatmap membership and style, "Nothing to show"), and the activity watcher and GitHub run only while something shows them.
+- The GitHub label modes show today's contributions; power-profiles-daemon's power saver doubles the intervals.
