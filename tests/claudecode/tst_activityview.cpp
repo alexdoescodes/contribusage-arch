@@ -1,5 +1,6 @@
 #include "claudecode/activityview.h"
 #include "core/display.h"
+#include "github/githubview.h"
 
 #include <QLocale>
 #include <QTest>
@@ -80,6 +81,27 @@ private Q_SLOTS:
         QVERIFY(layer->levels.value(today.addDays(-1)) < 4);
         QVERIFY(!layer->levels.contains(today.addDays(-400)));
         QCOMPARE(layer->texts.value(today), QString(compactCount(1000) + QStringLiteral(" tokens")));
+    }
+
+    // The widget's heatmap: Claude Code first, then GitHub, in one block.
+    void layersCombineWithGitHub() {
+        using GitHubState = SourceState<github::GitHubReport>;
+        const github::GitHubReport report{.calendar = {.login = QStringLiteral("octocat"),
+                                                       .weeks = {{{.date = today, .count = 3, .level = 2}}},
+                                                       .totalContributions = 3},
+                                          .stats = {}};
+        const auto githubState = GitHubState::loaded(
+            {.value = report, .fetchedAt = QDateTime::currentDateTimeUtc(), .origin = origins::github()});
+        QList<HeatmapLayer> layers;
+        for (const auto &layer : {activityLayer(loaded({day(today, 991)}), today), github::githubLayer(githubState)}) {
+            if (layer) {
+                layers.append(*layer);
+            }
+        }
+        const QVariantMap view = heatmapView(layers, today);
+        QCOMPARE(view.value(QStringLiteral("cells")).toList().last().toMap().value(QStringLiteral("line")).toString(),
+                 QString(QStringLiteral("2026-10-05 · Claude Code: ") + compactCount(1000) +
+                         QStringLiteral(" tokens · GitHub: 3 contributions")));
     }
 };
 

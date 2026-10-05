@@ -18,6 +18,7 @@ class GitHubAccount;
 class GitHubJob;
 } // namespace github
 namespace claudecode {
+class ActivityJob;
 class ClaudeLocator;
 class ClaudeCodeLimits;
 class LimitsJob;
@@ -62,6 +63,7 @@ private:
     std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;
     std::unique_ptr<contribusage::claudecode::ClaudeCodeLimits> m_limits;
     std::unique_ptr<contribusage::claudecode::LimitsJob> m_job;
+    std::unique_ptr<contribusage::claudecode::ActivityJob> m_activityJob;
     std::unique_ptr<contribusage::NetworkTransport> m_transport;
     std::unique_ptr<contribusage::KWalletSecretStore> m_secrets;
     std::unique_ptr<contribusage::github::GitHubClient> m_githubClient;

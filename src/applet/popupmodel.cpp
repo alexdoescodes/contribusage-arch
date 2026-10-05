@@ -1,5 +1,7 @@
 #include "popupmodel.h"
 
+#include "claudecode/activityjob.h"
+#include "claudecode/activityview.h"
 #include "claudecode/claudecodelimits.h"
 #include "claudecode/claudelocator.h"
 #include "claudecode/limitsjob.h"
@@ -231,6 +233,11 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
     m_minute.start();
     m_job->start();
+    m_activityJob =
+        std::make_unique<claudecode::ActivityJob>(*m_runner, QDir::homePath(), shell, m_limits->probeFolder(),
+                                                  AppPaths::live(), 5'000); // SPEC §8.3, 5 s debounce
+    connect(m_activityJob.get(), &claudecode::ActivityJob::stateChanged, this, &PopupModel::changed);
+    m_activityJob->start();
     m_transport = std::make_unique<NetworkTransport>();
     m_secrets = std::make_unique<KWalletSecretStore>();
     m_githubClient = std::make_unique<github::GitHubClient>(*m_transport, version());
@@ -242,12 +249,24 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
 
 // Out of line, where the owned types are complete; the job goes first, so no probe outlives its limits object.
 PopupModel::~PopupModel() {
+    m_activityJob.reset();
     m_githubJob.reset();
     m_job.reset();
 }
 
 QVariantMap PopupModel::heatmap() const {
-    return m_fake ? m_heatmap : github::githubHeatmap(m_githubJob->state(), QDate::currentDate());
+    if (m_fake) {
+        return m_heatmap;
+    }
+    const QDate today = QDate::currentDate();
+    QList<HeatmapLayer> layers;
+    for (const auto &layer :
+         {claudecode::activityLayer(m_activityJob->state(), today), github::githubLayer(m_githubJob->state())}) {
+        if (layer) {
+            layers.append(*layer);
+        }
+    }
+    return heatmapView(layers, today);
 }
 
 QVariantMap PopupModel::github() const {
@@ -290,7 +309,12 @@ QVariantList PopupModel::providers() const {
     if (m_fake) {
         return m_providers;
     }
-    return {claudecode::limitsView(m_job->state(), QDateTime::currentDateTime())};
+    QVariantMap provider = claudecode::limitsView(m_job->state(), QDateTime::currentDateTime());
+    const QVariantMap activity = claudecode::activityView(m_activityJob->state(), QDate::currentDate());
+    if (!activity.isEmpty()) {
+        provider.insert(QStringLiteral("activity"), activity);
+    }
+    return {provider};
 }
 
 QVariantMap PopupModel::label() const {
