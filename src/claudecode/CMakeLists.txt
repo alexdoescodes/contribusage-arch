@@ -7,6 +7,10 @@ add_library(contribusage_claudecode STATIC
     limitsjob.h
     limitsview.cpp
     limitsview.h
+    transcriptindex.cpp
+    transcriptindex.h
+    transcriptline.cpp
+    transcriptline.h
     usageparser.cpp
     usageparser.h)
 target_include_directories(contribusage_claudecode PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

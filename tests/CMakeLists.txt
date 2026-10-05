@@ -121,3 +121,11 @@ ecm_add_test(core/tst_historystore.cpp
 ecm_add_test(core/tst_directorywatcher.cpp
     TEST_NAME tst_directorywatcher
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(claudecode/tst_transcriptline.cpp
+    TEST_NAME tst_transcriptline
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+
+ecm_add_test(claudecode/tst_transcriptindex.cpp
+    TEST_NAME tst_transcriptindex
+    LINK_LIBRARIES contribusage_claudecode Qt6::Test)
