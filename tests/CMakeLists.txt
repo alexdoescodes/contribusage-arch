@@ -74,3 +74,7 @@ target_compile_definitions(tst_limitsjob PRIVATE
 ecm_add_test(claudecode/tst_limitsview.cpp
     TEST_NAME tst_limitsview
     LINK_LIBRARIES contribusage_claudecode Qt6::Test)
+
+ecm_add_test(github/tst_githubreport.cpp
+    TEST_NAME tst_githubreport
+    LINK_LIBRARIES contribusage_github Qt6::Test)
