@@ -12,6 +12,7 @@ namespace contribusage {
 class LiveProcessRunner;
 class ScheduleConditionsSource;
 class SystemConditions;
+class DesktopNotifier;
 class NetworkTransport;
 class KWalletSecretStore;
 namespace github {
@@ -38,6 +39,7 @@ class PopupModel : public QObject {
     Q_PROPERTY(QVariantMap heatmap READ heatmap NOTIFY changed)
     Q_PROPERTY(QVariantMap github READ github NOTIFY changed)
     Q_PROPERTY(QVariantMap label READ label NOTIFY changed)
+    Q_PROPERTY(QString dataFolder READ dataFolder CONSTANT)
 
 public:
     explicit PopupModel(QObject *parent = nullptr);
@@ -47,6 +49,10 @@ public:
     QVariantMap heatmap() const;
     QVariantMap github() const;
     QVariantMap label() const;
+    QString dataFolder() const;
+    Q_INVOKABLE void applySettings(const QVariantMap &configuration);
+    Q_INVOKABLE void deleteClaudeCodeData();
+    Q_INVOKABLE void resetCaches();
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void popupOpened();
     Q_INVOKABLE void connectGitHub(const QString &token);
@@ -65,6 +71,8 @@ private:
     QVariantMap m_label;      // fake mode
     std::unique_ptr<contribusage::ScheduleConditionsSource> m_conditions;
     std::unique_ptr<contribusage::SystemConditions> m_system;
+    std::unique_ptr<contribusage::DesktopNotifier> m_notifier;
+    int m_menuBarMode = 0; // MenuBarMode
     std::unique_ptr<contribusage::LiveProcessRunner> m_runner;
     std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;
     std::unique_ptr<contribusage::claudecode::ClaudeCodeLimits> m_limits;

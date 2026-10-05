@@ -30,10 +30,14 @@ private Q_SLOTS:
 
     void qmlFileCompiles_data() {
         QTest::addColumn<QString>("file");
-        for (const auto *name :
-             {"main", "Theme", "SectionHeader", "LimitBar", "ActivitySection", "InsightsSection", "ProviderGroup",
-              "HeatmapBlock", "GitHubSection", "Footer", "FullPopup", "PromptGlyph", "CompactLabel", "Skeleton",
-              "ActionButton", "LabelContent", "RingGlyph", "LineGlyph", "MiniHeatmap"}) {
+        for (const auto *name : {"main",          "Theme",           "SectionHeader",
+                                 "LimitBar",      "ActivitySection", "InsightsSection",
+                                 "ProviderGroup", "HeatmapBlock",    "GitHubSection",
+                                 "Footer",        "FullPopup",       "PromptGlyph",
+                                 "CompactLabel",  "Skeleton",        "ActionButton",
+                                 "LabelContent",  "RingGlyph",       "LineGlyph",
+                                 "MiniHeatmap",   "ConfigGeneral",   "ConfigClaudeCode",
+                                 "ConfigGitHub",  "ConfigAdvanced"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }
@@ -412,6 +416,39 @@ private Q_SLOTS:
         QCOMPARE(block->property("focusedIndex").toInt(), int(cells.size()) - 1);
         auto *line = block->findChild<QObject *>(QStringLiteral("heatmapLine"));
         QCOMPARE(line->property("text").toString(), cells.last().toMap().value(QStringLiteral("line")).toString());
+    }
+
+    // SPEC §11.6: the configuration dialog's categories.
+    void configModelListsTheTabs() {
+        QFile file(QStringLiteral(":/qt/qml/plasma/applet/org/contribusage/widget/config.qml"));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const QByteArray text = file.readAll();
+        for (const char *page :
+             {"ConfigGeneral.qml", "ConfigClaudeCode.qml", "ConfigGitHub.qml", "ConfigAdvanced.qml"}) {
+            QVERIFY2(text.contains(page), page);
+        }
+    }
+
+    // The schema holds every SPEC §10.7 key the pages edit.
+    void schemaHoldsTheSettings() {
+        QFile file(QStringLiteral(":/qt/qml/plasma/applet/org/contribusage/widget/main.xml"));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const QByteArray text = file.readAll();
+        for (const char *key :
+             {"menuBarMode", "menuBarStyle", "menuBarTint", "menuBarColor", "notificationThresholds", "notifyOnReset",
+              "probeIntervalMinutes", "claudePathOverride", "githubEnabled", "githubIntervalMinutes"}) {
+            QVERIFY2(text.contains(QByteArray(QByteArray("name=\"") + key + '"')), key);
+        }
+    }
+
+    // FR-12: the fake model follows the configured mode too.
+    void applySettingsIsCallable() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        QVERIFY(QMetaObject::invokeMethod(
+            model, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("menuBarMode"), QStringLiteral("weekly")}}))));
+        QVERIFY(!model->property("dataFolder").toString().isEmpty());
     }
 };
 

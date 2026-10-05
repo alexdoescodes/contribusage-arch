@@ -26,22 +26,27 @@ MenuBarMode menuBarModeFromName(const QString &name) {
 }
 
 WidgetSettings widgetSettingsFromMap(const QVariantMap &map) {
+    // A key Plasma does not know arrives as undefined (an invalid QVariant): it keeps the default.
+    const auto has = [&map](const char *key) {
+        const QVariant value = map.value(QLatin1StringView(key));
+        return value.isValid() && !value.isNull();
+    };
     WidgetSettings settings;
     settings.menuBarMode = menuBarModeFromName(map.value(QStringLiteral("menuBarMode")).toString());
-    if (map.contains(QStringLiteral("probeIntervalMinutes"))) {
+    if (has("probeIntervalMinutes")) {
         settings.probeIntervalMinutes = std::clamp(map.value(QStringLiteral("probeIntervalMinutes")).toInt(), 1, 60);
     }
-    if (map.contains(QStringLiteral("githubIntervalMinutes"))) {
+    if (has("githubIntervalMinutes")) {
         settings.githubIntervalMinutes =
             std::clamp(map.value(QStringLiteral("githubIntervalMinutes")).toInt(), 10, 360);
     }
-    if (map.contains(QStringLiteral("githubEnabled"))) {
+    if (has("githubEnabled")) {
         settings.githubEnabled = map.value(QStringLiteral("githubEnabled")).toBool();
     }
-    if (map.contains(QStringLiteral("notifyOnReset"))) {
+    if (has("notifyOnReset")) {
         settings.notifications.notifyOnReset = map.value(QStringLiteral("notifyOnReset")).toBool();
     }
-    if (map.contains(QStringLiteral("notificationThresholds"))) {
+    if (has("notificationThresholds")) {
         QList<int> thresholds;
         for (const QString &part :
              map.value(QStringLiteral("notificationThresholds")).toString().split(u',', Qt::SkipEmptyParts)) {

@@ -45,6 +45,16 @@ private Q_SLOTS:
         QCOMPARE(menuBarModeFromName(QStringLiteral("primaryAndGitHub")), MenuBarMode::PrimaryAndGitHub);
         QCOMPARE(menuBarModeFromName(QStringLiteral("iconOnly")), MenuBarMode::IconOnly);
     }
+
+    // Plasmoid.configuration hands over undefined for a key it does not know: that keeps the default.
+    void undefinedValuesKeepTheDefaults() {
+        const WidgetSettings settings = widgetSettingsFromMap({{QStringLiteral("githubEnabled"), QVariant()},
+                                                               {QStringLiteral("probeIntervalMinutes"), QVariant()},
+                                                               {QStringLiteral("notificationThresholds"), QVariant()}});
+        QVERIFY(settings.githubEnabled);
+        QCOMPARE(settings.probeIntervalMinutes, 5);
+        QCOMPARE(settings.notifications.thresholds, (QList<int>{80, 95}));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestWidgetSettings)

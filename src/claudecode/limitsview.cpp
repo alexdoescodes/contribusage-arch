@@ -108,13 +108,13 @@ QVariantMap limitsView(const SourceState<LimitsReport> &state, const QDateTime &
     return view;
 }
 
-QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now) {
+QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now, MenuBarMode mode) {
     const MenuBarProvider provider{.id = providerId(),
                                    .displayName = QStringLiteral("Claude Code"),
                                    .symbol = QStringLiteral("draw-star"),
                                    .staleAfterMs = LimitsJob::defaultPolicy().staleAfterMs,
                                    .limits = state.snapshot()};
-    const MenuBarLabel label = menuBarLabel(MenuBarMode::Primary, provider.id, {provider}, std::nullopt, now);
+    const MenuBarLabel label = menuBarLabel(mode, provider.id, {provider}, std::nullopt, now);
     const double meter = label.meter.value_or(0.0);
     return {{QStringLiteral("text"), label.text},
             {QStringLiteral("fraction"), meter},

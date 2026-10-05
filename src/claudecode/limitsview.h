@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/menubarlabel.h"
 #include "core/reports.h"
 #include "core/snapshot.h"
 
@@ -13,6 +14,7 @@ namespace contribusage::claudecode {
 QVariantMap limitsView(const SourceState<LimitsReport> &state, const QDateTime &now);
 
 // SPEC §11.1: the session window's text, fraction and level for the panel label; "?" without one.
-QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now);
+QVariantMap labelView(const SourceState<LimitsReport> &state, const QDateTime &now,
+                      MenuBarMode mode = MenuBarMode::Primary);
 
 } // namespace contribusage::claudecode

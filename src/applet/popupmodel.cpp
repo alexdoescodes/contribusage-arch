@@ -9,18 +9,24 @@
 #include "core/apppaths.h"
 #include "core/display.h"
 #include "core/heatmap.h"
+#include "core/jsonstore.h"
+#include "core/menubarlabel.h"
+#include "core/notificationstore.h"
 #include "core/process.h"
 #include "core/sourceschedule.h"
 #include "core/version.h"
+#include "core/widgetsettings.h"
 #include "github/githubaccount.h"
 #include "github/githubclient.h"
 #include "github/githubjob.h"
 #include "github/githubview.h"
+#include "platform/desktopnotifier.h"
 #include "platform/kwalletsecretstore.h"
 #include "platform/networktransport.h"
 #include "platform/systemconditions.h"
 
 #include <QDir>
+#include <QFile>
 
 #include <QLocale>
 
@@ -237,6 +243,8 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_limits = std::make_unique<claudecode::ClaudeCodeLimits>(*m_runner, *m_locator, AppPaths::live());
     m_job = std::make_unique<claudecode::LimitsJob>(*m_limits, AppPaths::live(), claudecode::LimitsJob::defaultPolicy(),
                                                     m_conditions.get());
+    m_notifier = std::make_unique<DesktopNotifier>();
+    m_job->setNotifications(m_notifier.get(), {});
     connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
     m_minute.setInterval(60 * 1000);
     connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
@@ -290,6 +298,41 @@ QVariantMap PopupModel::github() const {
     view.insert(QStringLiteral("connectError"), m_githubConnectError);
     view.insert(QStringLiteral("canDisconnect"), true);
     return view;
+}
+
+QString PopupModel::dataFolder() const {
+    return AppPaths::live().root;
+}
+
+void PopupModel::applySettings(const QVariantMap &configuration) {
+    const WidgetSettings settings = widgetSettingsFromMap(configuration);
+    m_menuBarMode = int(settings.menuBarMode);
+    if (!m_fake) {
+        m_job->setInterval(settings.probeIntervalMinutes);
+        m_job->setNotifications(m_notifier.get(), settings.notifications);
+        m_limits->setOverride(settings.claudePathOverride);
+        m_githubJob->setInterval(settings.githubIntervalMinutes);
+        m_githubJob->setEnabled(settings.githubEnabled);
+    }
+    Q_EMIT changed();
+}
+
+void PopupModel::deleteClaudeCodeData() {
+    if (!m_fake) {
+        jsonstore::deleteProviderData(QStringLiteral("claude-code"), AppPaths::live()); // US-12
+    }
+}
+
+void PopupModel::resetCaches() {
+    if (m_fake) {
+        return;
+    }
+    // ADR-028: state.json loses the caches, never the notification keys; history.json is untouched.
+    const AppPaths paths = AppPaths::live();
+    const NotificationsSent sent = notificationstore::load(paths);
+    QFile::remove(paths.root + QStringLiteral("/state.json"));
+    notificationstore::save(paths, sent);
+    refresh();
 }
 
 void PopupModel::refresh() {
@@ -348,5 +391,6 @@ QVariantList PopupModel::providers() const {
 }
 
 QVariantMap PopupModel::label() const {
-    return m_fake ? m_label : claudecode::labelView(m_job->state(), QDateTime::currentDateTime());
+    return m_fake ? m_label
+                  : claudecode::labelView(m_job->state(), QDateTime::currentDateTime(), MenuBarMode(m_menuBarMode));
 }

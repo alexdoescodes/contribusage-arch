@@ -8,5 +8,12 @@
     <entry name="menuBarStyle" type="String"><default>prompt</default></entry>
     <entry name="menuBarTint" type="String"><default>provider</default></entry>
     <entry name="menuBarColor" type="String"><default>#ff9f0a</default></entry>
+    <entry name="menuBarMode" type="String"><default>primary</default></entry>
+    <entry name="notificationThresholds" type="String"><default>80,95</default></entry>
+    <entry name="notifyOnReset" type="Bool"><default>false</default></entry>
+    <entry name="probeIntervalMinutes" type="Int"><default>5</default></entry>
+    <entry name="claudePathOverride" type="String"><default></default></entry>
+    <entry name="githubEnabled" type="Bool"><default>true</default></entry>
+    <entry name="githubIntervalMinutes" type="Int"><default>30</default></entry>
   </group>
 </kcfg>
