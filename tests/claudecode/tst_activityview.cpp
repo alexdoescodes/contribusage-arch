@@ -110,6 +110,21 @@ private Q_SLOTS:
                  QString(QStringLiteral("2026-10-05 · Claude Code: ") + compactCount(1000) +
                          QStringLiteral(" tokens · GitHub: 3 contributions")));
     }
+
+    // Review I-2, SPEC §11.3: a failed scan shows its error and Retry, with or without earlier data.
+    void failuresShowAnErrorAndRetry() {
+        const SourceError error{.kind = SourceError::Kind::Io, .text = QStringLiteral("unreadable")};
+        const QVariantMap first = activityView(SourceState<ActivityReport>::failed(error, std::nullopt), today);
+        QVERIFY(!first.value(QStringLiteral("skeleton")).toBool());
+        QVERIFY(!first.value(QStringLiteral("statusText")).toString().isEmpty());
+        QCOMPARE(first.value(QStringLiteral("action")).toMap().value(QStringLiteral("kind")).toString(),
+                 QStringLiteral("retry"));
+        const auto previous = loaded({day(today, 5)}).snapshot();
+        const QVariantMap later = activityView(SourceState<ActivityReport>::failed(error, previous), today);
+        QVERIFY(later.value(QStringLiteral("stale")).toBool());
+        QVERIFY(!later.value(QStringLiteral("statusText")).toString().isEmpty());
+        QVERIFY(!later.value(QStringLiteral("todayText")).toString().isEmpty());
+    }
 };
 
 QTEST_GUILESS_MAIN(TestActivityView)

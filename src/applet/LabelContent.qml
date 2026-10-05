@@ -28,7 +28,8 @@ RowLayout {
     Accessible.name: (label.title ?? "") + " " + (label.text ?? "")
 
     PromptGlyph {
-        visible: content.shownStyle === "prompt"
+        // A vertical panel has no room for the text style's name and value: it shows the mark.
+        visible: content.shownStyle === "prompt" || (content.shownStyle === "text" && content.vertical)
         fraction: content.label.fraction ?? 0
         fillColor: content.meterColor
         opacity: content.meterOpacity

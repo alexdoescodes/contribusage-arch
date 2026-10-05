@@ -7,6 +7,7 @@
 #include <QQmlEngine>
 #include <QQuickItem>
 #include <QQuickWindow>
+#include <QRegularExpression>
 #include <QTest>
 
 #include <functional>
@@ -368,6 +369,49 @@ private Q_SLOTS:
         QTest::keyClick(&window, Qt::Key_Home);
         QTest::keyClick(&window, Qt::Key_Up);
         QCOMPARE(block->property("focusedIndex").toInt(), 0);
+    }
+
+    // Review I-3: a vertical panel in the text style still shows something to click.
+    void textStyleShowsAGlyphInAVerticalPanel() {
+        QQmlEngine engine;
+        std::unique_ptr<QObject> holder;
+        QObject *content = labelContent(engine, QStringLiteral("text"), holder);
+        QVERIFY(content);
+        content->setProperty("vertical", true);
+        qsizetype shown = 0;
+        for (QQuickItem *child : qobject_cast<QQuickItem *>(content)->childItems()) {
+            shown += child->isVisible();
+        }
+        QVERIFY(shown > 0);
+    }
+
+    // Review I-1: fewer cells after a refresh keep the focused day inside the grid, without script errors.
+    void focusSurvivesFewerCells() {
+        QQmlEngine engine;
+        auto *model = engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("PopupModel"));
+        QVariantMap heatmap = model->property("heatmap").toMap();
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/HeatmapBlock.qml")));
+        QQuickWindow window;
+        std::unique_ptr<QObject> object(component.createWithInitialProperties({{QStringLiteral("heatmap"), heatmap}}));
+        QVERIFY2(object, qPrintable(component.errorString()));
+        auto *block = qobject_cast<QQuickItem *>(object.get());
+        block->setParentItem(window.contentItem());
+        block->setWidth(340);
+        window.resize(360, 300);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        block->findChild<QQuickItem *>(QStringLiteral("heatmapGrid"))->forceActiveFocus();
+        QVariantList cells = heatmap.value(QStringLiteral("cells")).toList();
+        QTRY_COMPARE(block->property("focusedIndex").toInt(), int(cells.size()) - 1);
+        QTest::failOnWarning(QRegularExpression(QStringLiteral(".*TypeError.*")));
+        cells.removeLast();
+        cells.removeLast();
+        heatmap.insert(QStringLiteral("cells"), cells);
+        block->setProperty("heatmap", heatmap);
+        QCOMPARE(block->property("focusedIndex").toInt(), int(cells.size()) - 1);
+        auto *line = block->findChild<QObject *>(QStringLiteral("heatmapLine"));
+        QCOMPARE(line->property("text").toString(), cells.last().toMap().value(QStringLiteral("line")).toString());
     }
 };
 

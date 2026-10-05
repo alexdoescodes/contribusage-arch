@@ -11,6 +11,15 @@ ColumnLayout {
 
     property var heatmap
     property int focusedIndex: -1
+    readonly property int lastIndex: (heatmap.cells ?? []).length - 1
+
+    // The cells change with the day and the data; a focused day past the end moves to the last one.
+    onLastIndexChanged: if (focusedIndex > lastIndex) focusedIndex = lastIndex
+
+    function lineAt(index) {
+        const cells = heatmap.cells ?? [];
+        return index >= 0 && index < cells.length ? cells[index].line : "";
+    }
     property string hoveredLine: ""
 
     spacing: 6
@@ -39,7 +48,7 @@ ColumnLayout {
         activeFocusOnTab: true
         focus: true
         Accessible.role: Accessible.Table
-        Accessible.name: "Heatmap, " + (block.focusedIndex >= 0 ? heatmap.cells[block.focusedIndex].line : "")
+        Accessible.name: "Heatmap, " + (block.focusedIndex >= 0 ? block.lineAt(block.focusedIndex) : "")
         onActiveFocusChanged: if (activeFocus && block.focusedIndex < 0) block.focusedIndex = heatmap.cells.length - 1
         Keys.onPressed: event => {
             const last = heatmap.cells.length - 1;
@@ -104,8 +113,8 @@ ColumnLayout {
 
     PlasmaComponents.Label {
         objectName: "heatmapLine"
-        text: block.focusedIndex >= 0 && grid.activeFocus ? heatmap.cells[block.focusedIndex].line
-            : (hoveredLine.length > 0 ? hoveredLine : heatmap.cells[heatmap.cells.length - 1].line)
+        text: block.focusedIndex >= 0 && grid.activeFocus ? block.lineAt(block.focusedIndex)
+            : (hoveredLine.length > 0 ? hoveredLine : block.lineAt(block.lastIndex))
         font: Kirigami.Theme.smallFont
         opacity: Theme.secondaryOpacity
         elide: Text.ElideRight

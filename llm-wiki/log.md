@@ -511,3 +511,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Widget states, label styles, heatmap keys (L-4)
 - SPEC §11.3's states in the popup: skeletons, Retry, Locate…, Show raw output, no local data, dimmed stale layers.
 - The panel label in all seven FR-51 styles and tints from the plasmoid configuration; the heatmap walks with the arrow keys.
+
+## [2026-10-05] fix | L-4 review fixes
+- The heatmap's focused day stays inside the grid when the cells change; its line never reads past the end.
+- A failed activity scan shows its error and Retry (dimmed previous numbers after earlier data) instead of a lasting skeleton; the text label style shows the mark in a vertical panel.

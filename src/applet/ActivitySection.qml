@@ -7,6 +7,7 @@ import org.kde.plasma.components as PlasmaComponents
 ColumnLayout {
     property var activity
 
+    opacity: activity.stale ? 0.5 : 1
     spacing: 4
 
     PlasmaComponents.Label { text: "On this machine"; opacity: Theme.secondaryOpacity }
@@ -57,6 +58,7 @@ ColumnLayout {
         wrapMode: Text.Wrap
         Layout.fillWidth: true
     }
+    ActionButton { stateAction: activity.action }
     Skeleton {
         visible: activity.skeleton === true
         rows: 3
