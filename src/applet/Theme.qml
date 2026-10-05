@@ -1,28 +1,41 @@
 pragma Singleton
 import QtQuick
 
-// Every color and size the widget draws with (port design §3, layer 2). The defaults are the macOS app's look; the
-// customization layers (L-6) override these properties. Text colors come from Kirigami's theme in each component.
+// Every color and size the widget draws with (port design §3, layer 2). The look picks the base: macOS (the defaults
+// below), Plasma (the system palette) or Custom (the defaults, with the user's token overrides). Density scales the
+// spacing. Text colors come from Kirigami's theme in each component.
 QtObject {
-    readonly property color accent: "#0a84ff"
-    readonly property color warning: "#ff9f0a"
-    readonly property color critical: "#ff453a"
-    readonly property color claudeHue: "#ff9f0a"
-    readonly property color githubHue: "#30d158"
+    id: theme
+
+    readonly property var appearance: PopupModel.appearance ?? ({})
+    readonly property string look: appearance.look ?? "macOS"
+    readonly property var tokens: appearance.tokens ?? ({})
+    readonly property real densityScale: appearance.density === "compact" ? 0.7 : 1
+    property SystemPalette palette: SystemPalette { colorGroup: SystemPalette.Active }
+
+    function token(name, fallback) {
+        return tokens[name] !== undefined ? tokens[name] : fallback;
+    }
+
+    readonly property color accent: look === "Plasma" ? palette.highlight : token("accent", "#0a84ff")
+    readonly property color warning: token("warning", "#ff9f0a")
+    readonly property color critical: token("critical", "#ff453a")
+    readonly property color claudeHue: token("claudeHue", "#ff9f0a")
+    readonly property color githubHue: token("githubHue", "#30d158")
 
     // Opacities over the theme's text color.
-    readonly property real secondaryOpacity: 0.6
-    readonly property real trackOpacity: 0.15
-    readonly property real emptyCellOpacity: 0.12
-    readonly property real dividerOpacity: 0.12
-    readonly property real mutedBarOpacity: 0.45
+    readonly property real secondaryOpacity: token("secondaryOpacity", 0.6)
+    readonly property real trackOpacity: token("trackOpacity", 0.15)
+    readonly property real emptyCellOpacity: token("emptyCellOpacity", 0.12)
+    readonly property real dividerOpacity: token("dividerOpacity", 0.12)
+    readonly property real mutedBarOpacity: token("mutedBarOpacity", 0.45)
 
-    readonly property int popupWidth: 360
-    readonly property int padding: 12
-    readonly property int spacing: 8
-    readonly property int meterHeight: 6
-    readonly property int cellGap: 3
-    readonly property int weekChartHeight: 32
+    readonly property int popupWidth: token("popupWidth", 360)
+    readonly property int padding: Math.round(token("padding", 12) * densityScale)
+    readonly property int spacing: Math.round(token("spacing", 8) * densityScale)
+    readonly property int meterHeight: token("meterHeight", 6)
+    readonly property int cellGap: token("cellGap", 3)
+    readonly property int weekChartHeight: Math.round(token("weekChartHeight", 32) * densityScale)
 
     function meterColor(level) {
         return level === "critical" ? critical : level === "warning" ? warning : accent;

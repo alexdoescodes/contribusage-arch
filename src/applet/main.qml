@@ -26,7 +26,10 @@ PlasmoidItem {
             "githubEnabled": c.githubEnabled,
             "githubIntervalMinutes": c.githubIntervalMinutes,
             "popoverLayout": c.popoverLayout,
-            "menuBarStyle": c.menuBarStyle
+            "menuBarStyle": c.menuBarStyle,
+            "look": c.look,
+            "density": c.density,
+            "themeTokens": c.themeTokens
         });
     }
     Component.onCompleted: applySettings()

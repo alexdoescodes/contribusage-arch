@@ -12,8 +12,10 @@ ColumnLayout {
     // Owned by the popup, so the open state and the period survive the rows being rebuilt every minute.
     property QtObject viewState: null
     readonly property bool expanded: viewState ? viewState.expanded : localExpanded
-    readonly property int period: Math.min(viewState ? viewState.period : localPeriod, insights.periods.length - 1)
-    readonly property var shown: insights.periods[period]
+    readonly property var periods: insights && insights.periods ? insights.periods : []
+    readonly property int period: Math.max(0, Math.min(viewState ? viewState.period : localPeriod, periods.length - 1))
+    // Empty while a provider update hands over no insights for a moment.
+    readonly property var shown: periods[period] ?? ({})
     property bool localExpanded: false
     property int localPeriod: 0
 
@@ -39,7 +41,7 @@ ColumnLayout {
         text: "Insights"
         icon.name: parent.expanded ? "arrow-down" : "arrow-right"
         onClicked: section.toggle()
-        QQC2.ToolTip.text: insights.note
+        QQC2.ToolTip.text: insights?.note ?? ""
         QQC2.ToolTip.visible: hovered
         QQC2.ToolTip.delay: 200
     }
@@ -54,20 +56,20 @@ ColumnLayout {
             onCurrentIndexChanged: section.selectPeriod(currentIndex)
 
             Repeater {
-                model: insights.periods
+                model: section.periods
                 PlasmaComponents.TabButton {
                     required property var modelData
                     text: modelData.label
                 }
             }
         }
-        PlasmaComponents.Label { text: shown.summary; font: Kirigami.Theme.smallFont; opacity: Theme.secondaryOpacity }
+        PlasmaComponents.Label { text: shown.summary ?? ""; font: Kirigami.Theme.smallFont; opacity: Theme.secondaryOpacity }
         Repeater {
-            model: shown.rows
+            model: shown.rows ?? []
             delegate: shareRow
         }
         Repeater {
-            model: shown.rankings
+            model: shown.rankings ?? []
             ColumnLayout {
                 required property var modelData
                 spacing: 3

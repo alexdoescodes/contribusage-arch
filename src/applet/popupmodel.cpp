@@ -6,6 +6,7 @@
 #include "claudecode/claudelocator.h"
 #include "claudecode/limitsjob.h"
 #include "claudecode/limitsview.h"
+#include "core/appearance.h"
 #include "core/apppaths.h"
 #include "core/display.h"
 #include "core/heatmap.h"
@@ -443,6 +444,7 @@ void PopupModel::applySettings(const QVariantMap &configuration) {
     m_githubOn = settings.githubEnabled;
     m_layout = popoverLayoutFromText(configuration.value(QStringLiteral("popoverLayout")).toString());
     m_menuBarStyle = configuration.value(QStringLiteral("menuBarStyle")).toString();
+    m_appearance = appearanceFromMap(configuration);
     if (!m_fake) {
         m_job->setInterval(settings.probeIntervalMinutes);
         m_job->setNotifications(m_notifier.get(), settings.notifications);

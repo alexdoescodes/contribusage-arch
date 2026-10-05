@@ -44,6 +44,7 @@ class PopupModel : public QObject {
     Q_PROPERTY(QString dataFolder READ dataFolder CONSTANT)
     Q_PROPERTY(QStringList blocks READ blocks NOTIFY changed)
     Q_PROPERTY(bool nothingToShow READ nothingToShow NOTIFY changed)
+    Q_PROPERTY(QVariantMap appearance READ appearance NOTIFY changed)
 
 public:
     explicit PopupModel(QObject *parent = nullptr);
@@ -56,6 +57,7 @@ public:
     QString dataFolder() const;
     QStringList blocks() const;
     bool nothingToShow() const;
+    QVariantMap appearance() const { return m_appearance; }
     Q_INVOKABLE void applySettings(const QVariantMap &configuration);
     Q_INVOKABLE void deleteClaudeCodeData();
     Q_INVOKABLE void resetCaches();
@@ -92,6 +94,7 @@ private:
     int m_menuBarMode = 0; // MenuBarMode
     contribusage::PopoverLayout m_layout;
     QString m_menuBarStyle;
+    QVariantMap m_appearance;
     bool m_githubOn = true;
     std::unique_ptr<contribusage::LiveProcessRunner> m_runner;
     std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;

@@ -1,7 +1,10 @@
 #include "core/display.h"
 #include "core/heatmap.h"
 
+#include <QColor>
 #include <QFile>
+#include <QGuiApplication>
+#include <QPalette>
 #include <QPluginLoader>
 #include <QQmlComponent>
 #include <QQmlEngine>
@@ -540,6 +543,63 @@ private Q_SLOTS:
         QVERIFY(!rows.at(2).toMap().value(QStringLiteral("shown")).toBool()); // heatmap
         const QVariantList sections = rows.at(1).toMap().value(QStringLiteral("sections")).toList();
         QVERIFY(!sections.at(2).toMap().value(QStringLiteral("shown")).toBool());
+    }
+
+    QObject *theme(QQmlEngine &engine) {
+        return engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("Theme"));
+    }
+
+    void customTokensOverrideTheTheme() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#0a84ff")));
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Custom")},
+                                            {QStringLiteral("themeTokens"),
+                                             QStringLiteral("{\"accent\":\"#112233\",\"padding\":20}")}})));
+        QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#112233")));
+        QCOMPARE(style->property("padding").toInt(), 20);
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+        QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#0a84ff")));
+    }
+
+    // Review Focus 4.
+    void plasmaLookFollowsThePalette() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Plasma")}})));
+        QCOMPARE(style->property("accent").value<QColor>(), QGuiApplication::palette().color(QPalette::Highlight));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+    }
+
+    // Review Focus 5.
+    void densityScalesSpacing() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        const int padding = style->property("padding").toInt();
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("density"), QStringLiteral("compact")}})));
+        QVERIFY(style->property("padding").toInt() < padding);
+        QVERIFY(style->property("spacing").toInt() < 8);
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+    }
+
+    // A provider update can hand the section no insights for a moment: no script errors.
+    void insightsWithoutDataRaisesNoErrors() {
+        QTest::failOnWarning(QRegularExpression(QStringLiteral(".*TypeError.*")));
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/InsightsSection.qml")));
+        std::unique_ptr<QObject> section(
+            component.createWithInitialProperties({{QStringLiteral("insights"), QVariant()}}));
+        QVERIFY2(section, qPrintable(component.errorString()));
     }
 };
 

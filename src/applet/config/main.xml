@@ -16,5 +16,8 @@
     <entry name="githubEnabled" type="Bool"><default>true</default></entry>
     <entry name="githubIntervalMinutes" type="Int"><default>30</default></entry>
     <entry name="popoverLayout" type="String"><default></default></entry>
+    <entry name="look" type="String"><default>macOS</default></entry>
+    <entry name="density" type="String"><default>comfortable</default></entry>
+    <entry name="themeTokens" type="String"><default></default></entry>
   </group>
 </kcfg>
