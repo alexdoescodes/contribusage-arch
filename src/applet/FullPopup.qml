@@ -48,11 +48,14 @@ ColumnLayout {
     }
     Loader {
         id: githubLoader
-        active: PopupModel.github.login !== undefined
+        active: PopupModel.github.connected !== undefined || PopupModel.github.login !== undefined
         visible: active
         Layout.fillWidth: true
         Layout.margins: Theme.padding
-        sourceComponent: GitHubSection { github: PopupModel.github }
+        sourceComponent: GitHubSection {
+            github: PopupModel.github
+            onTokenSubmitted: token => PopupModel.connectGitHub(token)
+        }
     }
     Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity) }
     Footer {

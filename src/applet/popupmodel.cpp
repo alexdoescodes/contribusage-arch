@@ -8,6 +8,13 @@
 #include "core/display.h"
 #include "core/heatmap.h"
 #include "core/process.h"
+#include "core/version.h"
+#include "github/githubaccount.h"
+#include "github/githubclient.h"
+#include "github/githubjob.h"
+#include "github/githubview.h"
+#include "platform/kwalletsecretstore.h"
+#include "platform/networktransport.h"
 
 #include <QDir>
 
@@ -224,11 +231,59 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
     m_minute.start();
     m_job->start();
+    m_transport = std::make_unique<NetworkTransport>();
+    m_secrets = std::make_unique<KWalletSecretStore>();
+    m_githubClient = std::make_unique<github::GitHubClient>(*m_transport, version());
+    m_githubAccount = std::make_unique<github::GitHubAccount>(*m_secrets, *m_githubClient);
+    m_githubJob = std::make_unique<github::GitHubJob>(*m_githubAccount, AppPaths::live(), 30 * 60 * 1000); // SPEC §12
+    connect(m_githubJob.get(), &github::GitHubJob::stateChanged, this, &PopupModel::changed);
+    m_githubJob->start();
 }
 
 // Out of line, where the owned types are complete; the job goes first, so no probe outlives its limits object.
 PopupModel::~PopupModel() {
+    m_githubJob.reset();
     m_job.reset();
+}
+
+QVariantMap PopupModel::heatmap() const {
+    return m_fake ? m_heatmap : github::githubHeatmap(m_githubJob->state(), QDate::currentDate());
+}
+
+QVariantMap PopupModel::github() const {
+    if (m_fake) {
+        return m_github;
+    }
+    QVariantMap view = github::githubView(m_githubJob->state(), QDateTime::currentDateTime());
+    view.insert(QStringLiteral("busy"), m_githubBusy);
+    view.insert(QStringLiteral("connectError"), m_githubConnectError);
+    view.insert(QStringLiteral("canDisconnect"), true);
+    return view;
+}
+
+void PopupModel::connectGitHub(const QString &token) {
+    if (m_fake || m_githubBusy) {
+        return;
+    }
+    m_githubBusy = true;
+    m_githubConnectError.clear();
+    Q_EMIT changed();
+    m_githubAccount->connect(token, this, [this](std::expected<QString, SourceError> login) {
+        m_githubBusy = false;
+        if (login) {
+            m_githubJob->tokenChanged();
+        } else {
+            m_githubConnectError = errorMessage(login.error(), QStringLiteral("GitHub"));
+        }
+        Q_EMIT changed();
+    });
+}
+
+void PopupModel::disconnectGitHub() {
+    if (m_fake) {
+        return;
+    }
+    m_githubAccount->disconnect(this, [this](SecretWrite) { m_githubJob->tokenChanged(); });
 }
 
 QVariantList PopupModel::providers() const {

@@ -190,6 +190,24 @@ private Q_SLOTS:
         QCOMPARE(second->property("expanded").toBool(), true);
         QCOMPARE(second->property("period").toInt(), 1);
     }
+
+    // Live mode's not-connected block: the form is there, and submitting clears the field (Review Focus 4).
+    void githubFormClearsTheToken() {
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/GitHubSection.qml")));
+        const QVariantMap github{{QStringLiteral("connected"), false},       {QStringLiteral("login"), QString()},
+                                 {QStringLiteral("statsText"), QString()},   {QStringLiteral("updatedText"), QString()},
+                                 {QStringLiteral("statusText"), QString()},  {QStringLiteral("busy"), false},
+                                 {QStringLiteral("connectError"), QString()}};
+        std::unique_ptr<QObject> section(component.createWithInitialProperties({{QStringLiteral("github"), github}}));
+        QVERIFY2(section, qPrintable(component.errorString()));
+        auto *field = section->findChild<QObject *>(QStringLiteral("tokenField"));
+        QVERIFY(field);
+        field->setProperty("text", QStringLiteral("ghp_typed"));
+        QVERIFY(QMetaObject::invokeMethod(section.get(), "submit"));
+        QCOMPARE(field->property("text").toString(), QString());
+    }
 };
 
 QTEST_MAIN(TestAppletQml)
