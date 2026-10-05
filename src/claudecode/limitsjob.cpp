@@ -1,5 +1,7 @@
 #include "claudecode/limitsjob.h"
 
+#include "core/notificationstore.h"
+
 #include "claudecode/usageparser.h"
 #include "core/limitscache.h"
 
@@ -23,6 +25,7 @@ SchedulePolicy LimitsJob::defaultPolicy() {
 void LimitsJob::start() {
     m_state = SourceState<LimitsReport>::loading(limitscache::load(m_paths, providerId()));
     Q_EMIT stateChanged();
+    m_sent = notificationstore::load(m_paths);
     m_schedule.start();
 }
 
@@ -35,6 +38,11 @@ void LimitsJob::popupOpened() {
     if (!snapshot || snapshot->fetchedAt.msecsTo(QDateTime::currentDateTimeUtc()) > 5 * 60'000) {
         m_schedule.triggerIfDue();
     }
+}
+
+void LimitsJob::setNotifications(NotificationSink *sink, NotificationSettings settings) {
+    m_sink = sink;
+    m_notificationSettings = std::move(settings);
 }
 
 void LimitsJob::addResetTrigger(const QDateTime &at) {
@@ -59,6 +67,18 @@ void LimitsJob::finish(LimitsOutcome outcome, quint64 run) {
             .value = std::move(*outcome), .fetchedAt = now, .origin = origins::poll()};
         limitscache::save(m_paths, snapshot);
         m_state = SourceState<LimitsReport>::loaded(snapshot);
+        if (m_sink) {
+            const NotificationsSent before = m_sent;
+            const QList<NotificationNote> notes = planNotifications(
+                snapshot.value, QStringLiteral("Claude Code"), [](const QString &label) { return label; },
+                m_notificationSettings, m_sent, now);
+            for (const NotificationNote &note : notes) {
+                m_sink->notify(note);
+            }
+            if (m_sent != before) {
+                notificationstore::save(m_paths, m_sent);
+            }
+        }
         for (const UsageWindow &window : snapshot.value.windows) {
             if (window.resetsAt && *window.resetsAt > now) {
                 m_schedule.trigger(*window.resetsAt); // FR-11

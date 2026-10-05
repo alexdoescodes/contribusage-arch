@@ -3,6 +3,8 @@
 #include "claudecode/claudecodelimits.h"
 #include "core/snapshot.h"
 
+#include "core/notificationplanner.h"
+#include "core/seams.h"
 #include "core/sourceschedule.h"
 #include <QObject>
 
@@ -29,6 +31,9 @@ public:
     void popupOpened();
     // A window's reset time (rule 8); the job adds its windows' times after each success.
     void addResetTrigger(const QDateTime &at);
+    // FR-13 to FR-15: after each success the planner's notes go to `sink` (nullptr: none); its cycles persist in
+    // state.json so a restart does not repeat them.
+    void setNotifications(NotificationSink *sink, NotificationSettings settings);
 
 Q_SIGNALS:
     void stateChanged();
@@ -40,6 +45,9 @@ private:
     ClaudeCodeLimits &m_limits;
     AppPaths m_paths;
     SourceSchedule m_schedule;
+    NotificationSink *m_sink = nullptr;
+    NotificationSettings m_notificationSettings;
+    NotificationsSent m_sent;
     SourceState<LimitsReport> m_state = SourceState<LimitsReport>::loading(std::nullopt);
 };
 

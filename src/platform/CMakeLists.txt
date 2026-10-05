@@ -3,6 +3,8 @@ add_library(contribusage_platform STATIC
     kwalletsecretstore.h
     networktransport.cpp
     networktransport.h
+    desktopnotifier.cpp
+    desktopnotifier.h
     systemconditions.cpp
     systemconditions.h)
 target_include_directories(contribusage_platform PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

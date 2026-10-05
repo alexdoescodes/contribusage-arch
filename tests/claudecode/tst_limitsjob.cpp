@@ -3,9 +3,13 @@
 #include "support/fakeprocessrunner.h"
 
 #include <QFile>
+#include <QLocale>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+
+#include "core/notificationstore.h"
+#include "support/fakenotificationsink.h"
 
 #include "core/sourceschedule.h"
 
@@ -41,6 +45,14 @@ struct Fixture {
         return count;
     }
 };
+
+// A session window at 85 % that resets two days from now, in Claude Code 2.1.289's comma format.
+QString highUsage() {
+    const QDateTime reset = QDateTime::currentDateTimeUtc().addDays(2);
+    return QStringLiteral("You are currently using your subscription to power your Claude Code usage\n\n"
+                          "Current session: 85% used · resets ") +
+           QLocale::c().toString(reset, QStringLiteral("MMM d, h:mmap")) + QStringLiteral(" (UTC)\n");
+}
 
 using Phase = SourceState<LimitsReport>::Phase;
 
@@ -185,6 +197,45 @@ private Q_SLOTS:
         const qsizetype probes = fixture.probes();
         job.refresh();
         QTRY_VERIFY(fixture.probes() > probes);
+    }
+
+    // FR-13: crossing a threshold notifies once; Review Focus 4: what the sink does is not the planner's business.
+    void notesGoToTheSink() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"), FakeProcessRunner::exited(0, highUsage()));
+        FakeNotificationSink sink;
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
+        job.setNotifications(&sink, {.thresholds = {50, 60}, .notifyOnReset = false});
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        QVERIFY(!sink.notes.isEmpty());
+        QVERIFY(sink.notes.first().title.startsWith(QStringLiteral("Claude Code: ")));
+        const qsizetype sent = sink.notes.size();
+        job.refresh();
+        QTest::qWait(100);
+        QCOMPARE(sink.notes.size(), sent);
+        QVERIFY(!notificationstore::load(fixture.paths()).isEmpty());
+    }
+
+    // Review Focus 1: a restart does not notify the same cycle again.
+    void aRestartDoesNotNotifyAgain() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"), FakeProcessRunner::exited(0, highUsage()));
+        FakeNotificationSink first;
+        {
+            LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
+            job.setNotifications(&first, {.thresholds = {50, 60}, .notifyOnReset = false});
+            job.start();
+            QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        }
+        QVERIFY(!first.notes.isEmpty());
+        FakeNotificationSink second;
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
+        job.setNotifications(&second, {.thresholds = {50, 60}, .notifyOnReset = false});
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
+        QTest::qWait(50);
+        QVERIFY(second.notes.isEmpty());
     }
 };
 
