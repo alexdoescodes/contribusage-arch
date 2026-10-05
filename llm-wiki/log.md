@@ -515,3 +515,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] fix | L-4 review fixes
 - The heatmap's focused day stays inside the grid when the cells change; its line never reads past the end.
 - A failed activity scan shows its error and Retry (dimmed previous numbers after earlier data) instead of a lasting skeleton; the text label style shows the mark in a vertical panel.
+
+
+## [2026-10-05] feat | Notifications and settings (L-5a)
+- Limit notifications reach the desktop once per threshold and cycle, also across restarts (ADR-046).
+- Settings pages for the label, notifications, Claude Code, GitHub and data, applied live from the plasmoid configuration.

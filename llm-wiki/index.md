@@ -67,6 +67,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 - [[decisions/0043-inline-github-token-form]]: ADR-043, the GitHub token is entered in the popup's GitHub block and saved in KWallet after validation
 - [[decisions/0044-transcripts-on-a-worker-thread]]: ADR-044, transcripts are read on a worker thread; lines without "usage" are not parsed
 - [[decisions/0045-one-schedule-per-source]]: ADR-045, one schedule object per polled source instead of one coordinator
+- [[decisions/0046-notifications-and-settings]]: ADR-046, notifications over org.freedesktop.Notifications; settings in the plasmoid configuration
 
 ## Research
 - [[research/r-1-probe-cost]]: R-1, a `/usage` probe costs no plan quota but about 1.7 s CPU; default 5 min, minimum 1 min
