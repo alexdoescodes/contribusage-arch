@@ -85,3 +85,11 @@ ecm_add_test(github/tst_githubclient.cpp
 target_include_directories(tst_githubclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(tst_githubclient PRIVATE
     CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/github/fixtures")
+
+ecm_add_test(github/tst_githubaccount.cpp
+    TEST_NAME tst_githubaccount
+    LINK_LIBRARIES contribusage_github Qt6::Test)
+target_include_directories(tst_githubaccount PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(tst_githubaccount PRIVATE
+    CONTRIBUSAGE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/github/fixtures")
+
