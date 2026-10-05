@@ -59,6 +59,15 @@ public:
     Q_INVOKABLE void applySettings(const QVariantMap &configuration);
     Q_INVOKABLE void deleteClaudeCodeData();
     Q_INVOKABLE void resetCaches();
+    // SPEC §11.6 Popover tab: edits of the `popoverLayout` text; each returns the new text.
+    Q_INVOKABLE QVariantList layoutRows(const QString &layout) const;
+    Q_INVOKABLE QString layoutMoveBlock(const QString &layout, int from, int to) const;
+    Q_INVOKABLE QString layoutSetShown(const QString &layout, const QString &block, bool shown) const;
+    Q_INVOKABLE QString layoutSetInHeatmap(const QString &layout, const QString &block, bool in) const;
+    Q_INVOKABLE QString layoutSetSectionShown(const QString &layout, const QString &provider, const QString &section,
+                                              bool shown) const;
+    Q_INVOKABLE QString layoutMoveSection(const QString &layout, const QString &provider, int from, int to) const;
+    Q_INVOKABLE QString layoutSetHeatmapStyle(const QString &layout, const QString &style) const;
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void popupOpened();
     Q_INVOKABLE void connectGitHub(const QString &token);

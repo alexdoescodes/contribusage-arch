@@ -344,6 +344,94 @@ void PopupModel::applyDemand() {
     m_githubJob->setEnabled(demand.github);
 }
 
+namespace {
+const QStringList registeredProviders{QStringLiteral("claude-code")};
+
+QString blockName(const QString &block) {
+    return block == heatmapBlockId()  ? QStringLiteral("Heatmap")
+           : block == githubBlockId() ? QStringLiteral("GitHub")
+                                      : QStringLiteral("Claude Code");
+}
+} // namespace
+
+QVariantList PopupModel::layoutRows(const QString &text) const {
+    const PopoverLayout layout = popoverLayoutFromText(text);
+    QVariantList rows;
+    for (const QString &block : layout.arranged(registeredProviders)) {
+        QVariantMap row{{QStringLiteral("id"), block},
+                        {QStringLiteral("name"), blockName(block)},
+                        {QStringLiteral("shown"), !layout.hiddenBlocks.contains(block)}};
+        if (block != heatmapBlockId()) {
+            row.insert(QStringLiteral("inHeatmap"), !layout.outOfHeatmap.contains(block));
+        }
+        if (registeredProviders.contains(block)) {
+            QVariantList sections;
+            for (const SectionKind kind : layout.sections(block)) {
+                sections.append(QVariantMap{{QStringLiteral("name"), sectionName(kind)},
+                                            {QStringLiteral("shown"), layout.shows(kind, block)}});
+            }
+            row.insert(QStringLiteral("sections"), sections);
+        }
+        rows.append(row);
+    }
+    return rows;
+}
+
+QString PopupModel::layoutMoveBlock(const QString &text, int from, int to) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    const QStringList blocks = layout.arranged(registeredProviders);
+    if (from < 0 || to < 0 || from >= blocks.size() || to >= blocks.size()) {
+        return text;
+    }
+    layout.move(blocks.at(from), blocks.at(to), registeredProviders);
+    return popoverLayoutText(layout);
+}
+
+QString PopupModel::layoutSetShown(const QString &text, const QString &block, bool shown) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    if (shown) {
+        layout.hiddenBlocks.remove(block);
+    } else {
+        layout.hiddenBlocks.insert(block);
+    }
+    return popoverLayoutText(layout);
+}
+
+QString PopupModel::layoutSetInHeatmap(const QString &text, const QString &block, bool in) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    if (in) {
+        layout.outOfHeatmap.remove(block);
+    } else {
+        layout.outOfHeatmap.insert(block);
+    }
+    return popoverLayoutText(layout);
+}
+
+QString PopupModel::layoutSetSectionShown(const QString &text, const QString &provider, const QString &section,
+                                          bool shown) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    if (const auto kind = sectionFromName(section)) {
+        layout.setShows(*kind, provider, shown);
+    }
+    return popoverLayoutText(layout);
+}
+
+QString PopupModel::layoutMoveSection(const QString &text, const QString &provider, int from, int to) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    const QList<SectionKind> sections = layout.sections(provider);
+    if (from < 0 || to < 0 || from >= sections.size() || to >= sections.size()) {
+        return text;
+    }
+    layout.moveSection(sections.at(from), sections.at(to), provider);
+    return popoverLayoutText(layout);
+}
+
+QString PopupModel::layoutSetHeatmapStyle(const QString &text, const QString &style) const {
+    PopoverLayout layout = popoverLayoutFromText(text);
+    layout.heatmapStyle = style == QStringLiteral("stacked") ? QStringLiteral("stacked") : QStringLiteral("combined");
+    return popoverLayoutText(layout);
+}
+
 QString PopupModel::dataFolder() const {
     return AppPaths::live().root;
 }

@@ -518,6 +518,29 @@ private Q_SLOTS:
                  (QStringList{QStringLiteral("activity"), QStringLiteral("limits")}));
         QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
     }
+
+    // SPEC §11.6 Popover tab: the helpers edit the saved layout text.
+    void layoutHelpersEditTheText() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QString layout;
+        QVariantList rows;
+        QMetaObject::invokeMethod(popup, "layoutRows", Q_RETURN_ARG(QVariantList, rows), Q_ARG(QString, layout));
+        QCOMPARE(rows.size(), 3);
+        QCOMPARE(rows.first().toMap().value(QStringLiteral("id")).toString(), QStringLiteral("claude-code"));
+        QMetaObject::invokeMethod(popup, "layoutMoveBlock", Q_RETURN_ARG(QString, layout), Q_ARG(QString, layout),
+                                  Q_ARG(int, 2), Q_ARG(int, 0));
+        QMetaObject::invokeMethod(popup, "layoutSetShown", Q_RETURN_ARG(QString, layout), Q_ARG(QString, layout),
+                                  Q_ARG(QString, QStringLiteral("heatmap")), Q_ARG(bool, false));
+        QMetaObject::invokeMethod(popup, "layoutSetSectionShown", Q_RETURN_ARG(QString, layout), Q_ARG(QString, layout),
+                                  Q_ARG(QString, QStringLiteral("claude-code")),
+                                  Q_ARG(QString, QStringLiteral("insights")), Q_ARG(bool, false));
+        QMetaObject::invokeMethod(popup, "layoutRows", Q_RETURN_ARG(QVariantList, rows), Q_ARG(QString, layout));
+        QCOMPARE(rows.first().toMap().value(QStringLiteral("id")).toString(), QStringLiteral("github"));
+        QVERIFY(!rows.at(2).toMap().value(QStringLiteral("shown")).toBool()); // heatmap
+        const QVariantList sections = rows.at(1).toMap().value(QStringLiteral("sections")).toList();
+        QVERIFY(!sections.at(2).toMap().value(QStringLiteral("shown")).toBool());
+    }
 };
 
 QTEST_MAIN(TestAppletQml)

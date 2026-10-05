@@ -1,12 +1,17 @@
 import QtQuick
 import org.kde.plasma.configuration
 
-// SPEC §11.6's tabs that L-5a covers; the Popover tab follows with L-5b.
+// SPEC §11.6's tabs.
 ConfigModel {
     ConfigCategory {
         name: "General"
         icon: "preferences-desktop"
         source: "ConfigGeneral.qml"
+    }
+    ConfigCategory {
+        name: "Popover"
+        icon: "view-list-details"
+        source: "ConfigPopover.qml"
     }
     ConfigCategory {
         name: "Claude Code"
