@@ -28,6 +28,8 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
 
 #include <QLocale>
 
@@ -432,6 +434,17 @@ QString PopupModel::layoutSetHeatmapStyle(const QString &text, const QString &st
     PopoverLayout layout = popoverLayoutFromText(text);
     layout.heatmapStyle = style == QStringLiteral("stacked") ? QStringLiteral("stacked") : QStringLiteral("combined");
     return popoverLayoutText(layout);
+}
+
+QString PopupModel::overrideFolder() const {
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QStringLiteral("/contribusage/qml");
+}
+
+QUrl PopupModel::overrideUrl(const QString &block) const {
+    static const QStringList blocks{QStringLiteral("ProviderGroup"), QStringLiteral("HeatmapBlock"),
+                                    QStringLiteral("GitHubSection")};
+    const QString file = overrideFolder() + u'/' + block + QStringLiteral(".qml");
+    return blocks.contains(block) && QFileInfo::exists(file) ? QUrl::fromLocalFile(file) : QUrl();
 }
 
 QString PopupModel::dataFolder() const {

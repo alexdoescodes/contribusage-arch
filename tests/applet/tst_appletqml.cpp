@@ -2,6 +2,7 @@
 #include "core/heatmap.h"
 
 #include <QColor>
+#include <QDir>
 #include <QFile>
 #include <QGuiApplication>
 #include <QPalette>
@@ -11,6 +12,7 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QRegularExpression>
+#include <QTemporaryDir>
 #include <QTest>
 
 #include <functional>
@@ -600,6 +602,49 @@ private Q_SLOTS:
         std::unique_ptr<QObject> section(
             component.createWithInitialProperties({{QStringLiteral("insights"), QVariant()}}));
         QVERIFY2(section, qPrintable(component.errorString()));
+    }
+
+    // Overrides live in a folder the test controls: XDG_DATA_HOME is set before the model reads it.
+    QString writeOverride(const QTemporaryDir &dir, const QString &block, const QByteArray &qml) {
+        const QString folder = dir.filePath(QStringLiteral("contribusage/qml"));
+        QDir().mkpath(folder);
+        QFile file(folder + u'/' + block + QStringLiteral(".qml"));
+        if (file.open(QIODevice::WriteOnly)) {
+            file.write(qml);
+        }
+        return file.fileName();
+    }
+
+    // Review Focus 3.
+    void anOverrideReplacesTheBlock() {
+        QTemporaryDir dir;
+        qputenv("XDG_DATA_HOME", dir.path().toUtf8());
+        writeOverride(
+            dir, QStringLiteral("GitHubSection"),
+            "import QtQuick\nItem { objectName: \"customGitHub\"; property var github; implicitHeight: 10 }\n");
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/FullPopup.qml")));
+        std::unique_ptr<QObject> popup(component.create());
+        QVERIFY2(popup, qPrintable(component.errorString()));
+        QTRY_VERIFY(findItem(popup.get(), QStringLiteral("customGitHub")));
+        qunsetenv("XDG_DATA_HOME");
+    }
+
+    // Review Focus 2.
+    void aBrokenOverrideFallsBack() {
+        QTemporaryDir dir;
+        qputenv("XDG_DATA_HOME", dir.path().toUtf8());
+        writeOverride(dir, QStringLiteral("GitHubSection"), "import QtQuick\nItem { this is not qml\n");
+        QQmlEngine engine;
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/FullPopup.qml")));
+        std::unique_ptr<QObject> popup(component.create());
+        QVERIFY2(popup, qPrintable(component.errorString()));
+        QTRY_VERIFY(findItem(popup.get(), QStringLiteral("overrideNotice")));
+        QVERIFY(findItem(popup.get(), QStringLiteral("tokenField")) ||
+                findItem(popup.get(), QStringLiteral("githubBuiltIn")));
+        qunsetenv("XDG_DATA_HOME");
     }
 };
 

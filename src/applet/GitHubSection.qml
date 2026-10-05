@@ -8,6 +8,7 @@ import org.kde.plasma.components as PlasmaComponents
 // token form instead (ADR-043): the token goes to PopupModel.connectGitHub and the field is cleared at once.
 ColumnLayout {
     id: section
+    objectName: "githubBuiltIn"
 
     property var github
     readonly property bool connected: github.connected !== false && github.needsToken !== true

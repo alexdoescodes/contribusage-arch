@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
@@ -45,6 +46,7 @@ class PopupModel : public QObject {
     Q_PROPERTY(QStringList blocks READ blocks NOTIFY changed)
     Q_PROPERTY(bool nothingToShow READ nothingToShow NOTIFY changed)
     Q_PROPERTY(QVariantMap appearance READ appearance NOTIFY changed)
+    Q_PROPERTY(QString overrideFolder READ overrideFolder CONSTANT)
 
 public:
     explicit PopupModel(QObject *parent = nullptr);
@@ -58,6 +60,9 @@ public:
     QStringList blocks() const;
     bool nothingToShow() const;
     QVariantMap appearance() const { return m_appearance; }
+    // Port design §3, layer 3: $XDG_DATA_HOME/contribusage/qml; <Block>.qml there replaces that popup block.
+    QString overrideFolder() const;
+    Q_INVOKABLE QUrl overrideUrl(const QString &block) const;
     Q_INVOKABLE void applySettings(const QVariantMap &configuration);
     Q_INVOKABLE void deleteClaudeCodeData();
     Q_INVOKABLE void resetCaches();

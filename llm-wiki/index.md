@@ -79,6 +79,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 
 ## Guides
 - [[guides/llm-wiki-tooling]]: `wiki.sh`, Claude Code hooks, lint findings, reuse in another repository
+- [[guides/qml-overrides]]: replacing a popup block with your own QML file, the properties it gets, the fallback
 
 ## Sources
 - [[sources/karpathy-llm-wiki]]: the LLM-wiki pattern this vault implements
