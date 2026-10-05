@@ -35,7 +35,7 @@ Q_SIGNALS:
 
 private:
     void run();
-    void finish(LimitsOutcome outcome);
+    void finish(LimitsOutcome outcome, quint64 run);
 
     ClaudeCodeLimits &m_limits;
     AppPaths m_paths;

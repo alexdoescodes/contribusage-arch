@@ -17,8 +17,20 @@ SourceSchedule::SourceSchedule(SchedulePolicy policy, ScheduleConditionsSource *
     : QObject(parent), m_policy(policy), m_conditions(conditions) {
     m_timer.setSingleShot(true);
     connect(&m_timer, &QTimer::timeout, this, &SourceSchedule::fire);
+    m_deadline.setSingleShot(true);
+    m_deadline.setInterval(120'000); // longer than the probe's 30 s and the network's 30 s timeouts
+    connect(&m_deadline, &QTimer::timeout, this, [this] { finished(false, true, m_run); });
     if (conditions) {
-        connect(conditions, &ScheduleConditionsSource::changed, this, &SourceSchedule::arm);
+        m_wasOffline = !conditions->conditions().online;
+        connect(conditions, &ScheduleConditionsSource::changed, this, [this] {
+            // SPEC §12 rule 2: a source that waited for the network runs within its manual floor once it is back.
+            const bool offline = !m_conditions->conditions().online;
+            if (m_wasOffline && !offline && m_policy.needsNetwork) {
+                m_manual = true;
+            }
+            m_wasOffline = offline;
+            arm();
+        });
     }
 }
 
@@ -34,14 +46,18 @@ void SourceSchedule::start() {
     arm();
 }
 
-void SourceSchedule::finished(bool success) {
+void SourceSchedule::finished(bool success, bool backoff, quint64 run) {
+    if (!m_running || (run != 0 && run != m_run)) {
+        return; // an answer for a run that already ended
+    }
+    m_deadline.stop();
     m_running = false;
     const QDateTime now = QDateTime::currentDateTimeUtc();
     if (success) {
         m_lastSuccess = now;
         m_failures = 0;
         m_hold.reset();
-    } else {
+    } else if (backoff) {
         ++m_failures;
     }
     const std::optional<QDateTime> last = lastRun();
@@ -62,6 +78,15 @@ bool SourceSchedule::triggerIfDue() {
     }
     trigger(now);
     return true;
+}
+
+void SourceSchedule::setIntervalOverride(std::optional<qint64> ms) {
+    m_intervalOverride = ms;
+    arm();
+}
+
+void SourceSchedule::setRunDeadline(int ms) {
+    m_deadline.setInterval(ms);
 }
 
 void SourceSchedule::requestManual() {
@@ -86,8 +111,10 @@ void SourceSchedule::reset() {
     m_triggers.clear();
     m_failures = 0;
     m_running = false;
+    m_deadline.stop();
     m_manual = false;
     m_paused = false;
+    m_intervalOverride.reset();
     arm();
 }
 
@@ -98,8 +125,12 @@ void SourceSchedule::arm() {
     }
     const QDateTime now = QDateTime::currentDateTimeUtc();
     const ScheduleConditions conditions = m_conditions ? m_conditions->conditions() : ScheduleConditions{};
+    SchedulePolicy policy = m_policy;
+    if (m_intervalOverride) {
+        policy.defaultMs = policy.minimumMs = policy.maximumMs = *m_intervalOverride;
+    }
     std::optional<QDateTime> next =
-        nextRun(m_policy, m_lastSuccess, m_lastAttempt, m_failures, now, conditions, m_manual, m_triggers);
+        nextRun(policy, m_lastSuccess, m_lastAttempt, m_failures, now, conditions, m_manual, m_triggers);
     if (!next) {
         return; // asleep or offline: a change of the conditions arms again
     }
@@ -112,6 +143,8 @@ void SourceSchedule::arm() {
 
 void SourceSchedule::fire() {
     m_running = true;
+    ++m_run;
+    m_deadline.start();
     m_manual = false;
     m_lastAttempt = QDateTime::currentDateTimeUtc();
     Q_EMIT due();

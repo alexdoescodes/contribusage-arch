@@ -40,8 +40,17 @@ public:
     std::optional<QDateTime> lastRun() const;
 
     void start();
-    // The run that `due()` started ended; a failure counts toward the backoff.
-    void finished(bool success);
+    // The run that `due()` started ended. A failure counts toward the backoff unless `backoff` is false (no network).
+    // `run` names the run it answers (currentRun() when it started); an answer for another run is ignored, which also
+    // drops a late answer after the deadline. 0 means the current run.
+    void finished(bool success, bool backoff = true, quint64 run = 0);
+    // The run `due()` started last.
+    quint64 currentRun() const { return m_run; }
+    // Replaces the interval of automatic runs (SPEC §13: the 6 h unsupported-plan re-check, ADR-018) until nullopt; the
+    // manual floor stays.
+    void setIntervalOverride(std::optional<qint64> ms);
+    // A run that has not finished after `ms` ends as a failure, so no lost answer stops the source for good.
+    void setRunDeadline(int ms);
     // An extra trigger at `at` (a window's reset time, rule 8).
     void trigger(const QDateTime &at);
     // The popup opened: a trigger now if the minimum interval has passed since the last run, else dropped (ADR-019).
@@ -66,6 +75,10 @@ private:
     SchedulePolicy m_policy;
     QPointer<ScheduleConditionsSource> m_conditions;
     QTimer m_timer;
+    QTimer m_deadline;
+    std::optional<qint64> m_intervalOverride;
+    quint64 m_run = 0;
+    bool m_wasOffline = false;
     std::optional<QDateTime> m_lastSuccess;
     std::optional<QDateTime> m_lastAttempt;
     std::optional<QDateTime> m_hold;

@@ -46,7 +46,7 @@ Q_SIGNALS:
 
 private:
     void run();
-    void finish(std::expected<GitHubReport, SourceError> outcome);
+    void finish(std::expected<GitHubReport, SourceError> outcome, quint64 run);
 
     GitHubAccount &m_account;
     AppPaths m_paths;

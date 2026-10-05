@@ -43,12 +43,17 @@ void LimitsJob::addResetTrigger(const QDateTime &at) {
 
 void LimitsJob::run() {
     // `this` as context: a job deleted during a probe never gets its result (L-1a's guard).
-    m_limits.fetch(this, [this](LimitsOutcome outcome) { finish(std::move(outcome)); });
+    m_limits.fetch(this,
+                   [this, run = m_schedule.currentRun()](LimitsOutcome outcome) { finish(std::move(outcome), run); });
 }
 
-void LimitsJob::finish(LimitsOutcome outcome) {
+void LimitsJob::finish(LimitsOutcome outcome, quint64 run) {
     const QDateTime now = QDateTime::currentDateTimeUtc();
-    m_schedule.finished(outcome.has_value());
+    // SPEC §13: an unsupported plan is an answer, re-checked every 6 h (ADR-018); no network is no reason to back off.
+    const bool unsupported = !outcome && outcome.error().kind == SourceError::Kind::UnsupportedPlan;
+    const bool offline = !outcome && outcome.error().kind == SourceError::Kind::Offline;
+    m_schedule.finished(outcome.has_value() || unsupported, !offline, run);
+    m_schedule.setIntervalOverride(unsupported ? std::optional<qint64>(6 * 3600'000) : std::nullopt);
     if (outcome) {
         const Snapshot<LimitsReport> snapshot{
             .value = std::move(*outcome), .fetchedAt = now, .origin = origins::poll()};
@@ -63,7 +68,6 @@ void LimitsJob::finish(LimitsOutcome outcome) {
         m_state = SourceState<LimitsReport>::notConfigured(NotConfiguredReason::ToolNotInstalled);
     } else if (outcome.error().kind == SourceError::Kind::UnsupportedPlan) {
         m_state = SourceState<LimitsReport>::notConfigured(NotConfiguredReason::UnsupportedPlan, outcome.error().text);
-        m_schedule.holdUntil(now.addSecs(6 * 3600)); // SPEC §13: re-check every 6 h (ADR-018)
     } else {
         m_state = SourceState<LimitsReport>::failed(outcome.error(), m_state.snapshot());
     }

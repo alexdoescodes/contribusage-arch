@@ -502,3 +502,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Schedule, refresh and planning (L-1c)
 - `src/core/`: SPEC §12's `nextRun`, a `SourceSchedule` per polled source (ADR-045), the notification planner and the menu bar label.
 - The limits and GitHub jobs follow their §12 policies with backoff, triggers and the manual floor; suspend and network come from logind and QNetworkInformation; the Refresh button works.
+
+## [2026-10-05] fix | L-1c review fixes
+- The 6 h unsupported-plan re-check is an interval override, not a hold, so Refresh still runs; a source back online runs within its manual floor, and an offline failure does not grow the backoff.
+- A run that never answers ends after 2 min; a late answer for an ended run is ignored.

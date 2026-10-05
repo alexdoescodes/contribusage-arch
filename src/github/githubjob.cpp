@@ -84,9 +84,10 @@ void GitHubJob::popupOpened() {
 
 void GitHubJob::run() {
     m_account.report(QDateTime::currentDateTime(), QLocale().firstDayOfWeek(), this,
-                     [this, generation = m_generation](std::expected<GitHubReport, SourceError> outcome) {
+                     [this, generation = m_generation,
+                      run = m_schedule.currentRun()](std::expected<GitHubReport, SourceError> outcome) {
                          if (generation == m_generation) {
-                             finish(std::move(outcome));
+                             finish(std::move(outcome), run);
                          }
                      });
 }
@@ -110,8 +111,8 @@ void GitHubJob::disconnectAccount() {
     });
 }
 
-void GitHubJob::finish(std::expected<GitHubReport, SourceError> outcome) {
-    m_schedule.finished(outcome.has_value());
+void GitHubJob::finish(std::expected<GitHubReport, SourceError> outcome, quint64 run) {
+    m_schedule.finished(outcome.has_value(), outcome || outcome.error().kind != SourceError::Kind::Offline, run);
     if (outcome) {
         const Snapshot<GitHubReport> snapshot{
             .value = std::move(*outcome), .fetchedAt = QDateTime::currentDateTimeUtc(), .origin = origins::github()};

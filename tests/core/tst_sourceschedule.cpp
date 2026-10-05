@@ -152,6 +152,58 @@ private Q_SLOTS:
         schedule.reset(); // also ends the run in flight: its result belongs to the old account
         QTRY_COMPARE(due.size(), 2);
     }
+
+    // Review I-1: an interval override (the 6 h unsupported-plan re-check) still lets a manual refresh through.
+    void anIntervalOverrideKeepsManualRefresh() {
+        SourceSchedule schedule(policy(60'000, 60'000, 60'000, 0));
+        QSignalSpy due(&schedule, &SourceSchedule::due);
+        schedule.start();
+        QTRY_COMPARE(due.size(), 1);
+        schedule.finished(true);
+        schedule.setIntervalOverride(6 * 3600'000);
+        schedule.requestManual();
+        QTRY_COMPARE(due.size(), 2);
+    }
+
+    // Review I-2: back online, a source that needs the network runs within its floor, not after its interval.
+    void reconnectingRunsWithinTheFloor() {
+        ScheduleConditionsSource conditions;
+        SourceSchedule schedule(policy(60'000, 60'000, 60'000, 0, true), &conditions);
+        QSignalSpy due(&schedule, &SourceSchedule::due);
+        schedule.start();
+        QTRY_COMPARE(due.size(), 1);
+        schedule.finished(true);
+        conditions.setConditions({.online = false, .lowPower = false, .asleep = false, .lastWake = std::nullopt});
+        conditions.setConditions({});
+        QTRY_COMPARE(due.size(), 2);
+    }
+
+    // Review I-2: a failure for lack of network does not grow the backoff.
+    void aFailureWithoutBackoffKeepsTheInterval() {
+        SourceSchedule schedule(policy(200, 200, 2'000, 0));
+        QSignalSpy due(&schedule, &SourceSchedule::due);
+        schedule.start();
+        QTRY_COMPARE(due.size(), 1);
+        schedule.finished(false, false);
+        QElapsedTimer timer;
+        timer.start();
+        QTRY_COMPARE(due.size(), 2);
+        QVERIFY(timer.elapsed() < 350);
+    }
+
+    // Review I-3: a run that never reports back ends at the deadline; its late answer is ignored.
+    void aRunThatNeverAnswersEndsAtTheDeadline() {
+        SourceSchedule schedule(SchedulePolicy::every(50));
+        schedule.setRunDeadline(400);
+        QSignalSpy due(&schedule, &SourceSchedule::due);
+        schedule.start();
+        QTRY_COMPARE(due.size(), 1);
+        const quint64 first = schedule.currentRun();
+        QTRY_COMPARE(due.size(), 2);          // deadline, then the interval
+        schedule.finished(true, true, first); // late: ignored, the second run goes on
+        QTest::qWait(120);
+        QCOMPARE(due.size(), 2);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSourceSchedule)

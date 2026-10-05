@@ -173,6 +173,19 @@ private Q_SLOTS:
         QCOMPARE(limits.manualFloorMs, qint64(30'000));
         QVERIFY(limits.needsNetwork);
     }
+
+    // Review I-1: on an unsupported plan the 6 h re-check does not block a manual refresh.
+    void unsupportedPlanStillRefreshesManually() {
+        Fixture fixture;
+        fixture.runner.answer(claude, QStringLiteral("-p"),
+                              FakeProcessRunner::exited(0, ::fixture("not-subscription")));
+        LimitsJob job(fixture.limits, fixture.paths(), SchedulePolicy::every(60'000));
+        job.start();
+        QTRY_COMPARE(job.state().phase, Phase::NotConfigured);
+        const qsizetype probes = fixture.probes();
+        job.refresh();
+        QTRY_VERIFY(fixture.probes() > probes);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestLimitsJob)
