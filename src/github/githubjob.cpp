@@ -66,16 +66,51 @@ SchedulePolicy GitHubJob::defaultPolicy() {
 }
 
 void GitHubJob::start() {
+    if (!m_enabled) {
+        m_state = SourceState<GitHubReport>::notConfigured(NotConfiguredReason::ProviderDisabled);
+        Q_EMIT stateChanged();
+        return; // setEnabled(true) starts the schedule
+    }
     m_state = SourceState<GitHubReport>::loading(githubcache::load(m_paths));
     Q_EMIT stateChanged();
     m_schedule.start();
 }
 
+void GitHubJob::setInterval(int minutes) {
+    SchedulePolicy policy = m_schedule.policy();
+    policy.defaultMs = qint64(minutes) * 60'000;
+    m_schedule.setPolicy(policy);
+}
+
+void GitHubJob::setEnabled(bool enabled) {
+    if (enabled == m_enabled) {
+        return;
+    }
+    m_enabled = enabled;
+    if (!enabled) {
+        ++m_generation; // a running fetch finishes into nothing
+        m_schedule.setPaused(true);
+        m_state = SourceState<GitHubReport>::notConfigured(NotConfiguredReason::ProviderDisabled);
+        Q_EMIT stateChanged();
+        return;
+    }
+    m_state = SourceState<GitHubReport>::loading(githubcache::load(m_paths));
+    Q_EMIT stateChanged();
+    m_schedule.reset();
+    m_schedule.start();
+}
+
 void GitHubJob::refresh() {
+    if (!m_enabled) {
+        return;
+    }
     m_schedule.requestManual();
 }
 
 void GitHubJob::popupOpened() {
+    if (!m_enabled) {
+        return;
+    }
     const auto snapshot = m_state.snapshot();
     if (!snapshot || snapshot->fetchedAt.msecsTo(QDateTime::currentDateTimeUtc()) > 10 * 60'000) {
         m_schedule.triggerIfDue();
@@ -83,6 +118,10 @@ void GitHubJob::popupOpened() {
 }
 
 void GitHubJob::run() {
+    if (!m_enabled) {
+        m_schedule.finished(false, false);
+        return;
+    }
     m_account.report(QDateTime::currentDateTime(), QLocale().firstDayOfWeek(), this,
                      [this, generation = m_generation,
                       run = m_schedule.currentRun()](std::expected<GitHubReport, SourceError> outcome) {

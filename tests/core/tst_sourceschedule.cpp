@@ -204,6 +204,17 @@ private Q_SLOTS:
         QTest::qWait(120);
         QCOMPARE(due.size(), 2);
     }
+
+    // Review Focus 5: a new interval applies to the next run.
+    void aNewPolicyRearms() {
+        SourceSchedule schedule(SchedulePolicy::every(60'000));
+        QSignalSpy due(&schedule, &SourceSchedule::due);
+        schedule.start();
+        QTRY_COMPARE(due.size(), 1);
+        schedule.finished(true);
+        schedule.setPolicy(SchedulePolicy::every(100));
+        QTRY_COMPARE(due.size(), 2);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestSourceSchedule)

@@ -31,6 +31,8 @@ public:
     void popupOpened();
     // A window's reset time (rule 8); the job adds its windows' times after each success.
     void addResetTrigger(const QDateTime &at);
+    // The probe interval setting (SPEC §11.6, 1 to 60 min).
+    void setInterval(int minutes);
     // FR-13 to FR-15: after each success the planner's notes go to `sink` (nullptr: none); its cycles persist in
     // state.json so a restart does not repeat them.
     void setNotifications(NotificationSink *sink, NotificationSettings settings);

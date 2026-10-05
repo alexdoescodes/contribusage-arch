@@ -104,6 +104,11 @@ void SourceSchedule::setPaused(bool paused) {
     arm();
 }
 
+void SourceSchedule::setPolicy(SchedulePolicy policy) {
+    m_policy = policy;
+    arm();
+}
+
 void SourceSchedule::reset() {
     m_lastSuccess.reset();
     m_lastAttempt.reset();

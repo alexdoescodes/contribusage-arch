@@ -32,7 +32,9 @@ add_library(contribusage_core STATIC
     sourceschedule.cpp
     sourceschedule.h
     version.cpp
-    version.h)
+    version.h
+    widgetsettings.cpp
+    widgetsettings.h)
 target_compile_definitions(contribusage_core PRIVATE CONTRIBUSAGE_VERSION="${PROJECT_VERSION}")
 target_include_directories(contribusage_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_link_libraries(contribusage_core PUBLIC Qt6::Core)

@@ -45,6 +45,12 @@ void LimitsJob::setNotifications(NotificationSink *sink, NotificationSettings se
     m_notificationSettings = std::move(settings);
 }
 
+void LimitsJob::setInterval(int minutes) {
+    SchedulePolicy policy = m_schedule.policy();
+    policy.defaultMs = qint64(minutes) * 60'000;
+    m_schedule.setPolicy(policy);
+}
+
 void LimitsJob::addResetTrigger(const QDateTime &at) {
     m_schedule.trigger(at);
 }

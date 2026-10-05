@@ -15,6 +15,9 @@ constexpr qint64 staleAfterSeconds = 2 * 3600; // SPEC §12 GitHub row
 
 QVariantMap githubView(const SourceState<GitHubReport> &state, const QDateTime &now) {
     using Phase = SourceState<GitHubReport>::Phase;
+    if (state.phase == Phase::NotConfigured && state.reason == NotConfiguredReason::ProviderDisabled) {
+        return {}; // FR-43: off hides the block
+    }
     QVariantMap view{{QStringLiteral("login"), QString()},
                      {QStringLiteral("statsText"), QString()},
                      {QStringLiteral("updatedText"), QString()},
@@ -49,6 +52,10 @@ QVariantMap githubView(const SourceState<GitHubReport> &state, const QDateTime &
 }
 
 std::optional<HeatmapLayer> githubLayer(const SourceState<GitHubReport> &state, const QDateTime &now) {
+    if (state.phase == SourceState<GitHubReport>::Phase::NotConfigured &&
+        state.reason == NotConfiguredReason::ProviderDisabled) {
+        return std::nullopt;
+    }
     const auto snapshot = state.snapshot();
     if (!snapshot) {
         return std::nullopt;

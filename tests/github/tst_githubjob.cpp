@@ -1,5 +1,6 @@
 #include "core/limitscache.h"
 #include "github/githubjob.h"
+#include "github/githubview.h"
 #include "support/fakehttptransport.h"
 #include "support/fakesecretstore.h"
 
@@ -230,6 +231,24 @@ private Q_SLOTS:
         job.refresh();
         QTest::qWait(100);
         QCOMPARE(fixture.transport.requests.size(), sent);
+    }
+
+    // Review Focus 3, FR-43: off sends nothing, hides the block and keeps the token.
+    void disabledGitHubSendsNothing() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
+        job.setEnabled(false);
+        job.start();
+        QTest::qWait(300);
+        QVERIFY(fixture.transport.requests.isEmpty());
+        QCOMPARE(job.state().phase, Phase::NotConfigured);
+        QCOMPARE(job.state().reason, NotConfiguredReason::ProviderDisabled);
+        QVERIFY(githubView(job.state(), QDateTime::currentDateTime()).isEmpty());
+        QVERIFY(fixture.secrets.values.contains(QStringLiteral("token")));
+        job.setEnabled(true);
+        QTRY_COMPARE(job.state().phase, Phase::Loaded);
     }
 };
 

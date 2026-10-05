@@ -35,6 +35,10 @@ public:
     void refresh();
     // SPEC §12: the popup opened; runs when the data is older than 10 min and the minimum interval has passed.
     void popupOpened();
+    // The GitHub interval setting (SPEC §11.6, 10 to 360 min).
+    void setInterval(int minutes);
+    // FR-43: off makes no requests and shows as disabled; the token stays. On again fetches as after a token change.
+    void setEnabled(bool enabled);
     // After a connect or a disconnect: drops the old account and any fetch still running with it (ADR-022), ends a
     // pause and fetches now.
     void tokenChanged();
@@ -51,7 +55,8 @@ private:
     GitHubAccount &m_account;
     AppPaths m_paths;
     SourceSchedule m_schedule; // paused after a 401, a missing token or a refused wallet; held by a rate limit
-    int m_generation = 0;      // bumped by tokenChanged(); a fetch from an older one finishes into nothing
+    bool m_enabled = true;
+    int m_generation = 0; // bumped by tokenChanged(); a fetch from an older one finishes into nothing
     SourceState<GitHubReport> m_state = SourceState<GitHubReport>::loading(std::nullopt);
 };
 

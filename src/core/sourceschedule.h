@@ -61,6 +61,8 @@ public:
     void holdUntil(const QDateTime &until);
     // No automatic runs; a manual refresh still runs (ADR-022).
     void setPaused(bool paused);
+    // A new policy (a changed interval setting) applies from the next run.
+    void setPolicy(SchedulePolicy policy);
     // A new account: forgets runs, failures, triggers, hold and pause, ends the run in flight (its result is the old
     // account's and the source drops it) and runs now.
     void reset();
