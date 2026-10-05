@@ -113,3 +113,7 @@ ecm_add_test(github/tst_githubview.cpp
 ecm_add_test(core/tst_jsonlreader.cpp
     TEST_NAME tst_jsonlreader
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_historystore.cpp
+    TEST_NAME tst_historystore
+    LINK_LIBRARIES contribusage_core Qt6::Test)

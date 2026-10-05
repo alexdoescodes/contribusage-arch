@@ -5,6 +5,8 @@ add_library(contribusage_core STATIC
     display.h
     heatmap.cpp
     heatmap.h
+    historystore.cpp
+    historystore.h
     jsonstore.cpp
     jsonstore.h
     jsonlreader.cpp
