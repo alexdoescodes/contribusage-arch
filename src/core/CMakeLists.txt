@@ -19,6 +19,8 @@ add_library(contribusage_core STATIC
     process.h
     reports.cpp
     reports.h
+    schedule.cpp
+    schedule.h
     seams.h
     snapshot.h
     version.cpp
