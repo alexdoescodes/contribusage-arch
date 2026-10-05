@@ -7,6 +7,8 @@ add_library(contribusage_core STATIC
     heatmap.h
     jsonstore.cpp
     jsonstore.h
+    jsonlreader.cpp
+    jsonlreader.h
     limitscache.cpp
     limitscache.h
     process.cpp
