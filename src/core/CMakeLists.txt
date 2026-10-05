@@ -21,6 +21,8 @@ add_library(contribusage_core STATIC
     notificationplanner.h
     notificationstore.cpp
     notificationstore.h
+    popoverlayout.cpp
+    popoverlayout.h
     process.cpp
     process.h
     reports.cpp
