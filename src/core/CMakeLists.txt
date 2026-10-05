@@ -23,6 +23,8 @@ add_library(contribusage_core STATIC
     schedule.h
     seams.h
     snapshot.h
+    sourceschedule.cpp
+    sourceschedule.h
     version.cpp
     version.h)
 target_compile_definitions(contribusage_core PRIVATE CONTRIBUSAGE_VERSION="${PROJECT_VERSION}")

@@ -142,3 +142,7 @@ ecm_add_test(claudecode/tst_activityview.cpp
 ecm_add_test(core/tst_schedule.cpp
     TEST_NAME tst_schedule
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+ecm_add_test(core/tst_sourceschedule.cpp
+    TEST_NAME tst_sourceschedule
+    LINK_LIBRARIES contribusage_core Qt6::Test)
