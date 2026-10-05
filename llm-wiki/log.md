@@ -529,3 +529,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Popup layout, label GitHub data, Low Power (L-5b)
 - The popup follows a saved layout (order, visibility, sections, heatmap membership and style, "Nothing to show"), and the activity watcher and GitHub run only while something shows them.
 - The GitHub label modes show today's contributions; power-profiles-daemon's power saver doubles the intervals.
+
+## [2026-10-05] fix | L-5b review fix
+- Demand (FR-46) suspends GitHub's schedule instead of resetting it, so hiding and showing GitHub keeps backoff and rate-limit holds; the user's switch alone resets it.

@@ -82,6 +82,10 @@ void GitHubJob::setInterval(int minutes) {
     m_schedule.setPolicy(policy);
 }
 
+void GitHubJob::setDemanded(bool demanded) {
+    m_schedule.setSuspended(!demanded);
+}
+
 void GitHubJob::setEnabled(bool enabled) {
     if (enabled == m_enabled) {
         return;

@@ -61,6 +61,8 @@ public:
     void holdUntil(const QDateTime &until);
     // No automatic runs; a manual refresh still runs (ADR-022).
     void setPaused(bool paused);
+    // FR-46: no runs at all, not even manual, while nothing uses the source; the history (runs, backoff, holds) stays.
+    void setSuspended(bool suspended);
     // A new policy (a changed interval setting) applies from the next run.
     void setPolicy(SchedulePolicy policy);
     // A new account: forgets runs, failures, triggers, hold and pause, ends the run in flight (its result is the old
@@ -90,6 +92,7 @@ private:
     bool m_running = false;
     bool m_manual = false;
     bool m_paused = false;
+    bool m_suspended = false;
 };
 
 } // namespace contribusage

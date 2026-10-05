@@ -109,6 +109,11 @@ void SourceSchedule::setPolicy(SchedulePolicy policy) {
     arm();
 }
 
+void SourceSchedule::setSuspended(bool suspended) {
+    m_suspended = suspended;
+    arm();
+}
+
 void SourceSchedule::reset() {
     m_lastSuccess.reset();
     m_lastAttempt.reset();
@@ -125,7 +130,7 @@ void SourceSchedule::reset() {
 
 void SourceSchedule::arm() {
     m_timer.stop();
-    if (!m_started || m_running || (m_paused && !m_manual)) {
+    if (!m_started || m_running || m_suspended || (m_paused && !m_manual)) {
         return;
     }
     const QDateTime now = QDateTime::currentDateTimeUtc();

@@ -341,7 +341,8 @@ void PopupModel::applyDemand() {
     }
     const Demand demand = m_layout.demand(sourcesOn(), menuBar);
     m_activityJob->setActive(demand.activity.contains(QStringLiteral("claude-code")));
-    m_githubJob->setEnabled(demand.github);
+    m_githubJob->setEnabled(m_githubOn);     // the user's switch (FR-43)
+    m_githubJob->setDemanded(demand.github); // FR-46, keeping the schedule's history
 }
 
 namespace {

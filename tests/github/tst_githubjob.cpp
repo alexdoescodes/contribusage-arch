@@ -266,6 +266,39 @@ private Q_SLOTS:
         QVERIFY(fixture.transport.requests.isEmpty());
         QCOMPARE(job.state().reason, NotConfiguredReason::ProviderDisabled);
     }
+
+    // Review I-1, FR-46: demand going off and on keeps the schedule's history: no request before a rate limit's reset.
+    void demandKeepsTheRateLimitHold() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        const qint64 reset = QDateTime::currentSecsSinceEpoch() + 3600;
+        fixture.transport.respond(403, "{}",
+                                  {{"x-ratelimit-remaining", "0"}, {"x-ratelimit-reset", QByteArray::number(reset)}});
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
+        job.start();
+        QTRY_COMPARE(job.state().error ? job.state().error->kind : SourceError::Kind::Io,
+                     SourceError::Kind::RateLimited);
+        const qsizetype sent = fixture.transport.requests.size();
+        job.setDemanded(false);
+        QTest::qWait(150);
+        job.setDemanded(true);
+        QTest::qWait(300);
+        QCOMPARE(fixture.transport.requests.size(), sent);
+    }
+
+    // FR-46: not demanded, no runs; demanded again, the interval continues.
+    void undemandedRunsNothing() {
+        Fixture fixture;
+        fixture.secrets.values.insert(QStringLiteral("token"), QStringLiteral("ghp_x"));
+        fixture.transport.respond(200, ::fixture("calendar"));
+        GitHubJob job(fixture.account, fixture.paths(), SchedulePolicy::every(100));
+        job.setDemanded(false);
+        job.start();
+        QTest::qWait(300);
+        QVERIFY(fixture.transport.requests.isEmpty());
+        job.setDemanded(true);
+        QTRY_VERIFY(!fixture.transport.requests.isEmpty());
+    }
 };
 
 QTEST_GUILESS_MAIN(TestGitHubJob)

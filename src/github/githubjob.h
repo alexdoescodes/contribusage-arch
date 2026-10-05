@@ -39,6 +39,8 @@ public:
     void setInterval(int minutes);
     // FR-43: off makes no requests and shows as disabled; the token stays. On again fetches as after a token change.
     void setEnabled(bool enabled);
+    // FR-46: while nothing shows GitHub it makes no requests; the schedule keeps its backoff and rate-limit hold.
+    void setDemanded(bool demanded);
     // After a connect or a disconnect: drops the old account and any fetch still running with it (ADR-022), ends a
     // pause and fetches now.
     void tokenChanged();
