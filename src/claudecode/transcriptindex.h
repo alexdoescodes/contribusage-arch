@@ -30,8 +30,8 @@ class TranscriptIndex {
 public:
     // Reads `files` and every file indexed before: new lines appended, rescanned files from scratch, vanished files
     // dropped. An unreadable file keeps what it had and is retried next time (SPEC §13). `interrupted` is asked before
-    // each file; when it returns true the update stops there.
-    void update(const QStringList &files, const std::function<bool()> &interrupted = {});
+    // each file; when it returns true the update stops there. Returns whether every file was read.
+    bool update(const QStringList &files, const std::function<bool()> &interrupted = {});
 
     // Per local day of `zone`, oldest first; a key counts once across files, the first in path order (FR-24, FR-25).
     QList<ActivityDay> days(const QTimeZone &zone) const;

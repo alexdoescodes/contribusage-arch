@@ -2,6 +2,7 @@
 
 #include <QFileSystemWatcher>
 #include <QObject>
+#include <QSet>
 #include <QStringList>
 #include <QTimer>
 
@@ -23,12 +24,17 @@ Q_SIGNALS:
 
 private:
     void watchRoots();
+    // Watches `folder` and what it holds that is not watched yet; descends only into folders that are new.
     void addTree(const QString &folder);
+    void watch(const QStringList &paths);
     void touched();
 
     QStringList m_roots;
     QString m_suffix;
     QFileSystemWatcher m_watcher;
+    QSet<QString> m_folders; // what m_watcher holds, kept here: its own lists are copies built on every call
+    QSet<QString> m_files;
+    QSet<QString> m_parents; // parents of roots that do not exist yet
     QTimer m_debounce;
 };
 

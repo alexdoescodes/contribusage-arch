@@ -48,14 +48,15 @@ TranscriptIndex::Entry TranscriptIndex::entry(const TranscriptLine &line) {
             .tokens = line.tokens};
 }
 
-void TranscriptIndex::update(const QStringList &files, const std::function<bool()> &interrupted) {
+bool TranscriptIndex::update(const QStringList &files, const std::function<bool()> &interrupted) {
     QSet<QString> paths(files.cbegin(), files.cend());
     for (auto it = m_files.cbegin(); it != m_files.cend(); ++it) {
         paths.insert(it.key());
     }
+    bool complete = true;
     for (const QString &path : std::as_const(paths)) {
         if (interrupted && interrupted()) {
-            return;
+            return false;
         }
         Transcript appended;
         const auto outcome = m_reader.read(path, [this, &appended](QByteArrayView text) {
@@ -73,7 +74,8 @@ void TranscriptIndex::update(const QStringList &files, const std::function<bool(
             }
         });
         if (!outcome) {
-            continue; // SPEC §13: retried on the next change
+            complete = false; // SPEC §13: retried on the next change
+            continue;
         }
         switch (*outcome) {
         case IncrementalJsonlReader::Outcome::Gone:
@@ -95,6 +97,7 @@ void TranscriptIndex::update(const QStringList &files, const std::function<bool(
         }
         }
     }
+    return complete;
 }
 
 QList<ActivityDay> TranscriptIndex::days(const QTimeZone &zone) const {

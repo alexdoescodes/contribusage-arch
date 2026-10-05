@@ -16,7 +16,7 @@ ActivityWorker::ActivityWorker(QStringList roots, QString probeFolder, AppPaths 
 void ActivityWorker::scan(const std::function<void(ActivityReport, bool)> &done) {
     const QStringList files = transcriptFiles(m_roots, m_probeFolder);
     QThread *thread = QThread::currentThread();
-    m_index.update(files, [thread] { return thread->isInterruptionRequested(); });
+    const bool complete = m_index.update(files, [thread] { return thread->isInterruptionRequested(); });
     if (thread->isInterruptionRequested()) {
         return;
     }
@@ -27,7 +27,10 @@ void ActivityWorker::scan(const std::function<void(ActivityReport, bool)> &done)
         }
     }
     const QList<ActivityDay> live = m_index.days(QTimeZone::systemTimeZone());
-    const QList<ActivityDay> days = m_history ? m_history->merge(live, QDateTime::currentDateTime()) : live;
+    // A day freezes only from a scan that read every file; otherwise its count may be short for good.
+    const QList<ActivityDay> days = !m_history ? live
+                                    : complete ? m_history->merge(live, QDateTime::currentDateTime())
+                                               : m_history->shown(live);
     done({.provider = providerId, .days = days, .skippedLines = m_index.skippedLines()},
          !files.isEmpty() || !days.isEmpty());
 }

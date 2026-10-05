@@ -24,6 +24,10 @@ public:
     // failed write leaves the frozen days as they were, so the next merge tries again.
     QList<ActivityDay> merge(const QList<ActivityDay> &live, const QDateTime &now);
 
+    // What merge() would show, without freezing anything: for a scan that could not read every file, whose counts may
+    // be short.
+    QList<ActivityDay> shown(const QList<ActivityDay> &live) const;
+
     const QList<ActivityDay> &frozen() const { return m_days; }
 
 private:

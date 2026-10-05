@@ -70,4 +70,19 @@ QList<ActivityDay> HistoryStore::merge(const QList<ActivityDay> &live, const QDa
     return shown;
 }
 
+QList<ActivityDay> HistoryStore::shown(const QList<ActivityDay> &live) const {
+    QSet<QDate> frozen;
+    for (const ActivityDay &day : m_days) {
+        frozen.insert(day.day);
+    }
+    QList<ActivityDay> shown = m_days;
+    for (const ActivityDay &day : live) {
+        if (!frozen.contains(day.day)) {
+            shown.append(day);
+        }
+    }
+    std::ranges::sort(shown, {}, &ActivityDay::day);
+    return shown;
+}
+
 } // namespace contribusage

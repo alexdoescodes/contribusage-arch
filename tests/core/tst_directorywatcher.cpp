@@ -1,6 +1,7 @@
 #include "core/directorywatcher.h"
 
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -79,6 +80,35 @@ private Q_SLOTS:
         append(root + QStringLiteral("/notes.txt"), "b\n");
         QTest::qWait(300);
         QCOMPARE(spy.size(), 0);
+    }
+
+    // A change in one folder looks at that folder only, not the whole tree (the GUI thread pays for it).
+    void aChangeDoesNotWalkTheWholeTree() {
+        QTemporaryDir dir;
+        const QString root = dir.filePath(QStringLiteral("projects"));
+        for (int folder = 0; folder < 300; ++folder) {
+            const QString path = root + QStringLiteral("/p") + QString::number(folder);
+            QVERIFY(QDir().mkpath(path));
+            for (int file = 0; file < 40; ++file) {
+                QFile out(path + QStringLiteral("/f") + QString::number(file) + QStringLiteral(".txt"));
+                QVERIFY(out.open(QIODevice::WriteOnly));
+            }
+        }
+        DirectoryWatcher watcher({root}, QStringLiteral(".jsonl"), 0);
+        QSignalSpy spy(&watcher, &DirectoryWatcher::changed);
+        watcher.start();
+        QElapsedTimer timer;
+        timer.start();
+        for (int index = 0; index < 30; ++index) {
+            append(root + QStringLiteral("/p") + QString::number(index) + QStringLiteral("/s.jsonl"), "a\n");
+            QElapsedTimer limit; // QTRY_* sleeps 50 ms per poll, which would swamp what is measured here
+            limit.start();
+            while (spy.size() <= index && limit.elapsed() < 5'000) {
+                QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+            }
+            QVERIFY(spy.size() > index);
+        }
+        QVERIFY2(timer.elapsed() < 100, qPrintable(QString::number(timer.elapsed()) + QStringLiteral(" ms")));
     }
 };
 

@@ -144,6 +144,22 @@ private Q_SLOTS:
         job.reset();
         QVERIFY(true);
     }
+
+    // A day is not frozen from a scan that could not read every transcript: it would stay short forever.
+    void anUnreadableTranscriptKeepsItsDayUnfrozen() {
+        Fixture fixture;
+        const QDateTime old = QDateTime::currentDateTime().addDays(-10);
+        const QString second = fixture.configDir() + QStringLiteral("/projects/-code/t.jsonl");
+        write(fixture.transcript(), entry(old, "m1", 7));
+        write(second, entry(old, "m2", 5));
+        QVERIFY(QFile::setPermissions(second, QFileDevice::Permissions()));
+        auto job = fixture.job();
+        job->start();
+        QTRY_COMPARE(inputOn(*job, old.date()), qint64(7));
+        QVERIFY(QFile::setPermissions(second, QFileDevice::ReadOwner | QFileDevice::WriteOwner));
+        job->rescan();
+        QTRY_COMPARE(inputOn(*job, old.date()), qint64(12));
+    }
 };
 
 QTEST_GUILESS_MAIN(TestActivityJob)

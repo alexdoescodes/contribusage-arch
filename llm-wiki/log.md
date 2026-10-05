@@ -493,3 +493,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-05] feat | Claude Code activity (L-1b, L-2b)
 - `src/core/`: incremental JSONL reader, history store, recursive debounced directory watcher, layered heatmap view.
 - `src/claudecode/`: transcript decoding, discovery and live index on a worker thread (ADR-044); the widget shows today, the week and the Claude Code heatmap layer.
+
+## [2026-10-05] fix | L-2b review fixes
+- The directory watcher scans only the folder that changed and keeps its watch sets, so a change costs milliseconds on the GUI thread instead of a whole-tree walk; failed inotify watches are logged.
+- A day is frozen into `history.json` only by a scan that read every transcript.
