@@ -23,3 +23,9 @@ llm-wiki/.obsidian/*
 .claude/settings.local.json
 .claude/worktrees/
 build/
+
+# makepkg output (L-7)
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.pkg.tar.*
+packaging/arch/*.log

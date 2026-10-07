@@ -1,0 +1,22 @@
+pkgbase = plasma6-applets-contribusage
+	pkgdesc = Plasma widget: limits and activity of AI coding tools (Claude Code) and your GitHub contributions
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/alexdoescodes/contribusage-arch
+	arch = x86_64
+	license = MIT
+	makedepends = cmake
+	makedepends = extra-cmake-modules
+	makedepends = git
+	makedepends = ninja
+	depends = glibc
+	depends = libstdc++
+	depends = kcmutils
+	depends = kcoreaddons
+	depends = kirigami
+	depends = kwallet
+	depends = libplasma
+	depends = qt6-base
+	depends = qt6-declarative
+
+pkgname = plasma6-applets-contribusage

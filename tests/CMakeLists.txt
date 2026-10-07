@@ -174,3 +174,8 @@ ecm_add_test(core/tst_popoverlayout.cpp
 ecm_add_test(core/tst_appearance.cpp
     TEST_NAME tst_appearance
     LINK_LIBRARIES contribusage_core Qt6::Test)
+
+# L-7: the installed file list and the packaging files.
+add_test(NAME install_layout
+    COMMAND ${CMAKE_COMMAND} -DBUILD_DIR=${CMAKE_BINARY_DIR} -DSTAGE=${CMAKE_CURRENT_BINARY_DIR}/install-stage
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR} -P ${CMAKE_CURRENT_SOURCE_DIR}/packaging/check_install.cmake)
