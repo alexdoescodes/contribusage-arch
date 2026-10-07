@@ -663,6 +663,17 @@ private Q_SLOTS:
                 findItem(popup.get(), QStringLiteral("githubBuiltIn")));
         qunsetenv("XDG_DATA_HOME");
     }
+
+    // Port design §4: no minute timer while the popup is closed.
+    void theMinuteTickRunsOnlyWhileOpen() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QVERIFY(!popup->property("ticking").toBool());
+        QVERIFY(QMetaObject::invokeMethod(popup, "popupOpened"));
+        QVERIFY(popup->property("ticking").toBool());
+        QVERIFY(QMetaObject::invokeMethod(popup, "popupClosed"));
+        QVERIFY(!popup->property("ticking").toBool());
+    }
 };
 
 QTEST_MAIN(TestAppletQml)

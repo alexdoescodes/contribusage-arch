@@ -234,6 +234,9 @@ void PopupModel::buildFakeData() {
 
 PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_fake = qgetenv("CONTRIBUSAGE_FAKE_DATA") == "1";
+    // Ages and countdowns move on while the popup is open (port design §4: no minute timer while it is closed).
+    m_minute.setInterval(60 * 1000);
+    connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
     if (m_fake) {
         buildFakeData();
         return;
@@ -249,9 +252,6 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_notifier = std::make_unique<DesktopNotifier>();
     m_job->setNotifications(m_notifier.get(), {});
     connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
-    m_minute.setInterval(60 * 1000);
-    connect(&m_minute, &QTimer::timeout, this, &PopupModel::changed);
-    m_minute.start();
     m_job->start();
     m_activityJob =
         std::make_unique<claudecode::ActivityJob>(*m_runner, QDir::homePath(), shell, m_limits->probeFolder(),
@@ -497,7 +497,14 @@ void PopupModel::refresh() {
     m_activityJob->rescan();
 }
 
+void PopupModel::popupClosed() {
+    m_minute.stop();
+    Q_EMIT changed();
+}
+
 void PopupModel::popupOpened() {
+    m_minute.start();
+    Q_EMIT changed(); // the ages are fresh at once
     if (m_fake) {
         return;
     }

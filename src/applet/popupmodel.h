@@ -45,6 +45,8 @@ class PopupModel : public QObject {
     Q_PROPERTY(QString dataFolder READ dataFolder CONSTANT)
     Q_PROPERTY(QStringList blocks READ blocks NOTIFY changed)
     Q_PROPERTY(bool nothingToShow READ nothingToShow NOTIFY changed)
+    // Port design §4: the minute tick runs only while the popup is open.
+    Q_PROPERTY(bool ticking READ ticking NOTIFY changed)
     Q_PROPERTY(QVariantMap appearance READ appearance NOTIFY changed)
     Q_PROPERTY(QString overrideFolder READ overrideFolder CONSTANT)
 
@@ -59,6 +61,7 @@ public:
     QString dataFolder() const;
     QStringList blocks() const;
     bool nothingToShow() const;
+    bool ticking() const { return m_minute.isActive(); }
     QVariantMap appearance() const { return m_appearance; }
     // Port design §3, layer 3: $XDG_DATA_HOME/contribusage/qml; <Block>.qml there replaces that popup block.
     QString overrideFolder() const;
@@ -77,6 +80,7 @@ public:
     Q_INVOKABLE QString layoutSetHeatmapStyle(const QString &layout, const QString &style) const;
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void popupOpened();
+    Q_INVOKABLE void popupClosed();
     Q_INVOKABLE void connectGitHub(const QString &token);
     Q_INVOKABLE void disconnectGitHub();
 
