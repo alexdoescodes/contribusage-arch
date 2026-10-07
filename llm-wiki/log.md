@@ -536,3 +536,11 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-07] feat | Customization (L-6)
 - Looks macOS, Plasma and Custom with validated token overrides and a compact density, from the new Appearance settings page.
 - A QML file in the widget's data folder replaces a popup block; one that fails to load falls back to the built-in block with a notice.
+
+## [2026-10-07] feat | Arch package (L-7, in progress)
+- `packaging/arch/PKGBUILD` builds this checkout as `plasma6-applets-contribusage` and runs the tests in `check()`; it depends on the libraries the plugin links (libstdc++ and glibc after the gcc-libs split) and on kirigami and kcmutils for the QML; an `install_layout` test pins the installed files.
+- The minute tick runs only while the popup is open; the README gains an install section.
+
+## [2026-10-07] fix | L-6 review fixes
+- `OverridableBlock` loads an override declaratively, so data that arrives late still loads it, and falls back with a notice when the override lacks the block's property; the override tests check the data and the notice's visibility.
+- The Plasma look takes the theme's neutral, negative and positive colors as well; ADR-047 records what the customization layers leave out.

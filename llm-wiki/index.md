@@ -68,6 +68,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 - [[decisions/0044-transcripts-on-a-worker-thread]]: ADR-044, transcripts are read on a worker thread; lines without "usage" are not parsed
 - [[decisions/0045-one-schedule-per-source]]: ADR-045, one schedule object per polled source instead of one coordinator
 - [[decisions/0046-notifications-and-settings]]: ADR-046, notifications over org.freedesktop.Notifications; settings in the plasmoid configuration
+- [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover: looks, the tokens components use, three overridable blocks; no font, radius or label-size tokens, no bundled assets
 
 ## Research
 - [[research/r-1-probe-cost]]: R-1, a `/usage` probe costs no plan quota but about 1.7 s CPU; default 5 min, minimum 1 min

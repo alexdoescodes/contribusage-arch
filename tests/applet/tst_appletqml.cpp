@@ -622,12 +622,111 @@ private Q_SLOTS:
     }
 
     // Overrides live in a folder the test controls: XDG_DATA_HOME is set before the model reads it.
+    // Overrides are read from XDG_DATA_HOME, which the tests point at a temporary folder and restore in cleanup().
+private:
+    QByteArray m_savedDataHome = qgetenv("XDG_DATA_HOME");
+    bool m_hadDataHome = qEnvironmentVariableIsSet("XDG_DATA_HOME");
+
+private Q_SLOTS:
+
+    void cleanup() {
+        if (m_hadDataHome) {
+            qputenv("XDG_DATA_HOME", m_savedDataHome);
+        } else {
+            qunsetenv("XDG_DATA_HOME");
+        }
+    }
+
+    int visibleNotices(QObject *root) {
+        int count = 0;
+        std::function<void(QQuickItem *)> walk = [&](QQuickItem *item) {
+            if (item->objectName() == QStringLiteral("overrideNotice") && item->isVisible()) {
+                ++count;
+            }
+            for (QQuickItem *child : item->childItems()) {
+                walk(child);
+            }
+        };
+        walk(qobject_cast<QQuickItem *>(root));
+        return count;
+    }
+
+    // A block slot on its own: `builtIn` is a component made from `builtInQml`.
+    std::unique_ptr<QObject> slot(QQmlEngine &engine, const QUrl &override, bool hasData, QQmlComponent &builtIn) {
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/OverridableBlock.qml")));
+        std::unique_ptr<QObject> block(component.createWithInitialProperties(
+            {{QStringLiteral("blockName"), QStringLiteral("GitHubSection")},
+             {QStringLiteral("overrideSource"), override},
+             {QStringLiteral("hasData"), hasData},
+             {QStringLiteral("builtIn"), QVariant::fromValue<QObject *>(&builtIn)},
+             {QStringLiteral("dataProperty"), QStringLiteral("github")},
+             {QStringLiteral("blockData"), QVariantMap{{QStringLiteral("login"), QStringLiteral("@late")}}}}));
+        if (!block) {
+            qWarning() << component.errorString();
+        }
+        return block;
+    }
+
+    // Review L-6 #1: data that arrives after the slot exists still loads the override.
+    void lateDataLoadsTheOverride() {
+        QTemporaryDir dir;
+        const QString file = writeOverride(
+            dir, QStringLiteral("GitHubSection"),
+            "import QtQuick\nItem { objectName: \"customGitHub\"; property var github; implicitHeight: 10 }\n");
+        QQmlEngine engine;
+        QQmlComponent builtIn(&engine);
+        builtIn.setData("import QtQuick\nItem { objectName: \"builtIn\" }\n", QUrl());
+        std::unique_ptr<QObject> block = slot(engine, QUrl::fromLocalFile(file), false, builtIn);
+        QVERIFY(block);
+        QVERIFY(!findItem(block.get(), QStringLiteral("customGitHub")));
+        block->setProperty("hasData", true);
+        QTRY_VERIFY(findItem(block.get(), QStringLiteral("customGitHub")));
+        QCOMPARE(findItem(block.get(), QStringLiteral("customGitHub"))
+                     ->property("github")
+                     .toMap()
+                     .value(QStringLiteral("login"))
+                     .toString(),
+                 QStringLiteral("@late"));
+        QCOMPARE(visibleNotices(block.get()), 0);
+    }
+
+    // Review L-6 #2: an override without the block's property falls back, with the notice.
+    void anOverrideWithoutThePropertyFallsBack() {
+        QTemporaryDir dir;
+        const QString file = writeOverride(dir, QStringLiteral("GitHubSection"),
+                                           "import QtQuick\nItem { objectName: \"noProperty\"; implicitHeight: 10 }\n");
+        QQmlEngine engine;
+        QQmlComponent builtIn(&engine);
+        builtIn.setData("import QtQuick\nItem { objectName: \"builtIn\" }\n", QUrl());
+        std::unique_ptr<QObject> block = slot(engine, QUrl::fromLocalFile(file), true, builtIn);
+        QVERIFY(block);
+        QTRY_VERIFY(findItem(block.get(), QStringLiteral("builtIn")));
+        QVERIFY(!findItem(block.get(), QStringLiteral("noProperty")));
+        QCOMPARE(visibleNotices(block.get()), 1);
+    }
+
+    // Review L-6 #4, port design §3: the Plasma look takes the platform theme's status colors too.
+    void plasmaLookUsesThePlatformColors() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        QMetaObject::invokeMethod(
+            popup, "applySettings",
+            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Plasma")}})));
+        QVERIFY(style->property("critical").value<QColor>() != QColor(QStringLiteral("#ff453a")));
+        QVERIFY(style->property("warning").value<QColor>() != QColor(QStringLiteral("#ff9f0a")));
+        QVERIFY(style->property("githubHue").value<QColor>() != QColor(QStringLiteral("#30d158")));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+        QCOMPARE(style->property("critical").value<QColor>(), QColor(QStringLiteral("#ff453a")));
+    }
+
     QString writeOverride(const QTemporaryDir &dir, const QString &block, const QByteArray &qml) {
         const QString folder = dir.filePath(QStringLiteral("contribusage/qml"));
         QDir().mkpath(folder);
         QFile file(folder + u'/' + block + QStringLiteral(".qml"));
-        if (file.open(QIODevice::WriteOnly)) {
-            file.write(qml);
+        if (!file.open(QIODevice::WriteOnly) || file.write(qml) != qml.size()) {
+            qWarning() << "cannot write" << file.fileName();
         }
         return file.fileName();
     }
@@ -645,7 +744,10 @@ private Q_SLOTS:
         std::unique_ptr<QObject> popup(component.create());
         QVERIFY2(popup, qPrintable(component.errorString()));
         QTRY_VERIFY(findItem(popup.get(), QStringLiteral("customGitHub")));
-        qunsetenv("XDG_DATA_HOME");
+        QObject *custom = findItem(popup.get(), QStringLiteral("customGitHub"));
+        QCOMPARE(custom->property("github").toMap().value(QStringLiteral("login")).toString(),
+                 QStringLiteral("@octocat"));
+        QVERIFY(!findItem(popup.get(), QStringLiteral("githubBuiltIn")));
     }
 
     // Review Focus 2.
@@ -658,10 +760,8 @@ private Q_SLOTS:
             &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/FullPopup.qml")));
         std::unique_ptr<QObject> popup(component.create());
         QVERIFY2(popup, qPrintable(component.errorString()));
-        QTRY_VERIFY(findItem(popup.get(), QStringLiteral("overrideNotice")));
-        QVERIFY(findItem(popup.get(), QStringLiteral("tokenField")) ||
-                findItem(popup.get(), QStringLiteral("githubBuiltIn")));
-        qunsetenv("XDG_DATA_HOME");
+        QTRY_VERIFY(visibleNotices(popup.get()) == 1); // the GitHub block's notice only
+        QVERIFY(findItem(popup.get(), QStringLiteral("githubBuiltIn")));
     }
 
     // Port design §4: no minute timer while the popup is closed.

@@ -41,42 +41,19 @@ ColumnLayout {
                 implicitHeight: 1
                 color: Qt.alpha(Kirigami.Theme.textColor, Theme.dividerOpacity)
             }
-            readonly property string blockName: block.modelData === "heatmap" ? "HeatmapBlock"
-                : block.modelData === "github" ? "GitHubSection" : "ProviderGroup"
-            readonly property url overrideSource: PopupModel.overrideUrl(blockName)
-            property bool overrideFailed: false
-
-            PlasmaComponents.Label {
-                objectName: "overrideNotice"
-                visible: block.overrideFailed
-                text: "Custom " + block.blockName + " failed to load; showing the built-in one."
-                font: Kirigami.Theme.smallFont
-                opacity: Theme.secondaryOpacity
-                wrapMode: Text.Wrap
-                Layout.fillWidth: true
-                Layout.margins: Theme.padding
-            }
-            Loader {
-                id: overrideLoader
-                active: block.hasData && block.overrideSource.toString().length > 0 && !block.overrideFailed
-                visible: status === Loader.Ready
-                Layout.fillWidth: true
-                Layout.margins: Theme.padding
-                onStatusChanged: if (status === Loader.Error) block.overrideFailed = true
-                onLoaded: {
-                    // The same documented properties as the built-in block (llm-wiki/guides/qml-overrides.md).
-                    if (block.modelData === "heatmap") item.heatmap = Qt.binding(() => PopupModel.heatmap);
-                    else if (block.modelData === "github") item.github = Qt.binding(() => PopupModel.github);
-                    else item.provider = Qt.binding(() => PopupModel.providers[0]);
-                }
-                Component.onCompleted: if (active) setSource(block.overrideSource)
-            }
-            Loader {
-                active: block.hasData && (block.overrideSource.toString().length === 0 || block.overrideFailed)
-                Layout.fillWidth: true
-                Layout.margins: Theme.padding
-                sourceComponent: block.modelData === "heatmap" ? heatmapBlock
+            OverridableBlock {
+                blockName: block.modelData === "heatmap" ? "HeatmapBlock"
+                    : block.modelData === "github" ? "GitHubSection" : "ProviderGroup"
+                overrideSource: PopupModel.overrideUrl(blockName)
+                hasData: block.hasData
+                builtIn: block.modelData === "heatmap" ? heatmapBlock
                     : block.modelData === "github" ? githubBlock : providerBlock
+                dataProperty: block.modelData === "heatmap" ? "heatmap" : block.modelData === "github" ? "github" : "provider"
+                blockData: block.modelData === "heatmap" ? PopupModel.heatmap
+                    : block.modelData === "github" ? PopupModel.github : PopupModel.providers[0]
+                insightsState: popup.insightsState
+                Layout.fillWidth: true
+                Layout.margins: Theme.padding
             }
         }
     }

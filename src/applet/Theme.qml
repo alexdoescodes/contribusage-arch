@@ -1,8 +1,9 @@
 pragma Singleton
 import QtQuick
+import org.kde.kirigami as Kirigami
 
 // Every color and size the widget draws with (port design §3, layer 2). The look picks the base: macOS (the defaults
-// below), Plasma (the system palette) or Custom (the defaults, with the user's token overrides). Density scales the
+// below), Plasma (the platform theme: Kirigami's highlight and status colors) or Custom (the defaults, with the user's token overrides). Density scales the
 // spacing. Text colors come from Kirigami's theme in each component.
 QtObject {
     id: theme
@@ -11,17 +12,18 @@ QtObject {
     readonly property string look: appearance.look ?? "macOS"
     readonly property var tokens: appearance.tokens ?? ({})
     readonly property real densityScale: appearance.density === "compact" ? 0.7 : 1
-    property SystemPalette palette: SystemPalette { colorGroup: SystemPalette.Active }
 
     function token(name, fallback) {
         return tokens[name] !== undefined ? tokens[name] : fallback;
     }
 
-    readonly property color accent: look === "Plasma" ? palette.highlight : token("accent", "#0a84ff")
-    readonly property color warning: token("warning", "#ff9f0a")
-    readonly property color critical: token("critical", "#ff453a")
-    readonly property color claudeHue: token("claudeHue", "#ff9f0a")
-    readonly property color githubHue: token("githubHue", "#30d158")
+    readonly property bool plasma: look === "Plasma"
+    readonly property color accent: plasma ? Kirigami.Theme.highlightColor : token("accent", "#0a84ff")
+    // SPEC §11.4: system yellow/orange, red and green; in the Plasma look the theme's neutral, negative and positive.
+    readonly property color warning: plasma ? Kirigami.Theme.neutralTextColor : token("warning", "#ff9f0a")
+    readonly property color critical: plasma ? Kirigami.Theme.negativeTextColor : token("critical", "#ff453a")
+    readonly property color claudeHue: plasma ? Kirigami.Theme.neutralTextColor : token("claudeHue", "#ff9f0a")
+    readonly property color githubHue: plasma ? Kirigami.Theme.positiveTextColor : token("githubHue", "#30d158")
 
     // Opacities over the theme's text color.
     readonly property real secondaryOpacity: token("secondaryOpacity", 0.6)
