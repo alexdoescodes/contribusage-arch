@@ -532,3 +532,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-05] fix | L-5b review fix
 - Demand (FR-46) suspends GitHub's schedule instead of resetting it, so hiding and showing GitHub keeps backoff and rate-limit holds; the user's switch alone resets it.
+
+## [2026-10-07] feat | Customization (L-6)
+- Looks macOS, Plasma and Custom with validated token overrides and a compact density, from the new Appearance settings page.
+- A QML file in the widget's data folder replaces a popup block; one that fails to load falls back to the built-in block with a notice.
