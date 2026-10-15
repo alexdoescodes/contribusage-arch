@@ -105,7 +105,7 @@ plasmashell (already running)
 - CI runs in an Arch Linux container on GitHub Actions: the build with `-Werror`, the tests, clang-format and `llm-wiki/tools/wiki.sh lint`.
 
 **Resource budget.** These are checks, measured on the target machine:
-- The plasmoid adds less than 15 MB to plasmashell's resident memory, measured as the RSS difference with and without the widget.
+- The plasmoid adds less than 20 MB of private dirty memory to plasmashell ([ADR-048](llm-wiki/decisions/0048-plasmoid-memory-budget.md); first 15 MB), measured as the difference with and without the widget.
 - Idle CPU is about 0 between refreshes. No timer runs faster than the next due job, and the minute tick runs only while the popup is open or the label shows a countdown.
 - A refresh pass costs under 50 ms of CPU, not counting the `claude` process.
 

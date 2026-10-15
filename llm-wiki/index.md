@@ -69,6 +69,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 - [[decisions/0045-one-schedule-per-source]]: ADR-045, one schedule object per polled source instead of one coordinator
 - [[decisions/0046-notifications-and-settings]]: ADR-046, notifications over org.freedesktop.Notifications; settings in the plasmoid configuration
 - [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover: looks, the tokens components use, three overridable blocks; no font, radius or label-size tokens, no bundled assets
+- [[decisions/0048-plasmoid-memory-budget]]: ADR-048, the plasmoid may add 20 MB of private memory (measured 16 MB), not 15
 
 ## Research
 - [[research/r-1-probe-cost]]: R-1, a `/usage` probe costs no plan quota but about 1.7 s CPU; default 5 min, minimum 1 min
@@ -77,6 +78,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 - [[research/t-5-8-performance-energy]]: T-5.8, the Release build idles at 0.07 % CPU and 47 MB; transcript writes cost about 0.2 %
 - [[research/t-5-17-second-provider]]: T-5.17, Codex, Copilot and Gemini CLI against the provider gate; Codex limits and tokens from its own session files
 - [[research/t-5-18-name-availability]]: T-5.18, "contribusage" is free in the App Stores, domains, registries, USPTO and TMview
+- [[research/l-7-resource-budget]]: L-7, the plugin adds about 16 MB of private memory, 0.09 % idle CPU and a refresh under 1 ms
 
 ## Guides
 - [[guides/llm-wiki-tooling]]: `wiki.sh`, Claude Code hooks, lint findings, reuse in another repository

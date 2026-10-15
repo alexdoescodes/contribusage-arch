@@ -544,3 +544,14 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-07] fix | L-6 review fixes
 - `OverridableBlock` loads an override declaratively, so data that arrives late still loads it, and falls back with a notice when the override lacks the block's property; the override tests check the data and the notice's visibility.
 - The Plasma look takes the theme's neutral, negative and positive colors as well; ADR-047 records what the customization layers leave out.
+
+## [2026-10-13] feat | One malloc arena for the widget's threads
+- `PopupModel` sets `mallopt(M_ARENA_MAX, 1)`; with the arena cap set through the environment the widget's private memory over the baseline dropped from 18-20 MB to 8-13 MB (two runs, 60 s each).
+- The in-plugin measurement and the L-7 research page follow.
+
+## [2026-10-13] feat | Arena cap moved to a static initializer
+- `mallopt(M_ARENA_MAX, 1)` runs when the plugin loads instead of in the `PopupModel` constructor; the constructor call measured a 13-18 MB gap over the baseline, the environment variable 8-13 MB.
+
+## [2026-10-15] research | L-7 resource budget measured
+- Memory over a compiled KDE applet: 16 MB median (Private_Dirty), CPU 0.09 % idle, refresh under 1 ms; the arena cap, `malloc_trim` and hashed index keys gained nothing beyond about 4 MB of noise.
+- ADR-048 sets the memory budget to 20 MB; SPEC §17.8 L-7 ticked.

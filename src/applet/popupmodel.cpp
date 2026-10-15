@@ -1,5 +1,7 @@
 #include "popupmodel.h"
 
+#include <malloc.h>
+
 #include "claudecode/activityjob.h"
 #include "claudecode/activityview.h"
 #include "claudecode/claudecodelimits.h"
@@ -231,6 +233,12 @@ void PopupModel::buildFakeData() {
         {QStringLiteral("source"), QStringLiteral("claude-code")},
     };
 }
+
+namespace {
+// One malloc arena for the threads started after the plugin loads: every extra arena of a worker keeps its own dirty
+// pages (measured in llm-wiki/research/l-7-resource-budget.md).
+const int arenaLimitSet = mallopt(M_ARENA_MAX, 1);
+} // namespace
 
 PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_fake = qgetenv("CONTRIBUSAGE_FAKE_DATA") == "1";

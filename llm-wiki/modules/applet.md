@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-05
+updated: 2026-10-15
 tracks: [src/applet, tests/applet]
 tags: [plasma, qml]
 ---
@@ -23,6 +23,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 - `main.qml`: a `PlasmoidItem` with `CompactLabel` (the `prompt` style) and `FullPopup` (the blocks of SPEC §11.2: `ProviderGroup` with `LimitBar`, `ActivitySection` and `InsightsSection`, then `HeatmapBlock`, `GitHubSection` and `Footer`).
 - Since L-4: `LabelContent.qml` draws the label in the seven FR-51 styles (`RingGlyph`, `LineGlyph`, `MiniHeatmap`, `PromptGlyph`) from plain values; `CompactLabel` feeds it from `Plasmoid.configuration` (`main.xml` at the module root, where Plasma reads it as for KDE's compiled applets; source file `src/applet/config/main.xml`). `Skeleton.qml` and `ActionButton.qml` (Retry, Locate…, Show raw output) render SPEC §11.3; the heatmap walks with the arrow keys, Home and End (SPEC §11.7). A size bound to an item's own height inside a layout can loop without end: `everyStyleStaysSmallInAWindow` lays each style out in a window.
 - Since L-5a: settings pages `ConfigGeneral`, `ConfigClaudeCode`, `ConfigGitHub`, `ConfigAdvanced` listed by `config.qml` (also at the module root); `main.qml` passes `Plasmoid.configuration` to `PopupModel.applySettings` at start and on change; `deleteClaudeCodeData()`, `resetCaches()`, `dataFolder`; the limits job's notes go to `DesktopNotifier` ([[decisions/0046-notifications-and-settings]]).
+- Since L-7: the minute tick (ages, countdowns) runs only while the popup is open: `main.qml` calls `popupOpened()` and `popupClosed()` on `expanded`, `ticking` reports it (port design §4). On the desktop `expanded` turns true once the full view shows inline.
 - Since L-6: `PopupModel.appearance` drives `Theme.qml`, whose tokens are bindings over the look (macOS defaults, Plasma from `SystemPalette`, Custom with overrides) and the density; `PopupModel.overrideUrl(block)` and `overrideFolder` let `FullPopup` load `~/.local/share/contribusage/qml/<Block>.qml` in place of a block, falling back with a notice ([[guides/qml-overrides]]); `ConfigAppearance.qml` edits `look`, `density` and `themeTokens`.
 - Since L-5b: `PopupModel.blocks`, `nothingToShow`, each provider's `sections`, the heatmap's `style` (Combined or Stacked) follow the `popoverLayout` setting; FR-46 demand switches the activity watcher (`ActivityJob::setActive`) and GitHub; `ConfigPopover.qml` edits the layout through `PopupModel.layout*` helpers (up and down buttons); the label gets GitHub data for the GitHub modes. `FullPopup` builds its blocks with a Repeater, so tests search the visual item tree.
 - `PopupModel.refresh()` (the Footer's Refresh) and `popupOpened()` (from `main.qml`); the jobs' schedules share a `ScheduleConditionsSource` fed by `SystemConditions` (logind, QNetworkInformation) since L-1c.
@@ -32,6 +33,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 `plasma_add_applet(org.contribusage.widget … GENERATE_APPLET_CLASS)` builds one shared library holding the QML and the C++ types, with `metadata.json` embedded by moc. It is written to `build/bin/plasma/applets/`; Plasma finds it by id under `plasma/applets` in the Qt plugin paths. `tests/applet/tst_appletplugin.cpp` finds it the same way, and `tst_appletqml.cpp` loads the plugin, compiles `main.qml` and resolves the `AppInfo` singleton, because the build itself does not reject an unknown QML type.
 
 ## Things that bite
+- `popupmodel.cpp` calls `mallopt(M_ARENA_MAX, 1)` from a static initializer, so threads created after the plugin loads share one malloc arena instead of each keeping its own dirty pages. Measured with the environment variable `MALLOC_ARENA_MAX=1` on the whole viewer process, the widget's Private_Dirty gap over the analogclock baseline fell from 18-20 MB to 8-13 MB (two runs); the call from `PopupModel`'s constructor gave 13.3, 18.2 and 15.8 MB (three runs), less than the variable because earlier threads keep their arenas. The static initializer is being measured the same way.
 - Run it from the build tree with `QT_PLUGIN_PATH=$PWD/build/bin plasmoidviewer -a org.contribusage.widget`. An install to `~/.local` is not found by plasmashell unless its `QT_PLUGIN_PATH` includes it; the PKGBUILD (L-7) installs to `/usr`.
 - libplasma 6.7's CMake package links `KF6::ConfigCore` without finding it, so the top-level `CMakeLists.txt` finds KF6 Config before Plasma.
 - KDE's CMake settings register an `appstreamtest` CTest test of their own; test counts include it.

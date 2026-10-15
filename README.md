@@ -70,12 +70,21 @@ The windows you see are exactly the ones Claude Code prints for your plan. When 
 
 ## Status
 
-This fork is the Linux port of the macOS app, in progress (SPEC §17.8). The widget builds and loads; its features arrive milestone by milestone. A package comes with L-7.
+This fork is the Linux port of the macOS app (SPEC §17.8). The port's milestones L-0 to L-7 are done: real Claude Code limits and activity, GitHub contributions, notifications, settings pages, the popup layout and the customization layers, and an Arch package. L-2c (transcripts synced from another machine) waits for a decision.
+
+## Install the package
+
+```bash
+cd packaging/arch
+makepkg -si
+```
+
+`makepkg` builds the checkout it sits in and runs the tests first. Then right-click the panel, choose "Add or Manage Widgets…", and add **contribusage**. Its settings (label style, notifications, Claude Code, GitHub, popup layout, appearance) open from the gear in the popup's footer.
 
 ## Build from source
 
 ```bash
-sudo pacman -Syu --needed base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative libplasma kcoreaddons kconfig kirigami plasma-sdk
+sudo pacman -Syu --needed base-devel cmake ninja extra-cmake-modules qt6-base qt6-declarative libplasma kcoreaddons kconfig kirigami kwallet kcmutils plasma-sdk
 cmake -B build -G Ninja
 cmake --build build
 QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure

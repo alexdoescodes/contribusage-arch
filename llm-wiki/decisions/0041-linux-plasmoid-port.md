@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-05
+updated: 2026-10-15
 aliases: [ADR-041]
 tracks: [CMakeLists.txt, src]
 tags: [platform, architecture]

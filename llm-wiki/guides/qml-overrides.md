@@ -1,7 +1,7 @@
 ---
 type: guide
 status: active
-updated: 2026-10-07
+updated: 2026-10-15
 tracks: [src/applet/FullPopup.qml, src/applet/OverridableBlock.qml, src/applet/Theme.qml, src/applet/popupmodel.cpp]
 tags: [customization, qml]
 ---

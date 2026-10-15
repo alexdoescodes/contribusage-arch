@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-05
+updated: 2026-10-07
 aliases: [ADR-044]
 tracks: [src/claudecode/activityjob.cpp, src/claudecode/transcriptline.cpp]
 tags: [performance, activity, threading]

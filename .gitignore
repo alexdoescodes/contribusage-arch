@@ -23,6 +23,7 @@ llm-wiki/.obsidian/*
 .claude/settings.local.json
 .claude/worktrees/
 build/
+build-*/
 
 # makepkg output (L-7)
 packaging/arch/src/
