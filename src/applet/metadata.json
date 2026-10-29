@@ -1,7 +1,7 @@
 {
     "KPackageStructure": "Plasma/Applet",
     "KPlugin": {
-        "Authors": [{ "Name": "contribusage contributors" }],
+        "Authors": [{ "Name": "Alexander Hohenhorst" }],
         "Category": "System Information",
         "Description": "Limits and activity of your AI coding tools, and your GitHub contributions",
         "Icon": "utilities-system-monitor",
