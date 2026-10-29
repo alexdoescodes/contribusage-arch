@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-15
+updated: 2026-10-29
 aliases: [ADR-042]
 tracks: [src/core/display.cpp, src/claudecode/limitsview.cpp, src/applet/popupmodel.cpp]
 tags: [ui, limits]

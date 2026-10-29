@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-07
+updated: 2026-10-29
 aliases: [ADR-046]
 tracks: [src/platform/desktopnotifier.cpp, src/core/widgetsettings.cpp, src/applet/main.qml]
 tags: [notifications, settings, platform]

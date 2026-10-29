@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-07
+updated: 2026-10-29
 aliases: [ADR-047]
 tracks: [src/applet/Theme.qml, src/applet/OverridableBlock.qml, src/core/appearance.cpp]
 tags: [customization, ui]
@@ -9,6 +9,7 @@ tags: [customization, ui]
 # ADR-047: What the customization layers cover
 
 - **Decided:** 2026-10-07 · **Spec:** port design §3 (customization), SPEC §11.4, §17.8 L-6 · **Supersedes:** —
+- **Note (2026-10-29):** the looks are replaced by themes in [[decisions/0050-widget-themes]]; tokens, fonts, assets and overrides stand as decided here.
 
 ## Context
 The port design lists for its three customization layers: looks macOS, Plasma and Custom; tokens for every color, font, size, spacing, radius and palette, plus density, popup width and label size; QML overrides of each block with "documented, versioned properties"; Inter as the default font and bundled SVG symbols. L-6 built the layers; some of the listed items were left out, and that needs a record rather than silence.

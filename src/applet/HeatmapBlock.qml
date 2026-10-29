@@ -32,14 +32,18 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
+        // SwiftUI's legend: 10 between the entries, 6 between a swatch and its name.
+        spacing: 10
         SectionHeader { title: "Heatmap"; symbol: "view-calendar"; Layout.fillWidth: true }
         Repeater {
             model: heatmap.layers
             RowLayout {
                 required property var modelData
-                spacing: 4
-                Rectangle { width: 8; height: 8; radius: 2; color: Theme.hue(modelData.hue) }
+                spacing: 6
+                Rectangle { width: 8; height: 8; radius: Theme.cornerRadius; color: Theme.hue(modelData.hue) }
                 PlasmaComponents.Label {
+                    topPadding: Theme.labelInset
+                    bottomPadding: Theme.labelInset
                     text: modelData.name
                     font: Kirigami.Theme.smallFont
                     opacity: Theme.secondaryOpacity
@@ -49,6 +53,8 @@ ColumnLayout {
     }
 
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: block.stacked
         text: block.stacked ? heatmap.layers[0].name : ""
         font: Kirigami.Theme.smallFont
@@ -92,22 +98,28 @@ ColumnLayout {
                 readonly property var shown: block.stripesOf(modelData, block.firstHue)
                 width: grid.side
                 height: grid.side
-                radius: 2
-                clip: true
+                radius: Theme.cornerRadius
                 color: shown.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
                                                       : "transparent"
                 Accessible.name: modelData.line
                 border.width: grid.activeFocus && index === block.focusedIndex ? 2 : 0
                 border.color: Kirigami.Theme.highlightColor
 
+                // `clip` cuts square, so the outer stripes carry the cell's corners (SwiftUI's clipShape).
                 Row {
                     anchors.fill: parent
                     Repeater {
                         model: cell.shown
                         Rectangle {
                             required property var modelData
+                            required property int index
+                            objectName: "stripe"
                             width: grid.side / cell.shown.length
                             height: grid.side
+                            topLeftRadius: index === 0 ? Theme.cornerRadius : 0
+                            bottomLeftRadius: topLeftRadius
+                            topRightRadius: index === cell.shown.length - 1 ? Theme.cornerRadius : 0
+                            bottomRightRadius: topRightRadius
                             color: Theme.hue(modelData.hue)
                             opacity: Theme.levelOpacity(modelData.level) * (modelData.dimmed ? 0.5 : 1)
                         }
@@ -133,6 +145,8 @@ ColumnLayout {
             spacing: 6
 
             PlasmaComponents.Label {
+                topPadding: Theme.labelInset
+                bottomPadding: Theme.labelInset
                 text: layerGrid.modelData.name
                 font: Kirigami.Theme.smallFont
                 opacity: Theme.secondaryOpacity
@@ -153,7 +167,7 @@ ColumnLayout {
                         readonly property var shown: block.stripesOf(modelData, layerGrid.modelData.hue)
                         width: grid.side
                         height: grid.side
-                        radius: 2
+                        radius: Theme.cornerRadius
                         color: shown.length === 0 ? Qt.alpha(Kirigami.Theme.textColor, Theme.emptyCellOpacity)
                                                   : Theme.hue(shown[0].hue)
                         opacity: shown.length === 0 ? 1 : Theme.levelOpacity(shown[0].level) * (shown[0].dimmed ? 0.5 : 1)
@@ -165,6 +179,8 @@ ColumnLayout {
     }
 
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         objectName: "heatmapLine"
         text: block.focusedIndex >= 0 && grid.activeFocus ? block.lineAt(block.focusedIndex)
             : (hoveredLine.length > 0 ? hoveredLine : block.lineAt(block.lastIndex))

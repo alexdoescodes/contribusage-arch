@@ -10,9 +10,11 @@ ColumnLayout {
     opacity: activity.stale ? 0.5 : 1
     spacing: 4
 
-    PlasmaComponents.Label { text: "On this machine"; opacity: Theme.secondaryOpacity }
-    PlasmaComponents.Label { visible: activity.todayText !== undefined; text: activity.todayText ?? "" }
+    PlasmaComponents.Label { topPadding: Theme.labelInset; bottomPadding: Theme.labelInset; text: "On this machine"; opacity: Theme.secondaryOpacity }
+    PlasmaComponents.Label { topPadding: Theme.labelInset; bottomPadding: Theme.labelInset; visible: activity.todayText !== undefined; text: activity.todayText ?? "" }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: activity.todayText !== undefined
         text: activity.categoriesText ?? ""
         font: Kirigami.Theme.smallFont
@@ -26,25 +28,34 @@ ColumnLayout {
 
         Row {
             id: bars
-            spacing: Theme.spacing
+            // Under macOS each day takes a seventh of the width and its bar 60 % of it (SwiftUI's `width: .ratio(0.6)`).
+            spacing: Theme.macOS ? 0 : Theme.spacing
             Layout.fillWidth: true
             Layout.preferredHeight: Theme.weekChartHeight
             Accessible.name: "Tokens per day, last 7 days"
 
             Repeater {
                 model: activity.week ?? []
-                Rectangle {
+                Item {
                     required property var modelData
                     width: (bars.width - bars.spacing * 6) / 7
-                    height: Math.max(2, Theme.weekChartHeight * modelData.fraction)
-                    anchors.bottom: parent.bottom
-                    radius: 2
-                    color: Theme.accent
-                    opacity: modelData.today ? 1 : Theme.mutedBarOpacity
+                    height: bars.height
+
+                    Rectangle {
+                        width: parent.width * (Theme.macOS ? 0.6 : 1)
+                        height: Math.max(2, Theme.weekChartHeight * parent.modelData.fraction)
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        radius: Theme.cornerRadius
+                        color: Theme.accent
+                        opacity: parent.modelData.today ? 1 : Theme.mutedBarOpacity
+                    }
                 }
             }
         }
         PlasmaComponents.Label {
+            topPadding: Theme.labelInset
+            bottomPadding: Theme.labelInset
             text: "last 7 days"
             font: Kirigami.Theme.smallFont
             opacity: Theme.secondaryOpacity
@@ -52,6 +63,8 @@ ColumnLayout {
         }
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: (activity.statusText ?? "").length > 0
         text: activity.statusText ?? ""
         opacity: Theme.secondaryOpacity

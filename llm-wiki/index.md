@@ -71,6 +71,7 @@ Every page in the vault, one line each. Read this first to pick the pages a task
 - [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover: looks, the tokens components use, three overridable blocks; no font, radius or label-size tokens, no bundled assets
 - [[decisions/0048-plasmoid-memory-budget]]: ADR-048, the plasmoid may add 20 MB of private memory (measured 16 MB), not 15
 - [[decisions/0049-no-stale-marker-in-label]]: ADR-049, a stale value shows the same label text; the half-strength meter carries staleness
+- [[decisions/0050-widget-themes]]: ADR-050, themes (System, macOS, installed Plasma styles) replace looks; a style applies to this widget only
 
 ## Research
 - [[research/r-1-probe-cost]]: R-1, a `/usage` probe costs no plan quota but about 1.7 s CPU; default 5 min, minimum 1 min

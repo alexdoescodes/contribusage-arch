@@ -15,6 +15,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 
@@ -29,6 +30,23 @@ QQuickItem *findItem(QObject *root, const QString &name) {
     }
     for (QQuickItem *child : item->childItems()) {
         if (QQuickItem *found = findItem(child, name)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
+// The first item showing `text`, searched like findItem.
+QQuickItem *findText(QObject *root, const QString &text) {
+    auto *item = qobject_cast<QQuickItem *>(root);
+    if (!item) {
+        return nullptr;
+    }
+    if (item->property("text").toString() == text) {
+        return item;
+    }
+    for (QQuickItem *child : item->childItems()) {
+        if (QQuickItem *found = findText(child, text)) {
             return found;
         }
     }
@@ -475,7 +493,7 @@ private Q_SLOTS:
         const QByteArray text = file.readAll();
         for (const char *key :
              {"menuBarMode", "menuBarStyle", "menuBarTint", "menuBarColor", "notificationThresholds", "notifyOnReset",
-              "probeIntervalMinutes", "claudePathOverride", "githubEnabled", "githubIntervalMinutes"}) {
+              "probeIntervalMinutes", "claudePathOverride", "githubEnabled", "githubIntervalMinutes", "theme"}) {
             QVERIFY2(text.contains(QByteArray(QByteArray("name=\"") + key + '"')), key);
         }
     }
@@ -568,32 +586,129 @@ private Q_SLOTS:
         return engine.singletonInstance<QObject *>(QString::fromLatin1(uri), QStringLiteral("Theme"));
     }
 
+    void applyTheme(QObject *popup, const QString &name, const QString &tokens = {}) {
+        QMetaObject::invokeMethod(popup, "applySettings",
+                                  Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("theme"), name},
+                                                                  {QStringLiteral("themeTokens"), tokens}})));
+    }
+
+    // ADR-050: the tokens apply on top of any theme.
     void customTokensOverrideTheTheme() {
         QQmlEngine engine;
         QObject *popup = model(engine);
         QObject *style = theme(engine);
+        applyTheme(popup, QStringLiteral("macOS"));
         QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#0a84ff")));
-        QMetaObject::invokeMethod(
-            popup, "applySettings",
-            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Custom")},
-                                            {QStringLiteral("themeTokens"),
-                                             QStringLiteral("{\"accent\":\"#112233\",\"padding\":20}")}})));
+        applyTheme(popup, QStringLiteral("macOS"), QStringLiteral("{\"accent\":\"#112233\",\"padding\":20}"));
         QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#112233")));
         QCOMPARE(style->property("padding").toInt(), 20);
+        applyTheme(popup, QStringLiteral("system"), QStringLiteral("{\"accent\":\"#112233\"}"));
+        QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#112233")));
         QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
-        QCOMPARE(style->property("accent").value<QColor>(), QColor(QStringLiteral("#0a84ff")));
     }
 
-    // Review Focus 4.
-    void plasmaLookFollowsThePalette() {
+    // Review Focus 4, ADR-050: a new widget follows the system.
+    void systemThemeFollowsThePalette() {
         QQmlEngine engine;
         QObject *popup = model(engine);
         QObject *style = theme(engine);
-        QMetaObject::invokeMethod(
-            popup, "applySettings",
-            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Plasma")}})));
-        QCOMPARE(style->property("accent").value<QColor>(), QGuiApplication::palette().color(QPalette::Highlight));
         QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+        QCOMPARE(style->property("theme").toString(), QStringLiteral("system"));
+        QCOMPARE(style->property("accent").value<QColor>(), QGuiApplication::palette().color(QPalette::Highlight));
+    }
+
+    // ADR-050: macOS draws the macOS app's shapes (pill meters, 2 px corners); the system theme Plasma's meter, square
+    // cells.
+    void macOSThemeRoundsTheShapes() {
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        applyTheme(popup, QStringLiteral("macOS"));
+        QCOMPARE(style->property("cornerRadius").toInt(), 2);
+        QVERIFY(style->property("meterImage").toString().isEmpty());
+        // The macOS app's symbols, drawn for the widget, in place of Breeze's icons; its popover
+        // colors.
+        const auto icon = [&](const char *name) {
+            QVariant source;
+            QMetaObject::invokeMethod(style, "icon", Q_RETURN_ARG(QVariant, source),
+                                      Q_ARG(QVariant, QString::fromLatin1(name)));
+            return source.toString();
+        };
+        for (const auto *name : {"draw-star", "view-calendar", "vcs-commit", "view-refresh", "configure", "edit-copy",
+                                 "arrow-right", "arrow-down"}) {
+            // The drawn symbol, written in the macOS label color to the cache folder.
+            const QString source = icon(name);
+            QVERIFY2(source.startsWith(QStringLiteral("file:///")) &&
+                         source.contains(QStringLiteral("/contribusage/symbols/")) &&
+                         QFile::exists(QUrl(source).toLocalFile()),
+                     name);
+            QVERIFY2(source.startsWith(QStringLiteral("qrc:/contribusage/symbols/")) ||
+                         (source.startsWith(QStringLiteral("file:///")) && QFile::exists(source.mid(7))),
+                     name);
+        }
+        QVERIFY(!style->property("styleColors").toMap().value(QStringLiteral("textColor")).toString().isEmpty());
+        // Both brightnesses hold the app's colors (a bare object literal after `?` once gave undefined in dark mode).
+        for (const auto *colors : {"macDarkColors", "macLightColors"}) {
+            QCOMPARE(style->property(colors).toMap().value(QStringLiteral("textColor")).toString().size(), 7);
+        }
+        QVERIFY(style->property("popoverBackground").value<QColor>().isValid());
+        {
+            // The stripes carry the cell's corners: Qt's clip would cut them square.
+            QQmlComponent component(
+                &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/FullPopup.qml")));
+            std::unique_ptr<QObject> full(component.create());
+            QVERIFY2(full, qPrintable(component.errorString()));
+            QQuickItem *stripe = nullptr;
+            QTRY_VERIFY((stripe = findItem(full.get(), QStringLiteral("stripe"))));
+            QCOMPARE(stripe->property("topLeftRadius").toInt(), 2);
+        }
+        applyTheme(popup, QStringLiteral("system"));
+        QCOMPARE(style->property("cornerRadius").toInt(), 0);
+        QCOMPARE(style->property("meterImage").toString(), QStringLiteral("widgets/bar_meter_horizontal"));
+        QCOMPARE(icon("draw-star"), QStringLiteral("draw-star"));
+        QVERIFY(style->property("styleColors").toMap().isEmpty());
+    }
+
+    // ADR-050: an installed Plasma style is listed and, chosen, gives the popup its background and colors.
+    void aPlasmaStyleThemesThePopupOnly() {
+        QTemporaryDir dir;
+        const QString folder = dir.filePath(QStringLiteral("plasma/desktoptheme/test-style"));
+        QDir().mkpath(folder + QStringLiteral("/dialogs"));
+        const auto write = [&](const QString &name, const QByteArray &text) {
+            QFile file(folder + u'/' + name);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(text), text.size());
+        };
+        write(QStringLiteral("metadata.json"), R"({"KPlugin": {"Name": "Test Style"}})");
+        write(QStringLiteral("dialogs/background.svg"), "<svg/>");
+        write(QStringLiteral("colors"),
+              "[Colors:Window]\nForegroundNormal=10,20,30\n[Colors:Selection]\nBackgroundNormal=1,2,3\n");
+        qputenv("XDG_DATA_HOME", dir.path().toUtf8());
+        QQmlEngine engine;
+        QObject *popup = model(engine);
+        QObject *style = theme(engine);
+        const QVariantList styles = popup->property("plasmaStyles").toList();
+        QVERIFY(std::ranges::any_of(styles, [](const QVariant &entry) {
+            return entry.toMap().value(QStringLiteral("name")).toString() == QStringLiteral("Test Style");
+        }));
+        applyTheme(popup, QStringLiteral("plasma:test-style"));
+        QCOMPARE(style->property("accent").value<QColor>(), QColor(1, 2, 3));
+        QCOMPARE(style->property("styleColors").toMap().value(QStringLiteral("textColor")).toString(),
+                 QStringLiteral("#0a141e"));
+        QCOMPARE(style->property("backgroundImage").toString(), folder + QStringLiteral("/dialogs/background.svg"));
+        // The style's text color reaches the labels inside the blocks, not only the popup's own theme.
+        QQmlComponent component(
+            &engine, QUrl(QStringLiteral("qrc:/qt/qml/plasma/applet/org/contribusage/widget/FullPopup.qml")));
+        std::unique_ptr<QObject> full(component.create());
+        QVERIFY2(full, qPrintable(component.errorString()));
+        // Kirigami's fallback theme has colors only for items in a window.
+        QQuickWindow window;
+        qobject_cast<QQuickItem *>(full.get())->setParentItem(window.contentItem());
+        QQuickItem *label = nullptr;
+        QTRY_VERIFY((label = findText(full.get(), QStringLiteral("Current session"))));
+        QTRY_COMPARE(label->property("color").value<QColor>(), QColor(10, 20, 30));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+        QVERIFY(style->property("backgroundImage").toString().isEmpty());
     }
 
     // Review Focus 5.
@@ -706,19 +821,18 @@ private Q_SLOTS:
         QCOMPARE(visibleNotices(block.get()), 1);
     }
 
-    // Review L-6 #4, port design §3: the Plasma look takes the platform theme's status colors too.
-    void plasmaLookUsesThePlatformColors() {
+    // Review L-6 #4, port design §3: the system theme takes the platform theme's status colors too.
+    void systemThemeUsesThePlatformColors() {
         QQmlEngine engine;
         QObject *popup = model(engine);
         QObject *style = theme(engine);
-        QMetaObject::invokeMethod(
-            popup, "applySettings",
-            Q_ARG(QVariantMap, (QVariantMap{{QStringLiteral("look"), QStringLiteral("Plasma")}})));
+        applyTheme(popup, QStringLiteral("system"));
         QVERIFY(style->property("critical").value<QColor>() != QColor(QStringLiteral("#ff453a")));
         QVERIFY(style->property("warning").value<QColor>() != QColor(QStringLiteral("#ff9f0a")));
         QVERIFY(style->property("githubHue").value<QColor>() != QColor(QStringLiteral("#30d158")));
-        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
+        applyTheme(popup, QStringLiteral("macOS"));
         QCOMPARE(style->property("critical").value<QColor>(), QColor(QStringLiteral("#ff453a")));
+        QMetaObject::invokeMethod(popup, "applySettings", Q_ARG(QVariantMap, QVariantMap()));
     }
 
     QString writeOverride(const QTemporaryDir &dir, const QString &block, const QByteArray &qml) {

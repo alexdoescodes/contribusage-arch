@@ -48,6 +48,8 @@ class PopupModel : public QObject {
     // Port design §4: the minute tick runs only while the popup is open.
     Q_PROPERTY(bool ticking READ ticking NOTIFY changed)
     Q_PROPERTY(QVariantMap appearance READ appearance NOTIFY changed)
+    Q_PROPERTY(QVariantList plasmaStyles READ plasmaStyles NOTIFY changed)
+    Q_PROPERTY(QVariantList globalThemes READ globalThemes NOTIFY changed)
     Q_PROPERTY(QString overrideFolder READ overrideFolder CONSTANT)
 
 public:
@@ -63,6 +65,15 @@ public:
     bool nothingToShow() const;
     bool ticking() const { return m_minute.isActive(); }
     QVariantMap appearance() const { return m_appearance; }
+    // ADR-050: the installed Plasma styles the Theme setting offers, read from the data folders at each call.
+    QVariantList plasmaStyles() const;
+    QVariantList globalThemes() const;
+    // ADR-050: the file of an icon in an installed icon theme (cached); empty when the theme lacks it.
+    Q_INVOKABLE QString iconFile(const QString &iconTheme, const QString &name) const;
+    // ADR-050: one of the widget's drawn symbols (`symbols/<name>.svg`) painted in `color` (#rrggbb), written once to
+    // the cache folder; its file URL, empty for an unknown symbol. Plasma's mask coloring fills cut-outs, so the
+    // symbols arrive already colored.
+    Q_INVOKABLE QString symbolFile(const QString &name, const QString &color) const;
     // Port design §3, layer 3: $XDG_DATA_HOME/contribusage/qml; <Block>.qml there replaces that popup block.
     QString overrideFolder() const;
     Q_INVOKABLE QUrl overrideUrl(const QString &block) const;

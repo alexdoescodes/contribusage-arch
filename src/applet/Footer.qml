@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasmoid
 
@@ -8,7 +9,12 @@ import org.kde.plasma.plasmoid
 RowLayout {
     PlasmaComponents.ToolButton {
         objectName: "refreshButton"
-        icon.name: "view-refresh"
+        icon.name: Theme.iconSource("view-refresh").length > 0 ? "" : "view-refresh"
+        icon.source: Theme.iconSource("view-refresh")
+        icon.color: Kirigami.Theme.textColor
+        // SwiftUI's `.imageScale(.large)` symbols under macOS.
+        icon.width: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
+        icon.height: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
         display: QQC2.AbstractButton.IconOnly
         text: "Refresh"
         QQC2.ToolTip.text: text
@@ -17,7 +23,12 @@ RowLayout {
     }
     Item { Layout.fillWidth: true }
     PlasmaComponents.ToolButton {
-        icon.name: "configure"
+        icon.name: Theme.iconSource("configure").length > 0 ? "" : "configure"
+        icon.source: Theme.iconSource("configure")
+        icon.color: Kirigami.Theme.textColor
+        // SwiftUI's `.imageScale(.large)` symbols under macOS.
+        icon.width: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
+        icon.height: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
         display: QQC2.AbstractButton.IconOnly
         text: "Settings"
         QQC2.ToolTip.text: text
@@ -26,7 +37,12 @@ RowLayout {
     }
     Item { Layout.fillWidth: true }
     PlasmaComponents.ToolButton {
-        icon.name: "edit-copy"
+        icon.name: Theme.iconSource("edit-copy").length > 0 ? "" : "edit-copy"
+        icon.source: Theme.iconSource("edit-copy")
+        icon.color: Kirigami.Theme.textColor
+        // SwiftUI's `.imageScale(.large)` symbols under macOS.
+        icon.width: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
+        icon.height: Theme.macOS ? 22 : Kirigami.Units.iconSizes.smallMedium
         display: QQC2.AbstractButton.IconOnly
         text: "Copy statistics"
         QQC2.ToolTip.text: text

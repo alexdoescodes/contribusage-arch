@@ -31,6 +31,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 #include <QLocale>
@@ -455,6 +457,48 @@ QUrl PopupModel::overrideUrl(const QString &block) const {
     return blocks.contains(block) && QFileInfo::exists(file) ? QUrl::fromLocalFile(file) : QUrl();
 }
 
+QVariantList PopupModel::plasmaStyles() const {
+    return contribusage::plasmaStyles(QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation));
+}
+
+QVariantList PopupModel::globalThemes() const {
+    return contribusage::globalThemes(QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation));
+}
+
+QString PopupModel::iconFile(const QString &iconTheme, const QString &name) const {
+    static QHash<QString, QString> cache;
+    const QString key = iconTheme + u'/' + name;
+    if (const auto found = cache.constFind(key); found != cache.cend()) {
+        return *found;
+    }
+    return cache
+        .insert(key, contribusage::iconFile(QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation),
+                                            iconTheme, name))
+        .value();
+}
+
+QString PopupModel::symbolFile(const QString &name, const QString &color) const {
+    static const QRegularExpression valid(QStringLiteral("^#[0-9a-fA-F]{6}$"));
+    QFile source(QStringLiteral(":/contribusage/symbols/") + name + QStringLiteral(".svg"));
+    if (name.contains(u'/') || !valid.match(color).hasMatch() || !source.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+    const QString folder = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) +
+                           QStringLiteral("/contribusage/symbols");
+    // The drawing's hash in the name: a changed symbol gets a new file instead of the cached old one.
+    QByteArray drawing = source.readAll();
+    const QString file = folder + u'/' + name + u'-' + QString::number(qHash(drawing), 16) + u'-' +
+                         color.mid(1).toLower() + QStringLiteral(".svg");
+    if (!QFileInfo::exists(file)) {
+        QDir().mkpath(folder);
+        QFile target(file);
+        if (!target.open(QIODevice::WriteOnly) || target.write(drawing.replace("#000", color.toLower().toUtf8())) < 0) {
+            return {};
+        }
+    }
+    return QUrl::fromLocalFile(file).toString();
+}
+
 QString PopupModel::dataFolder() const {
     return AppPaths::live().root;
 }
@@ -465,7 +509,8 @@ void PopupModel::applySettings(const QVariantMap &configuration) {
     m_githubOn = settings.githubEnabled;
     m_layout = popoverLayoutFromText(configuration.value(QStringLiteral("popoverLayout")).toString());
     m_menuBarStyle = configuration.value(QStringLiteral("menuBarStyle")).toString();
-    m_appearance = appearanceFromMap(configuration);
+    m_appearance =
+        appearanceFromMap(configuration, QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation));
     if (!m_fake) {
         m_job->setInterval(settings.probeIntervalMinutes);
         m_job->setNotifications(m_notifier.get(), settings.notifications);

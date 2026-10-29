@@ -18,7 +18,7 @@ include(FeatureSummary)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core DBus Gui Network Qml Quick Test)
 # Config before Plasma: its CMake package links KF6::ConfigCore without finding it.
-find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons Config Wallet)
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons Config Wallet KirigamiPlatform)
 find_package(Plasma REQUIRED)
 
 # After the KDE settings, so their warning flags are in place before warnings become errors.

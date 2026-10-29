@@ -27,6 +27,7 @@ PlasmoidItem {
             "githubIntervalMinutes": c.githubIntervalMinutes,
             "popoverLayout": c.popoverLayout,
             "menuBarStyle": c.menuBarStyle,
+            "theme": c.theme,
             "look": c.look,
             "density": c.density,
             "themeTokens": c.themeTokens

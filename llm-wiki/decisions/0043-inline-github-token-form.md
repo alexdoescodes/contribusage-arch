@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-05
+updated: 2026-10-29
 aliases: [ADR-043]
 tracks: [src/applet/GitHubSection.qml]
 tags: [ui, github, security]

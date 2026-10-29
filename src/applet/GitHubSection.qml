@@ -45,12 +45,16 @@ ColumnLayout {
         }
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: section.connected && (github.statsText ?? "").length > 0
         text: github.statsText ?? ""
         font: Kirigami.Theme.smallFont
         opacity: github.stale ? 0.5 : 1
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: (github.statusText ?? "").length > 0
         text: github.statusText ?? ""
         font: Kirigami.Theme.smallFont
@@ -83,6 +87,8 @@ ColumnLayout {
         }
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: !section.connected && (github.connectError ?? "").length > 0
         text: github.connectError ?? ""
         font: Kirigami.Theme.smallFont
@@ -90,6 +96,8 @@ ColumnLayout {
         Layout.fillWidth: true
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: !section.connected
         text: "<a href=\"https://github.com/settings/personal-access-tokens/new\">Create a read-only token</a>"
         font: Kirigami.Theme.smallFont

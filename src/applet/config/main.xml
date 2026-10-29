@@ -16,7 +16,9 @@
     <entry name="githubEnabled" type="Bool"><default>true</default></entry>
     <entry name="githubIntervalMinutes" type="Int"><default>30</default></entry>
     <entry name="popoverLayout" type="String"><default></default></entry>
-    <entry name="look" type="String"><default>macOS</default></entry>
+    <!-- ADR-050: `theme` replaces `look`; an unset theme takes an old look (macOS or Custom gives macOS), else the system. -->
+    <entry name="theme" type="String"><default></default></entry>
+    <entry name="look" type="String"><default></default></entry>
     <entry name="density" type="String"><default>comfortable</default></entry>
     <entry name="themeTokens" type="String"><default></default></entry>
   </group>

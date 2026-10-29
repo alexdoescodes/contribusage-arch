@@ -39,7 +39,12 @@ ColumnLayout {
 
     PlasmaComponents.ToolButton {
         text: "Insights"
-        icon.name: parent.expanded ? "arrow-down" : "arrow-right"
+        // SwiftUI's DisclosureGroup under macOS: a small chevron before the title.
+        icon.name: Theme.iconSource(parent.expanded ? "arrow-down" : "arrow-right").length > 0 ? "" : (parent.expanded ? "arrow-down" : "arrow-right")
+        icon.source: Theme.iconSource(parent.expanded ? "arrow-down" : "arrow-right")
+        icon.color: Kirigami.Theme.textColor
+        icon.width: Theme.macOS ? 10 : Kirigami.Units.iconSizes.small
+        icon.height: Theme.macOS ? 10 : Kirigami.Units.iconSizes.small
         onClicked: section.toggle()
         QQC2.ToolTip.text: insights?.note ?? ""
         QQC2.ToolTip.visible: hovered
@@ -63,7 +68,7 @@ ColumnLayout {
                 }
             }
         }
-        PlasmaComponents.Label { text: shown.summary ?? ""; font: Kirigami.Theme.smallFont; opacity: Theme.secondaryOpacity }
+        PlasmaComponents.Label { topPadding: Theme.labelInset; bottomPadding: Theme.labelInset; text: shown.summary ?? ""; font: Kirigami.Theme.smallFont; opacity: Theme.secondaryOpacity }
         Repeater {
             model: shown.rows ?? []
             delegate: shareRow
@@ -75,6 +80,8 @@ ColumnLayout {
                 spacing: 3
                 Layout.fillWidth: true
                 PlasmaComponents.Label {
+                    topPadding: Theme.labelInset
+                    bottomPadding: Theme.labelInset
                     text: modelData.title
                     font: Kirigami.Theme.smallFont
                     opacity: Theme.secondaryOpacity
@@ -93,8 +100,8 @@ ColumnLayout {
         RowLayout {
             required property var modelData
             Layout.fillWidth: true
-            PlasmaComponents.Label { text: modelData.label; elide: Text.ElideMiddle; Layout.fillWidth: true }
-            PlasmaComponents.Label { text: modelData.percent; opacity: Theme.secondaryOpacity }
+            PlasmaComponents.Label { topPadding: Theme.labelInset; bottomPadding: Theme.labelInset; text: modelData.label; elide: Text.ElideMiddle; Layout.fillWidth: true }
+            PlasmaComponents.Label { topPadding: Theme.labelInset; bottomPadding: Theme.labelInset; text: modelData.percent; opacity: Theme.secondaryOpacity }
         }
     }
 }

@@ -13,22 +13,28 @@ RowLayout {
     spacing: Theme.spacing
 
     Kirigami.Icon {
-        source: parent.symbol
+        source: Theme.icon(parent.symbol)
         Layout.preferredWidth: Kirigami.Units.iconSizes.small
         Layout.preferredHeight: Kirigami.Units.iconSizes.small
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         text: parent.title
         font.weight: Font.DemiBold
         Accessible.role: Accessible.Heading
     }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         visible: parent.subtitle.length > 0
         text: parent.subtitle
         opacity: Theme.secondaryOpacity
     }
     Item { Layout.fillWidth: true }
     PlasmaComponents.Label {
+        topPadding: Theme.labelInset
+        bottomPadding: Theme.labelInset
         text: parent.updatedText
         font: Kirigami.Theme.smallFont
         opacity: Theme.secondaryOpacity

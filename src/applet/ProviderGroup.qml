@@ -37,6 +37,8 @@ ColumnLayout {
             spacing: Theme.spacing
 
             PlasmaComponents.Label {
+                topPadding: Theme.labelInset
+                bottomPadding: Theme.labelInset
                 visible: (group.provider.statusText ?? "").length > 0
                 text: group.provider.statusText ?? ""
                 wrapMode: Text.Wrap

@@ -89,7 +89,7 @@ plasmashell (already running)
 2. **Theme tokens:** one `Theme` QML singleton holds every color, font, size, spacing, radius and palette (meters, heatmap). `Custom` overrides any token from the config dialog. Density (compact or comfortable), popup width and label size are tokens as well.
 3. **QML overrides:** each block is loaded through a `Loader`. If `$XDG_DATA_HOME/contribusage/qml/<Block>.qml` exists, it replaces the built-in block and receives the same documented, versioned properties (its view model and the theme). If the override fails to load or reports an error, the built-in block is used and a small notice says so. Overrides run as code inside plasmashell; the documentation says so.
 
-**Settings:** Plasma's config dialog, with the tabs General, Providers, GitHub, Popup (block order by drag, visibility, heatmap) and Appearance (look, tokens, override folder).
+**Settings:** Plasma's config dialog, with the tabs General, Providers, GitHub, Popup (block order by drag, visibility, heatmap) and Appearance (theme, tokens, override folder; the looks became themes in ADR-050).
 
 ## 4. Errors, testing, resource budget, order
 
