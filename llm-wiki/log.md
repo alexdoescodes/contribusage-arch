@@ -579,3 +579,10 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-29] feat | The macOS theme matches the macOS app's popover
 - Drawn symbols in the label color, see-through card on the desktop's blur, SF Pro's row height, legend and footer sizes, checked side by side with `docs/assets/screenshot*.png` ([[decisions/0050-widget-themes]]).
 - Fixed: the macOS colors were undefined in dark mode (object literal after `?`), so the real popup never got them.
+
+## [2026-10-29] docs | README rewritten for the Linux widget
+- Install (makepkg + shell restart), uninstall, build, files and status sections added; macOS-only wording removed; release badge points at this fork.
+
+## [2026-10-30] docs | README images redrawn for Plasma
+- `screenshot.png`, `screenshot-dark.png` and `menu-bar-styles.png` show the widget's macOS theme rendered off-screen at 2x from the built applet with the mock data (Breeze Light/Dark palettes), composed with a floating Plasma panel and Noto Sans.
+- `social-preview.svg`/`.png` use Noto Sans and carry a "KDE Plasma 6 widget" chip.

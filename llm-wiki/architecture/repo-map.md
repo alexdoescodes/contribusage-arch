@@ -1,7 +1,7 @@
 ---
 type: architecture
 status: active
-updated: 2026-10-29
+updated: 2026-10-30
 tracks: [.github, src, tests, CMakeLists.txt, docs, LICENSE]
 tags: [structure]
 ---
@@ -21,7 +21,7 @@ contribusage/
 ├── CODE_OF_CONDUCT.md      Contributor Covenant 2.1; reports through GitHub's Report content to the repository admins
 ├── CONTRIBUTING.md         the contributor guide: build, rules, pull requests
 ├── LICENSE                 MIT
-├── docs/                   superpowers/: specs/ (designs) and plans/ (one implementation plan per milestone) for the Linux plasmoid port; agents/: configuration the engineering agent skills read (issue tracker, triage labels, domain docs; see AGENTS.md § Agent skills); assets/: README art: header SVGs (light and dark) with the icon drawn flat, screenshots, the 1280×640 social preview (SVG source and the PNG uploaded under Settings → Social preview)
+├── docs/                   superpowers/: specs/ (designs) and plans/ (one implementation plan per milestone) for the Linux plasmoid port; agents/: configuration the engineering agent skills read (issue tracker, triage labels, domain docs; see AGENTS.md § Agent skills); assets/: README art: header SVGs (light and dark) with the icon drawn flat, screenshots (the popup and panel labels rendered off-screen from the built applet with the mock data, composed with a floating Plasma panel), the 1280×640 social preview (SVG source and the PNG uploaded under Settings → Social preview)
 ├── README.md
 ├── SECURITY.md             supported versions, private vulnerability reporting, what counts as a vulnerability
 ├── packaging/              arch/: the PKGBUILD (plasma6-applets-contribusage) that builds this checkout, and its .SRCINFO

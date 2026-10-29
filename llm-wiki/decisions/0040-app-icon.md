@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-04
+updated: 2026-10-30
 aliases: [ADR-040]
 tags: [design, icon, distribution]
 tracks: [docs/assets]
@@ -32,7 +32,7 @@ The prompt `›`, a cursor line filled two thirds in amber, and a four-point spa
 ## Consequences
 - The prompt is a filled outline, not a stroked polyline: the flattened `.icns` fallback filled the open polyline into a blob.
 - The tinted specialization sets every layer to white; without it the indigo prompt went dim in Tinted Dark.
-- The README header (`docs/assets/header.svg`, `header-dark.svg`) draws the icon as a flat SVG of the same art on the Big Sur grid (824 pt continuous-corner shape at 100 pt), with drawn highlights in place of the glass. Change the icon in `App/AppIcon.icon` first, then the headers. They use the system font stack, so they render in SF Pro on a Mac and in the platform font elsewhere.
+- The README header (`docs/assets/header.svg`, `header-dark.svg`) draws the icon as a flat SVG of the same art on the Big Sur grid (824 pt continuous-corner shape at 100 pt), with drawn highlights in place of the glass. Change the icon in `App/AppIcon.icon` first, then the headers. They use the system font stack, so they render in SF Pro on a Mac and in the platform font elsewhere. The social preview (`social-preview.svg`) names Noto Sans first since the Linux port (2026-10-30) and carries a "KDE Plasma 6 widget" chip; the icon art is unchanged.
 - The README screenshots come from the real `PopoverView` and `MenuBarArt` with the preview mock data, rendered by a scratch copy of the app whose entry point draws the views into PNGs; none of it is committed. They show only windows that the real `/usage` output prints.
 - Claude Code's provider symbol is the SF Symbol `sparkle` (was `terminal`), so the spark appears wherever the app names the agent: the popover's group header, Settings and the menu bar badge. It stays a neutral system symbol (SPEC §2.3).
 - Revisit if the menu bar mark changes, or if a macOS release changes the icon grid.
