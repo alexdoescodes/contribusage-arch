@@ -1,6 +1,6 @@
 ---
 type: log
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 # Log
 
@@ -586,3 +586,7 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-30] docs | README images redrawn for Plasma
 - `screenshot.png`, `screenshot-dark.png` and `menu-bar-styles.png` show the widget's macOS theme rendered off-screen at 2x from the built applet with the mock data (Breeze Light/Dark palettes), composed with a floating Plasma panel and Noto Sans.
 - `social-preview.svg`/`.png` use Noto Sans and carry a "KDE Plasma 6 widget" chip.
+
+## [2026-10-30] fix | CI: kcmutils, root-safe test, clock-independent wiki test
+- CI toolchain installs `kcmutils` (the config pages import `org.kde.kcmutils`); `tst_activityjob` skips the unreadable-transcript case when run as root.
+- `test-wiki.sh` no longer depends on the UTC date matching the committer's local date.

@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-29
+updated: 2026-10-30
 tracks: [src/claudecode, tests/claudecode]
 tags: [provider, claude-code]
 ---

@@ -6,6 +6,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <unistd.h>
+
 using namespace contribusage;
 using namespace contribusage::claudecode;
 
@@ -147,6 +149,9 @@ private Q_SLOTS:
 
     // A day is not frozen from a scan that could not read every transcript: it would stay short forever.
     void anUnreadableTranscriptKeepsItsDayUnfrozen() {
+        if (geteuid() == 0) {
+            QSKIP("root reads files whatever their permissions");
+        }
         Fixture fixture;
         const QDateTime old = QDateTime::currentDateTime().addDays(-10);
         const QString second = fixture.configDir() + QStringLiteral("/projects/-code/t.jsonl");

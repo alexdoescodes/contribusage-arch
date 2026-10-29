@@ -1,7 +1,7 @@
 ---
 type: guide
 status: active
-updated: 2026-10-04
+updated: 2026-10-30
 tracks: [llm-wiki/tools/wiki.sh, llm-wiki/tools/test-wiki.sh, .claude/settings.json]
 tags: [tooling, wiki]
 ---

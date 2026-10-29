@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-05
+updated: 2026-10-30
 aliases: [ADR-031]
 tags: [app, core, localization]
 tracks: [.github/workflows/ci.yml]

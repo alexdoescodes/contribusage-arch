@@ -22,7 +22,7 @@ jobs:
       - name: Toolchain
         run: |
           pacman -Syu --noconfirm --needed base-devel git cmake ninja clang extra-cmake-modules kwallet \
-            qt6-base qt6-declarative libplasma kcoreaddons kconfig kirigami
+            qt6-base qt6-declarative libplasma kcoreaddons kconfig kirigami kcmutils
           g++ --version | head -1
       - uses: actions/checkout@v5
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"

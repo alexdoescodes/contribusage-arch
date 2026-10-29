@@ -80,7 +80,7 @@ page guides/x 'tracks: [README.md]\n'; G add -A; G commit -qm page; echo x >> RE
                                                     lint_has "page edited without bumping updated:" "guides/x: stale — README.md"
 page guides/x "tracks: [README.md]\nupdated: $(date +%F)\n"; G add -A; G commit -qm page; echo x >> README.md
                                                     lint_clean "page checked today, code changed today"
-page guides/x "tracks:\n  - README.md\n  - \"llm-wiki/tools/a b.txt\"\nupdated: $(date +%F)\n"; touch "llm-wiki/tools/a b.txt"
+page guides/x "tracks:\n  - README.md\n  - \"llm-wiki/tools/a b.txt\"\nupdated: 2999-12-31\n"; touch "llm-wiki/tools/a b.txt"
                                                     lint_clean "block-list tracks and paths with spaces"
 mkdir test && touch test/x;                         lint_has "undocumented top-level folder" "repo-map: test is missing from the tree"
 mkdir llm-wiki/assets && touch llm-wiki/assets/x;   lint_has "undocumented vault folder" "repo-map: llm-wiki/assets is missing from the tree"
