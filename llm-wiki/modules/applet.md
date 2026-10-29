@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-15
+updated: 2026-10-29
 tracks: [src/applet, tests/applet]
 tags: [plasma, qml]
 ---

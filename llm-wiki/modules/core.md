@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-05
+updated: 2026-10-29
 tracks: [src/core, tests/core]
 tags: [core, architecture]
 ---

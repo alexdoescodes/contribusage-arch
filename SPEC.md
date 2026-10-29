@@ -179,7 +179,7 @@ Priorities: **P1** = MVP (Milestones M1 and M2), **P2** = v1.0, **P3** = later /
 
 - **Given** Claude Code is installed and logged in with a subscription, **when** the app has completed a probe, **then** the menu bar shows the primary window's percentage (default: the Claude Code window of kind `session`, "Current session"), for example `23%`.
 - **Given** no probe has succeeded yet, **then** the menu bar shows the icon with `?` and the popover explains why.
-- **Given** the last successful probe is older than the staleness threshold, **then** the menu bar marks the value stale (`~23%`, 11.1), the popover dims it and says "updated 42 min ago".
+- **Given** the last successful probe is older than the staleness threshold, **then** the menu bar marks the value stale (meter at half strength, 11.1), the popover dims it and says "updated 42 min ago".
 
 The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar shows a static icon and the popover carries US-1.
 
@@ -1081,7 +1081,7 @@ public struct HeatmapLayer: Sendable, Equatable {
 
 - One image drawn by the app in the style and color of FR-51, not a template (ADR-035). Its drawing handler runs whenever the status item draws, in the status item's appearance, so the text and the neutral parts use `labelColor` and follow a light or dark menu bar; the meter keeps its color.
 - Content by mode (FR-12), for example `primary` in the `prompt` style: the mark with the session window's fill, then `23%`.
-- Stale value: prefixed with `~` (`~23%`) and the meter at half strength. Unknown: `?` and an empty meter. At 90 % or more the meter is red (11.4) unless the color is monochrome.
+- Stale value: the same text (`23%`) and the meter at half strength, with no text marker (ADR-049). Unknown: `?` and an empty meter. At 90 % or more the meter is red (11.4) unless the color is monochrome.
 - With more than one enabled provider and mode `highest` (or a fallback to it), the provider's symbol stands before the glyph.
 - `githubToday`: today's count (`7`) with the glyph filled to today's contribution level (FR-51), or GitHub's last three weeks in the `heatmap` style; `primaryAndGitHub`: the primary label followed by ` · 7`. GitHub without data yet reads `?`.
 - Width stays stable and the label ends at its value: monospaced digits, with figure spaces in front up to two digits; `100%` widens the label by one digit (ADR-035).

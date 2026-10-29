@@ -38,8 +38,7 @@ MenuBarLabel windowLabel(const UsageWindow &window, const MenuBarProvider &provi
             break;
         }
     }
-    return {.text = padded(QString((stale ? QStringLiteral("~") : QString()) +
-                                   percentText(window.usedPercent, window.isBelowOne, window.resetsAt, now))),
+    return {.text = padded(percentText(window.usedPercent, window.isBelowOne, window.resetsAt, now)),
             .title = provider.displayName,
             .meter = fraction(window, now),
             .companion = companion,
@@ -112,9 +111,7 @@ MenuBarMode resolvedMode(MenuBarMode mode, const QList<MenuBarMode> &offered) {
 
 MenuBarLabel menuBarLabel(MenuBarMode mode, const QString &provider, const QList<MenuBarProvider> &providers,
                           const std::optional<MenuBarGitHub> &github, const QDateTime &now) {
-    const QString githubText =
-        github ? QString((github->stale ? QStringLiteral("~") : QString()) + QLocale().toString(github->today))
-               : QStringLiteral("?");
+    const QString githubText = github ? QLocale().toString(github->today) : QStringLiteral("?");
     switch (mode) {
     case MenuBarMode::Primary:
         return limitsLabel(WindowKind::Session, provider, providers, now);

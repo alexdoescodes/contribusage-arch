@@ -1,6 +1,6 @@
 ---
 type: log
-updated: 2026-10-04
+updated: 2026-10-29
 ---
 # Log
 
@@ -555,3 +555,8 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 ## [2026-10-15] research | L-7 resource budget measured
 - Memory over a compiled KDE applet: 16 MB median (Private_Dirty), CPU 0.09 % idle, refresh under 1 ms; the arena cap, `malloc_trim` and hashed index keys gained nothing beyond about 4 MB of noise.
 - ADR-048 sets the memory budget to 20 MB; SPEC §17.8 L-7 ticked.
+
+## [2026-10-29] decision | No text marker for a stale label value
+- ADR-049: the panel label no longer prefixes `~` to a stale value (`23
+## [2026-10-29] decision | No text marker for a stale label value
+- ADR-049: the panel label no longer prefixes a tilde to a stale value ("23%", "7"); staleness stays in `MenuBarLabel::stale` and the half-strength meter. SPEC US-1 and §11.1 changed; tests updated first.

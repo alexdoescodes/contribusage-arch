@@ -38,8 +38,8 @@ struct MenuBarGitHub {
 
 // SPEC §11.1: what the panel label shows.
 struct MenuBarLabel {
-    QString text;  // "23%" padded with figure spaces to two digits, "~23%", "?", "7", or empty for IconOnly
-    QString title; // the source's name; "contribusage" with every source off
+    QString text;                    // "23%" padded with figure spaces to two digits, "?", "7", or empty for IconOnly
+    QString title;                   // the source's name; "contribusage" with every source off
     std::optional<double> meter;     // the shown window's fraction; nullopt without one or while it is reset (FR-11)
     std::optional<double> companion; // the provider's other window; GitHub: active days of 7
     bool stale = false;

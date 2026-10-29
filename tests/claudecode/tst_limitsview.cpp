@@ -94,7 +94,7 @@ private Q_SLOTS:
         QVERIFY(failed.value(QStringLiteral("stale")).toBool());              // and are dimmed
     }
 
-    // SPEC §11.1: the session's percent; "?" padded to two digits without data; "~" when stale.
+    // SPEC §11.1: the session's percent; "?" padded to two digits without data; no marker when stale (ADR-049).
     void labelShowsTheSessionOrUnknown() {
         const QVariantMap loaded = labelView(SourceState<LimitsReport>::loaded(snapshot(60)), now);
         QCOMPARE(loaded.value(QStringLiteral("text")).toString(), QStringLiteral("23%"));
@@ -104,7 +104,7 @@ private Q_SLOTS:
                  QString(QString(QChar(0x2007)).repeated(2) + QStringLiteral("?")));
         QCOMPARE(unknown.value(QStringLiteral("fraction")).toDouble(), 0.0);
         const QVariantMap stale = labelView(SourceState<LimitsReport>::loaded(snapshot(31 * 60)), now);
-        QCOMPARE(stale.value(QStringLiteral("text")).toString(), QStringLiteral("~23%"));
+        QCOMPARE(stale.value(QStringLiteral("text")).toString(), QStringLiteral("23%"));
     }
 
     // Review Focus 1: no data yet is a skeleton, without a status line.

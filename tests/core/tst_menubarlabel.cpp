@@ -92,11 +92,11 @@ private Q_SLOTS:
         const MenuBarLabel stale =
             label(MenuBarMode::Primary,
                   {limits(QStringLiteral("a"), {{WindowKind::Session, 23}}, QStringLiteral("s"), 1'801'000)});
-        QCOMPARE(stale.text, QStringLiteral("~23%"));
+        QCOMPARE(stale.text, QStringLiteral("23%"));
         QVERIFY(stale.stale);
         const MenuBarLabel github = label(MenuBarMode::GithubToday, {}, {},
                                           MenuBarGitHub{.today = 7, .level = 2, .activeDays = 3, .stale = true});
-        QCOMPARE(github.text, QStringLiteral("~7"));
+        QCOMPARE(github.text, QStringLiteral("7"));
         QVERIFY(github.stale);
     }
 
