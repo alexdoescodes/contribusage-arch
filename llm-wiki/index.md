@@ -1,90 +1,35 @@
 ---
 type: index
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 # Index
 
-Every page in the vault, one line each. Read this first to pick the pages a task needs; every new page gets a line here (lint checks it). The contract lives outside the vault in `SPEC.md`: cite it by section or ID (`SPEC §8.1.3`, `FR-8`).
+Every page in the vault, one line each; lint checks that each page is listed. The contract is `SPEC.md` (cite by section or ID, `SPEC §8.1.3`, `FR-8`).
 
-## Start here
-- [[overview]]: what contribusage is, how spec, vault and AGENTS.md divide the work, the targets at a glance
-- [[log]]: chronological record of changes to the project
-
-## Architecture
+- [[overview]]: what contribusage is, how the pieces fit
+- [[log]]: chronological record of changes
 - [[architecture/repo-map]]: annotated tree of the repository and the vault (lint-checked)
 
 ## Modules
-- [[modules/app]]: SwiftUI shell; views and wiring only
-- [[modules/applet]]: the KDE Plasma 6 widget; QML views and C++ view models
-- [[modules/core]]: provider-neutral models, scheduler, persistence, support seams
-- [[modules/claude-code]]: the v1 provider; `/usage` probe, status line bridge, transcripts
+- [[modules/applet]]: the Plasma 6 widget; QML views and C++ view models
+- [[modules/core]]: provider-neutral models, scheduler, persistence
+- [[modules/claude-code]]: the v1 provider; `/usage` probe and transcripts
 - [[modules/github]]: GraphQL client, token validation, contribution statistics
-- [[modules/test-support]]: fakes, `FakeProvider`, provider conformance suite
 
 ## Decisions
-- [[decisions/0001-native-swift-swiftui]]: ADR-001, Swift and SwiftUI with `MenuBarExtra`
-- [[decisions/0002-usage-probe-primary-limits-source]]: ADR-002, `/usage` probe first, status line bridge optional
 - [[decisions/0003-official-interfaces-only]]: ADR-003, no credentials, no undocumented vendor endpoints
-- [[decisions/0004-logic-in-contribusagekit-package]]: ADR-004, all logic in the local Swift package
-- [[decisions/0005-json-file-persistence]]: ADR-005, versioned atomic JSON files
-- [[decisions/0006-no-app-sandbox]]: ADR-006, no sandbox; ad-hoc signed DMG, notarization later
-- [[decisions/0007-native-transcript-parsing]]: ADR-007, native transcript parser, `ccusage` for validation
-- [[decisions/0008-minimum-macos-14]]: ADR-008, macOS 14 minimum
-- [[decisions/0009-apple-silicon-only]]: ADR-009, arm64 only
 - [[decisions/0010-provider-abstraction-from-day-one]]: ADR-010, provider-neutral core, one target per provider
-- [[decisions/0011-product-name-contribusage]]: ADR-011, the name
-- [[decisions/0012-llm-wiki-as-project-memory]]: ADR-012, this vault as agent memory, sessions local
-- [[decisions/0013-spec-standalone-contract]]: ADR-013, SPEC.md stays the contract; overlaps moved to one owner
-- [[decisions/0014-build-and-ci-foundation]]: ADR-014, project file, zero warnings, NFR-17 as a test, CI jobs
-- [[decisions/0015-app-paths-struct]]: ADR-015, `AppPaths` is a struct with a root, not a seam
-- [[decisions/0016-activity-source-stream-lifetime]]: ADR-016, `ActivitySource` watches while its `reports()` stream is consumed
-- [[decisions/0017-unsupported-plan-source-error]]: ADR-017, `SourceError.unsupportedPlan` carries P-10 out of `fetch()`
-- [[decisions/0018-refresh-coordinator-shape]]: ADR-018, serialized refresh passes, conditions fed by the app, `needsNetwork` in the policy
-- [[decisions/0019-extra-refresh-triggers]]: ADR-019, popover-open and reset triggers as a `trigger` date in `Schedule.nextRun`
-- [[decisions/0020-github-rate-limit-detection]]: ADR-020, GitHub rate limit = remaining 0 on a failed response; other 403/429 back off
-- [[decisions/0021-stats-calendar-parameter]]: ADR-021, contribution statistics take the `Calendar` that defines today; R-4 picks its zone
-- [[decisions/0022-github-job-in-the-coordinator]]: ADR-022, GitHub as a typed job in the coordinator; token, 401 and rate-limit rules
-- [[decisions/0023-structured-insights]]: ADR-023, insights parsed into periods, shares and rankings instead of verbatim text
-- [[decisions/0024-live-index-in-memory]]: ADR-024, the live index is rebuilt at launch, not persisted; T-4.7 measured it within NFR-7
-- [[decisions/0025-read-roots-check-with-t-4-7]]: ADR-025, the file system seam and the declared-roots read check come with T-4.7
-- [[decisions/0026-nfr-7-on-an-m3]]: ADR-026, NFR-7 checked on an M3 against half its budget
-- [[decisions/0027-notification-planning-in-the-coordinator]]: ADR-027, the coordinator plans notifications from the persisted keys; a changed reset time re-arms
-- [[decisions/0028-settings-scope-and-wiring]]: ADR-028, T-5.2 builds only unowned Settings controls; intervals as job settings, reset keeps notification keys
-- [[decisions/0029-no-first-run-onboarding]]: ADR-029, FR-37 dropped; the popover's states and Settings cover each first run step
-- [[decisions/0030-provider-diagnostics-hook]]: ADR-030, providers add their own diagnostics lines through `UsageProvider.diagnostics()`
-- [[decisions/0031-string-catalogs]]: ADR-031, String Catalogs in the app and the core with a CI sync check; tool text stays as printed
-- [[decisions/0032-shared-heatmap]]: ADR-032, one heatmap with a layer per source, Combined or Stacked, levels per source, no red
-- [[decisions/0033-provider-tool-texts]]: ADR-033, `ProviderDescriptor.toolText` translates known tool texts (window labels, insights periods and counts) at display time; the printed text stays the key
-- [[decisions/0034-reorderable-sections]]: ADR-034, a provider group's sections are reordered by drag within the group; `sectionOrder` per provider
-- [[decisions/0035-drawn-menu-bar-label]]: ADR-035, the menu bar label as one drawn, colored image in six styles; the `prompt` mark
-- [[decisions/0036-pushed-limits-and-debug-fake-provider]]: ADR-036, the coordinator consumes pushed limits; `DebugFakeProvider` is an app file under its flag
-- [[decisions/0037-no-second-provider-for-v1]]: ADR-037, v1 ships with Claude Code only; Codex CLI is the next candidate
-- [[decisions/0038-notification-cycles-and-delivery]]: ADR-038, a reset time moving by up to 1 h keeps the notification cycle; only the highest threshold per refresh; delivery 3 s apart, grouped per provider
-- [[decisions/0039-one-minute-probe]]: ADR-039, the Claude Code probe every 5 min by default, every minute on request; R-1 found no quota cost
-- [[decisions/0040-app-icon]]: ADR-040, the app icon: prompt, filling cursor and spark in Liquid Glass, an Icon Composer document
-- [[decisions/0041-linux-plasmoid-port]]: ADR-041, Linux-only port as a compiled Plasma widget with a static C++ logic library
-- [[decisions/0042-one-week-bar]]: ADR-042, the popup shows one week bar: all models as "Current week", per-model week windows hidden
-- [[decisions/0043-inline-github-token-form]]: ADR-043, the GitHub token is entered in the popup's GitHub block and saved in KWallet after validation
-- [[decisions/0044-transcripts-on-a-worker-thread]]: ADR-044, transcripts are read on a worker thread; lines without "usage" are not parsed
-- [[decisions/0045-one-schedule-per-source]]: ADR-045, one schedule object per polled source instead of one coordinator
-- [[decisions/0046-notifications-and-settings]]: ADR-046, notifications over org.freedesktop.Notifications; settings in the plasmoid configuration
-- [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover: looks, the tokens components use, three overridable blocks; no font, radius or label-size tokens, no bundled assets
-- [[decisions/0048-plasmoid-memory-budget]]: ADR-048, the plasmoid may add 20 MB of private memory (measured 16 MB), not 15
-- [[decisions/0049-no-stale-marker-in-label]]: ADR-049, a stale value shows the same label text; the half-strength meter carries staleness
-- [[decisions/0050-widget-themes]]: ADR-050, themes (System, macOS, installed Plasma styles) replace looks; a style applies to this widget only
+- [[decisions/0041-linux-plasmoid-port]]: ADR-041, Linux-only port as a compiled Plasma widget
+- [[decisions/0042-one-week-bar]]: ADR-042, one "Current week" bar; per-model week windows hidden
+- [[decisions/0043-inline-github-token-form]]: ADR-043, the GitHub token is entered in the popup and kept in KWallet
+- [[decisions/0044-transcripts-on-a-worker-thread]]: ADR-044, transcripts are read on a worker thread
+- [[decisions/0045-one-schedule-per-source]]: ADR-045, one schedule object per polled source
+- [[decisions/0046-notifications-and-settings]]: ADR-046, freedesktop notifications; settings in the plasmoid configuration
+- [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover
+- [[decisions/0048-plasmoid-memory-budget]]: ADR-048, the widget may add 20 MB of private memory
+- [[decisions/0050-widget-themes]]: ADR-050, themes (System, macOS, Plasma styles) apply to this widget only
 
-## Research
-- [[research/r-1-probe-cost]]: R-1, a `/usage` probe costs no plan quota but about 1.7 s CPU; default 5 min, minimum 1 min
-- [[research/r-2-usage-output-variants]]: R-2, `/usage` without a subscription: logged out and API key billing print the same cost summary
-- [[research/nfr-7-transcript-scan]]: NFR-7 and memory: a generated 520 MB tree scans in under 2 s and adds 27 MB
-- [[research/t-5-8-performance-energy]]: T-5.8, the Release build idles at 0.07 % CPU and 47 MB; transcript writes cost about 0.2 %
-- [[research/t-5-17-second-provider]]: T-5.17, Codex, Copilot and Gemini CLI against the provider gate; Codex limits and tokens from its own session files
-- [[research/t-5-18-name-availability]]: T-5.18, "contribusage" is free in the App Stores, domains, registries, USPTO and TMview
-- [[research/l-7-resource-budget]]: L-7, the plugin adds about 16 MB of private memory, 0.09 % idle CPU and a refresh under 1 ms
-
-## Guides
-- [[guides/llm-wiki-tooling]]: `wiki.sh`, Claude Code hooks, lint findings, reuse in another repository
-- [[guides/qml-overrides]]: replacing a popup block with your own QML file, the properties it gets, the fallback
-
-## Sources
-- [[sources/karpathy-llm-wiki]]: the LLM-wiki pattern this vault implements
+## Research and guides
+- [[research/l-7-resource-budget]]: memory, CPU and refresh cost measured against the budget
+- [[guides/llm-wiki-tooling]]: the wiki scripts, hooks and lint messages
+- [[guides/qml-overrides]]: overriding blocks of the popup from the configuration

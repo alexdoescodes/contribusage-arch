@@ -1,17 +1,17 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-29
+updated: 2026-10-30
 aliases: [ADR-041]
 tracks: [CMakeLists.txt, src]
 tags: [platform, architecture]
 ---
 # ADR-041: Linux-only port as a KDE Plasma widget
 
-- **Decided:** 2026-10-04 · **Spec:** SPEC header, §1.3, §2, §17.8 · **Supersedes:** [[decisions/0001-native-swift-swiftui]], [[decisions/0008-minimum-macos-14]], [[decisions/0009-apple-silicon-only]] for this fork
+- **Decided:** 2026-10-04 · **Spec:** SPEC header, §1.3, §2, §17.8 · **Supersedes:** the Swift/SwiftUI, macOS 14 and Apple Silicon decisions of the macOS app (git tag `macos-reference`)
 
 ## Context
-This fork targets Arch Linux on KDE Plasma 6 (Wayland) and drops macOS. The goal is the least use of system resources, the macOS look by default, and a customizable appearance. The full design is in `docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md`.
+This fork targets Arch Linux on KDE Plasma 6 (Wayland) and drops macOS. The goal is the least use of system resources, the macOS look by default, and a customizable appearance. The earlier design documents were removed on 2026-10-30; this page and SPEC.md carry what still holds.
 
 ## Options
 | Option | For | Against |

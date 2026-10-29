@@ -8,7 +8,7 @@ tags: [customization, ui]
 ---
 # ADR-050: Themes replace looks; installed global themes and Plasma styles apply to the widget only
 
-- **Decided:** 2026-10-29 · **Spec:** SPEC §17.8 L-8, port design §3 · **Supersedes:** the looks of [[decisions/0047-customization-scope#Decision]]
+- **Decided:** 2026-10-29 · **Spec:** SPEC §11 · **Supersedes:** the looks of [[decisions/0047-customization-scope#Decision]]
 
 ## Context
 The three looks of [[decisions/0047-customization-scope]] differed in six colors only; the popup looked the same in each. The Appearance page needs a theme that changes the look itself: one that matches the macOS app (`macos-reference`, `App/Popover/*.swift`), and the Plasma styles installed on the system, chosen for this widget without changing the desktop's style.

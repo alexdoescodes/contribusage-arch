@@ -27,7 +27,7 @@ contribusage promises a few things about safety (see [SPEC §2](SPEC.md#2-consti
 
 ## Verify a download
 
-There are no Linux releases yet. Until the package arrives (SPEC §17.8, L-7), build from source.
+There are no Linux releases yet. Build from source or with the PKGBUILD in `packaging/arch/`.
 
 ## Not a vulnerability
 

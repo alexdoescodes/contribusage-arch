@@ -10,8 +10,7 @@ tags: [plasma, qml]
 The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, with C++ view models; no logic, which lives in `contribusage_core` ([[modules/core]]).
 
 ## Spec
-- **Sections:** the port design `docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md` §1 and §3
-- **Tasks:** SPEC §17.8, L-0 (skeleton) and L-4 to L-6 (UI)
+- **Sections:** SPEC §11 (UI)
 - **Path:** `src/applet/`
 
 ## Depends on

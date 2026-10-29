@@ -3,7 +3,7 @@ type: decision
 status: accepted
 updated: 2026-10-29
 aliases: [ADR-048]
-tracks: [src/applet/popupmodel.cpp, docs/superpowers/specs/2026-10-04-linux-plasmoid-port-design.md]
+tracks: [src/applet/popupmodel.cpp]
 tags: [performance, packaging]
 ---
 # ADR-048: The plasmoid may add 20 MB, not 15

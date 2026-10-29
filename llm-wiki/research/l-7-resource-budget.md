@@ -7,7 +7,7 @@ tags: [research, performance, packaging]
 ---
 # L-7: the resource budget measured
 
-- **Spec:** SPEC §17.8 L-7, port design §4 (resource budget) · **Answered:** 2026-10-15
+- **Spec:** SPEC §6 (resource budget) · **Answered:** 2026-10-15
 
 ## Question
 Does the packaged plugin stay inside the port design's three checks: under 15 MB added memory, idle CPU about 0, a refresh pass under 50 ms?

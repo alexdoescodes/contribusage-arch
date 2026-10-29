@@ -1,32 +1,24 @@
 ---
 type: overview
 status: active
-updated: 2026-10-04
+updated: 2026-10-30
 tracks: []
 tags: [hub]
 ---
 # contribusage
 
-> **Linux port.** This fork is being ported to a KDE Plasma 6 widget ([[decisions/0041-linux-plasmoid-port]]). The targets are `contribusage_core` ([[modules/core]]) and the applet ([[modules/applet]]); the macOS app ([[modules/app]]) is at the git tag `macos-reference` (commit `2603a21` on `main`).
+A KDE Plasma 6 widget for Arch Linux (C++23, Qt 6, QML) that shows how much of an AI coding plan is left and when it resets (v1: Claude Code), coding activity on this machine, and the GitHub contribution graph. It uses only official interfaces and never touches another tool's credentials ([[decisions/0003-official-interfaces-only]]). It is the Linux port of a macOS app ([[decisions/0041-linux-plasmoid-port]]); the Swift code is at the git tag `macos-reference` (commit `2603a21`).
 
-A native macOS menu bar app for Apple Silicon that shows how much of an AI coding plan is left and when it resets (v1: Claude Code), coding activity on this Mac, and the GitHub contribution graph. It uses only official interfaces and never touches another app's credentials ([[decisions/0003-official-interfaces-only]]).
+- **`SPEC.md`: the contract.** Requirements with stable IDs.
+- **This vault: the memory.** How things are built and why. Latest changes: [[log]].
+- **`AGENTS.md`: the protocol** for agents working in the repository.
 
-Where work stands: the task checkboxes in SPEC §17 and the latest entries in [[log]].
-
-## How the repository is organised
-- **`SPEC.md`: the contract.** Requirements with stable IDs, the task plan, open research. Code follows it ([[decisions/0013-spec-standalone-contract]]).
-- **This vault: the memory.** How things are built, why, what was learned, and what changed when ([[decisions/0012-llm-wiki-as-project-memory]]).
-- **`AGENTS.md`: the protocol.** How every agent orients in the vault, works against the spec and records the result.
-
-## System at a glance
-Dependency direction: `ContribusageClaudeCode → ContribusageCore ← ContribusageGitHub`. The app depends on all three and is the only place providers are registered (SPEC §9.1).
+## Targets
+Dependency direction: `contribusage_claudecode → contribusage_core ← contribusage_github`; the applet depends on all of them and is the only place providers are registered.
 
 | Target | Page | Role |
 |---|---|---|
-| App | [[modules/app]] | SwiftUI shell: menu bar, popover, Settings |
-| `ContribusageCore` | [[modules/core]] | Provider-neutral models, scheduling, persistence, seams |
-| `ContribusageClaudeCode` | [[modules/claude-code]] | The v1 provider: `/usage` probe and transcripts |
-| `ContribusageGitHub` | [[modules/github]] | Contribution calendar and statistics |
-| `ContribusageTestSupport` | [[modules/test-support]] | Fakes, `FakeProvider`, conformance suite |
-
-Milestones (SPEC §17): M1 Claude Code limits in the popover → M2 GitHub → M3 activity → M4 v1.0 with the menu bar label → M5 extras and release.
+| applet | [[modules/applet]] | Plasma widget: QML views, C++ view models |
+| core | [[modules/core]] | Provider-neutral models, scheduling, persistence |
+| claudecode | [[modules/claude-code]] | The v1 provider: `/usage` probe and transcripts |
+| github | [[modules/github]] | Contribution calendar and statistics |

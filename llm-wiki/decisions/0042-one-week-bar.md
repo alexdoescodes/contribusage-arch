@@ -8,7 +8,7 @@ tags: [ui, limits]
 ---
 # ADR-042: One week bar in the popup
 
-- **Decided:** 2026-10-04 · **Spec:** P-4, SPEC §11.2 · **Supersedes:** the display part of [[decisions/0033-provider-tool-texts]] for week windows
+- **Decided:** 2026-10-04 · **Spec:** P-4, SPEC §11.2 · **Supersedes:** the display part of the provider tool texts of the macOS app for week windows
 
 ## Context
 `/usage` prints the weekly limit for all models and, on some plans, a week window per model (`Current week (Opus)`). The popup showed each as its own bar, one below the other. A second "Current week" bar with a model name reads as noise next to the all-models one.

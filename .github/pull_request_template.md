@@ -1,6 +1,6 @@
 ## What and why
 
-<!-- What does this change, and why? Link the issue (Closes #…) or the SPEC §17 task, if there is one. -->
+<!-- What does this change, and why? Link the issue (Closes #…), if there is one. -->
 
 ## How it was tested
 

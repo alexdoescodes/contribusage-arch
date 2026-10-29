@@ -113,7 +113,7 @@ The windows you see are exactly the ones Claude Code prints for your plan. When 
 
 ## Status
 
-The Linux port is feature-complete (milestones L-0 to L-8 in [SPEC §17.8](SPEC.md#178-linux-port-adr-041)): real Claude Code limits and activity, GitHub contributions, notifications, settings pages, the popup layout, themes and customization, and the Arch package. This fork is the port of the macOS app; the Swift code it came from is at the git tag `macos-reference`.
+The Linux port is feature-complete: real Claude Code limits and activity, GitHub contributions, notifications, settings pages, the popup layout, themes and customization, and the Arch package. This fork is the port of the macOS app; the Swift code it came from is at the git tag `macos-reference`.
 
 ## Roadmap
 

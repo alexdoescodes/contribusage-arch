@@ -37,7 +37,7 @@ These keep the app safe and trustworthy, so pull requests that break them can't 
 - Branch from `main` and open the pull request against it. Draft pull requests are welcome if you want early feedback.
 - Add or update tests for the logic you change. New tests use Qt Test (`QTest`) and are registered in `tests/CMakeLists.txt`.
 - Describe what you changed and how you tested it; for UI changes, a screenshot helps.
-- If your change completes a task from SPEC §17, tick its box; if it changes how something should behave, update the spec too.
+- If it changes how something should behave, update the spec too.
 
 CI runs the build, the tests, the format check and a check of the wiki. One thing it may ask of you:
 
