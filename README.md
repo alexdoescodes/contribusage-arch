@@ -20,7 +20,8 @@
 
 <p align="center">
   <b>contribusage</b> is a KDE Plasma 6 widget that shows how much of your AI coding plan is left,<br>
-  what your coding agent did on this machine, and your GitHub contributions, without ever touching your credentials.
+  what your coding agent did on this machine, and your GitHub contributions, without ever touching your credentials.<br>
+  Please check out <a href="https://github.com/kuehn-lars/contribusage">contribusage for macOS by Lars Kuehn</a>, the original app this widget is ported from (and leave a star).
 </p>
 
 <p align="center">
