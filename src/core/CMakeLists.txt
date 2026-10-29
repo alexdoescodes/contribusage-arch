@@ -1,0 +1,46 @@
+add_library(contribusage_core STATIC
+    appearance.cpp
+    appearance.h
+    apppaths.cpp
+    apppaths.h
+    directorywatcher.cpp
+    directorywatcher.h
+    display.cpp
+    display.h
+    heatmap.cpp
+    heatmap.h
+    historystore.cpp
+    historystore.h
+    jsonstore.cpp
+    jsonstore.h
+    jsonlreader.cpp
+    jsonlreader.h
+    limitscache.cpp
+    limitscache.h
+    menubarlabel.cpp
+    menubarlabel.h
+    notificationplanner.cpp
+    notificationplanner.h
+    notificationstore.cpp
+    notificationstore.h
+    popoverlayout.cpp
+    popoverlayout.h
+    process.cpp
+    process.h
+    reports.cpp
+    reports.h
+    schedule.cpp
+    schedule.h
+    seams.h
+    snapshot.h
+    sourceschedule.cpp
+    sourceschedule.h
+    version.cpp
+    version.h
+    widgetsettings.cpp
+    widgetsettings.h)
+target_compile_definitions(contribusage_core PRIVATE CONTRIBUSAGE_VERSION="${PROJECT_VERSION}")
+target_include_directories(contribusage_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_link_libraries(contribusage_core PUBLIC Qt6::Core)
+# Linked into the shared applet library.
+set_target_properties(contribusage_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

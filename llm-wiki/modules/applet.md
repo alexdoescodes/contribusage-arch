@@ -1,0 +1,48 @@
+---
+type: module
+status: active
+updated: 2026-10-29
+tracks: [src/applet, tests/applet]
+tags: [plasma, qml]
+---
+# Applet
+
+The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, with C++ view models; no logic, which lives in `contribusage_core` ([[modules/core]]).
+
+## Spec
+- **Sections:** SPEC §11 (UI)
+- **Path:** `src/applet/`
+
+## Depends on
+- [[modules/core]] through the static library `contribusage_core`
+- libplasma 6 (`plasma_add_applet`), KF6 CoreAddons and Config, Qt Quick
+
+## Contract
+- QML singletons `AppInfo` (`version`), `PopupModel` (`providers`, `heatmap`, `github`, `label`; real Claude Code limits and insights since L-2a, activity (`providers[0].activity`) and a heatmap stacking the Claude Code and GitHub layers since L-2b; the macOS preview data under CONTRIBUSAGE_FAKE_DATA=1) and `Theme` (every color, size and opacity; the customization layers of L-6 override it).
+- `main.qml`: a `PlasmoidItem` with `CompactLabel` (the `prompt` style) and `FullPopup` (the blocks of SPEC §11.2: `ProviderGroup` with `LimitBar`, `ActivitySection` and `InsightsSection`, then `HeatmapBlock`, `GitHubSection` and `Footer`).
+- Since L-4: `LabelContent.qml` draws the label in the seven FR-51 styles (`RingGlyph`, `LineGlyph`, `MiniHeatmap`, `PromptGlyph`) from plain values; `CompactLabel` feeds it from `Plasmoid.configuration` (`main.xml` at the module root, where Plasma reads it as for KDE's compiled applets; source file `src/applet/config/main.xml`). `Skeleton.qml` and `ActionButton.qml` (Retry, Locate…, Show raw output) render SPEC §11.3; the heatmap walks with the arrow keys, Home and End (SPEC §11.7). A size bound to an item's own height inside a layout can loop without end: `everyStyleStaysSmallInAWindow` lays each style out in a window.
+- Since L-5a: settings pages `ConfigGeneral`, `ConfigClaudeCode`, `ConfigGitHub`, `ConfigAdvanced` listed by `config.qml` (also at the module root); `main.qml` passes `Plasmoid.configuration` to `PopupModel.applySettings` at start and on change; `deleteClaudeCodeData()`, `resetCaches()`, `dataFolder`; the limits job's notes go to `DesktopNotifier` ([[decisions/0046-notifications-and-settings]]).
+- Since L-7: the minute tick (ages, countdowns) runs only while the popup is open: `main.qml` calls `popupOpened()` and `popupClosed()` on `expanded`, `ticking` reports it (port design §4). On the desktop `expanded` turns true once the full view shows inline.
+- Since L-6: `PopupModel.appearance` drives `Theme.qml`, whose tokens are bindings over the look (macOS defaults, Plasma from `SystemPalette`, Custom with overrides) and the density; `PopupModel.overrideUrl(block)` and `overrideFolder` let `FullPopup` load `~/.local/share/contribusage/qml/<Block>.qml` in place of a block, falling back with a notice ([[guides/qml-overrides]]); `ConfigAppearance.qml` edits `theme`, `density` and `themeTokens`.
+- Since L-8 ([[decisions/0050-widget-themes]]): `Theme.qml` follows `appearance.theme` (`system`, `macOS`, `plasma:<id>`) with `cornerRadius`, `meterImage`, `backgroundImage` and `styleColors`; `PopupModel.plasmaStyles` and `PopupModel.globalThemes` list the installed styles and global themes for the Theme box, and `PopupModel.iconFile` resolves (and caches) an icon in an icon theme; `LimitBar` draws the capsule (macOS) or the theme's `bar_meter_horizontal` image through KSvg; heatmap stripes carry the cell's corners (`clip` cuts square); `FullPopup` draws a style's dialog background over its whole window, and `StyleTint` (C++, links `KF6::KirigamiPlatform`) sets the style's colors on every item's Kirigami theme and points every KSvg `imagePath` under the popup window at the style's files. `Theme.iconSource(name)` gives under macOS the drawn symbol in `symbols/` (resource prefix `/contribusage/symbols`), written in the label color by `PopupModel.symbolFile` to the cache folder, else the file of a Breeze name in the theme's icon theme (a global theme's, or WhiteSur under macOS), else nothing (the desktop's icon); under macOS `FullPopup` draws the see-through popover card, `StyleTint.hideFrame` hides the window's own dialog background, and popup labels take `Theme.labelInset` (−1 px) as top and bottom padding.
+- Since L-5b: `PopupModel.blocks`, `nothingToShow`, each provider's `sections`, the heatmap's `style` (Combined or Stacked) follow the `popoverLayout` setting; FR-46 demand switches the activity watcher (`ActivityJob::setActive`) and GitHub; `ConfigPopover.qml` edits the layout through `PopupModel.layout*` helpers (up and down buttons); the label gets GitHub data for the GitHub modes. `FullPopup` builds its blocks with a Repeater, so tests search the visual item tree.
+- `PopupModel.refresh()` (the Footer's Refresh) and `popupOpened()` (from `main.qml`); the jobs' schedules share a `ScheduleConditionsSource` fed by `SystemConditions` (logind, QNetworkInformation) since L-1c.
+- `PopupModel.connectGitHub(token)` and `disconnectGitHub()`; `github` and `heatmap` are live (GitHub layer) since L-3.
+
+## How it works
+`plasma_add_applet(org.contribusage.widget … GENERATE_APPLET_CLASS)` builds one shared library holding the QML and the C++ types, with `metadata.json` embedded by moc. It is written to `build/bin/plasma/applets/`; Plasma finds it by id under `plasma/applets` in the Qt plugin paths. `tests/applet/tst_appletplugin.cpp` finds it the same way, and `tst_appletqml.cpp` loads the plugin, compiles `main.qml` and resolves the `AppInfo` singleton, because the build itself does not reject an unknown QML type.
+
+## Things that bite
+- `popupmodel.cpp` calls `mallopt(M_ARENA_MAX, 1)` from a static initializer, so threads created after the plugin loads share one malloc arena instead of each keeping its own dirty pages. Measured with the environment variable `MALLOC_ARENA_MAX=1` on the whole viewer process, the widget's Private_Dirty gap over the analogclock baseline fell from 18-20 MB to 8-13 MB (two runs); the call from `PopupModel`'s constructor gave 13.3, 18.2 and 15.8 MB (three runs), less than the variable because earlier threads keep their arenas. The static initializer is being measured the same way.
+- Run it from the build tree with `QT_PLUGIN_PATH=$PWD/build/bin plasmoidviewer -a org.contribusage.widget`. An install to `~/.local` is not found by plasmashell unless its `QT_PLUGIN_PATH` includes it; the PKGBUILD (L-7) installs to `/usr`.
+- libplasma 6.7's CMake package links `KF6::ConfigCore` without finding it, so the top-level `CMakeLists.txt` finds KF6 Config before Plasma.
+- KDE's CMake settings register an `appstreamtest` CTest test of their own; test counts include it.
+- Colors live in `Theme.qml` only; text colors come from `Kirigami.Theme` in each component, so the popup follows a light or dark Plasma theme. A custom Kirigami color stays on the item that sets it; to reach the children, `StyleTint` sets it on each one. Kirigami's fallback theme (the tests) has colors only for items in a window.
+- `switchWidth`/`switchHeight` make a desktop (and `plasmoidviewer -f planar`) show the popup inline, which is how its look is checked.
+- The panel label shows only inside a panel containment: `plasmoidviewer -c org.kde.panel -f horizontal -l topedge -s 500x220` (or `-f vertical -l leftedge -s 220x500`). With `-f` alone the viewer's desktop shows the popup inline.
+
+- In live mode the activity block is hidden until its data exists (L-2b); the GitHub block shows an inline token form until a token is connected, and the heatmap shows GitHub's layer once contributions are fetched; `CONTRIBUSAGE_FAKE_DATA=1 plasmoidviewer …` shows the full preview.
+- The Insights open state and period live in `FullPopup.insightsState`, not in the section: live mode rebuilds the provider rows every minute.
+
+## Related
+- [[decisions/0041-linux-plasmoid-port]]

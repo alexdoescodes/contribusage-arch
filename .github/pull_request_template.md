@@ -1,6 +1,6 @@
 ## What and why
 
-<!-- What does this change, and why? Link the issue (Closes #…) or the SPEC §17 task, if there is one. -->
+<!-- What does this change, and why? Link the issue (Closes #…), if there is one. -->
 
 ## How it was tested
 
@@ -9,6 +9,6 @@
 ## Checklist
 
 - [ ] Tests added or updated for the logic I changed
-- [ ] `swift format format --in-place -r App Packages` and the package tests pass locally
-- [ ] SPEC.md and `llm-wiki/` updated where needed, or left for the maintainers (see [CONTRIBUTING.md](https://github.com/kuehn-lars/contribusage/blob/main/CONTRIBUTING.md#pull-requests))
+- [ ] `clang-format -i` on changed C++ files, and `QT_QPA_PLATFORM=offscreen ctest --test-dir build` passes locally
+- [ ] SPEC.md and `llm-wiki/` updated where needed, or left for the maintainers (see [CONTRIBUTING.md](https://github.com/alexdoescodes/contribusage-arch/blob/main/CONTRIBUTING.md#pull-requests))
 - [ ] No tokens, real transcripts or other personal data in code, fixtures or text

@@ -1,0 +1,132 @@
+#pragma once
+
+#include "core/popoverlayout.h"
+
+#include <QObject>
+#include <QTimer>
+#include <QUrl>
+#include <QVariantList>
+#include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
+
+#include <memory>
+
+namespace contribusage {
+class LiveProcessRunner;
+class ScheduleConditionsSource;
+class SystemConditions;
+class DesktopNotifier;
+class NetworkTransport;
+class KWalletSecretStore;
+namespace github {
+class GitHubClient;
+class GitHubAccount;
+class GitHubJob;
+} // namespace github
+namespace claudecode {
+class ActivityJob;
+class ClaudeLocator;
+class ClaudeCodeLimits;
+class LimitsJob;
+} // namespace claudecode
+} // namespace contribusage
+
+// What the popup and the panel label show. Live mode runs the Claude Code limits probe (L-2a); blocks without a data
+// source yet are left empty so QML hides them. CONTRIBUSAGE_FAKE_DATA=1 shows the macOS app's preview data instead
+// (ADR-036's debug flag), which the applet tests use.
+class PopupModel : public QObject {
+    Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
+    Q_PROPERTY(QVariantList providers READ providers NOTIFY changed)
+    Q_PROPERTY(QVariantMap heatmap READ heatmap NOTIFY changed)
+    Q_PROPERTY(QVariantMap github READ github NOTIFY changed)
+    Q_PROPERTY(QVariantMap label READ label NOTIFY changed)
+    Q_PROPERTY(QString dataFolder READ dataFolder CONSTANT)
+    Q_PROPERTY(QStringList blocks READ blocks NOTIFY changed)
+    Q_PROPERTY(bool nothingToShow READ nothingToShow NOTIFY changed)
+    // Port design §4: the minute tick runs only while the popup is open.
+    Q_PROPERTY(bool ticking READ ticking NOTIFY changed)
+    Q_PROPERTY(QVariantMap appearance READ appearance NOTIFY changed)
+    Q_PROPERTY(QVariantList plasmaStyles READ plasmaStyles NOTIFY changed)
+    Q_PROPERTY(QVariantList globalThemes READ globalThemes NOTIFY changed)
+    Q_PROPERTY(QString overrideFolder READ overrideFolder CONSTANT)
+
+public:
+    explicit PopupModel(QObject *parent = nullptr);
+    ~PopupModel() override;
+
+    QVariantList providers() const;
+    QVariantMap heatmap() const;
+    QVariantMap github() const;
+    QVariantMap label() const;
+    QString dataFolder() const;
+    QStringList blocks() const;
+    bool nothingToShow() const;
+    bool ticking() const { return m_minute.isActive(); }
+    QVariantMap appearance() const { return m_appearance; }
+    // ADR-050: the installed Plasma styles the Theme setting offers, read from the data folders at each call.
+    QVariantList plasmaStyles() const;
+    QVariantList globalThemes() const;
+    // ADR-050: the file of an icon in an installed icon theme (cached); empty when the theme lacks it.
+    Q_INVOKABLE QString iconFile(const QString &iconTheme, const QString &name) const;
+    // ADR-050: one of the widget's drawn symbols (`symbols/<name>.svg`) painted in `color` (#rrggbb), written once to
+    // the cache folder; its file URL, empty for an unknown symbol. Plasma's mask coloring fills cut-outs, so the
+    // symbols arrive already colored.
+    Q_INVOKABLE QString symbolFile(const QString &name, const QString &color) const;
+    // Port design §3, layer 3: $XDG_DATA_HOME/contribusage/qml; <Block>.qml there replaces that popup block.
+    QString overrideFolder() const;
+    Q_INVOKABLE QUrl overrideUrl(const QString &block) const;
+    Q_INVOKABLE void applySettings(const QVariantMap &configuration);
+    Q_INVOKABLE void deleteClaudeCodeData();
+    Q_INVOKABLE void resetCaches();
+    // SPEC §11.6 Popover tab: edits of the `popoverLayout` text; each returns the new text.
+    Q_INVOKABLE QVariantList layoutRows(const QString &layout) const;
+    Q_INVOKABLE QString layoutMoveBlock(const QString &layout, int from, int to) const;
+    Q_INVOKABLE QString layoutSetShown(const QString &layout, const QString &block, bool shown) const;
+    Q_INVOKABLE QString layoutSetInHeatmap(const QString &layout, const QString &block, bool in) const;
+    Q_INVOKABLE QString layoutSetSectionShown(const QString &layout, const QString &provider, const QString &section,
+                                              bool shown) const;
+    Q_INVOKABLE QString layoutMoveSection(const QString &layout, const QString &provider, int from, int to) const;
+    Q_INVOKABLE QString layoutSetHeatmapStyle(const QString &layout, const QString &style) const;
+    Q_INVOKABLE void refresh();
+    Q_INVOKABLE void popupOpened();
+    Q_INVOKABLE void popupClosed();
+    Q_INVOKABLE void connectGitHub(const QString &token);
+    Q_INVOKABLE void disconnectGitHub();
+
+Q_SIGNALS:
+    void changed();
+
+private:
+    void buildFakeData();
+    QSet<QString> sourcesOn() const;
+    void applyDemand();
+
+    bool m_fake = false;
+    QVariantList m_providers; // fake mode
+    QVariantMap m_heatmap;    // fake mode
+    QVariantMap m_github;     // fake mode
+    QVariantMap m_label;      // fake mode
+    std::unique_ptr<contribusage::ScheduleConditionsSource> m_conditions;
+    std::unique_ptr<contribusage::SystemConditions> m_system;
+    std::unique_ptr<contribusage::DesktopNotifier> m_notifier;
+    int m_menuBarMode = 0; // MenuBarMode
+    contribusage::PopoverLayout m_layout;
+    QString m_menuBarStyle;
+    QVariantMap m_appearance;
+    bool m_githubOn = true;
+    std::unique_ptr<contribusage::LiveProcessRunner> m_runner;
+    std::unique_ptr<contribusage::claudecode::ClaudeLocator> m_locator;
+    std::unique_ptr<contribusage::claudecode::ClaudeCodeLimits> m_limits;
+    std::unique_ptr<contribusage::claudecode::LimitsJob> m_job;
+    std::unique_ptr<contribusage::claudecode::ActivityJob> m_activityJob;
+    std::unique_ptr<contribusage::NetworkTransport> m_transport;
+    std::unique_ptr<contribusage::KWalletSecretStore> m_secrets;
+    std::unique_ptr<contribusage::github::GitHubClient> m_githubClient;
+    std::unique_ptr<contribusage::github::GitHubAccount> m_githubAccount;
+    std::unique_ptr<contribusage::github::GitHubJob> m_githubJob;
+    bool m_githubBusy = false;
+    QString m_githubConnectError;
+    QTimer m_minute; // ages and countdowns move on (SPEC §11.2)
+};

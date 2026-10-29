@@ -2,54 +2,38 @@
 
 Instructions for every coding agent in this repository. Claude Code loads this file through `CLAUDE.md`.
 
-**contribusage** is a native macOS menu bar app for Apple Silicon (Swift 6, SwiftUI) that shows the usage of AI coding tools (v1: Claude Code, behind a provider framework) and GitHub contributions. Two documents govern the work, and every piece of knowledge lives in exactly one of them:
+**contribusage** is a KDE Plasma 6 widget for Arch Linux (C++23, Qt 6, QML) that shows the usage of AI coding tools (v1: Claude Code, behind a provider framework) and GitHub contributions. This fork is the Linux port of the macOS app (ADR-041); the Swift code it was ported from is at the git tag `macos-reference` (commit `2603a21` on `main`). Two documents govern the work, and every piece of knowledge lives in exactly one of them:
 
 | | `SPEC.md`: the **contract** | `llm-wiki/`: the **memory** |
 |---|---|---|
 | Answers | What must be built | How it is built, why, what was learned, where work stands |
-| Holds | Requirements with stable IDs (`FR-`, `NFR-`, `US-`), tasks (§17), open research (§19) | Module pages, ADRs, research findings, guides, the change log |
+| Holds | Requirements with stable IDs (`FR-`, `NFR-`, `US-`), open questions (§19) | Module pages, ADRs, research findings, guides, the change log |
 | Changes when | The contract changes, or reality proves it wrong | Every turn that changes the repository or learns something |
 
 Code follows the spec; the vault describes the code. When they disagree, the code is the truth about what *is* and the spec about what *should be*: fix the one that is wrong in the same turn.
 
 ## Every turn: orient, work, record
 
-The vault is the first and the last thing you touch in every turn, including turns that only answer a question.
-
 ### 1. Orient
 
 - **New chat:** read the output of `llm-wiki/tools/wiki.sh context` (in Claude Code the SessionStart hook has already printed it): the last handover, git state, recent log, index. Then create your session file with `llm-wiki/tools/wiki.sh new-session <topic-slug> <agent-name>`; it is yours for the whole chat.
 - **Continuing chat** (resumed or compacted): re-read your session file.
-- Open the pages from `llm-wiki/index.md` that the prompt touches, and the spec sections they cite. SPEC.md is ~1,700 lines: grep it for IDs and section numbers rather than reading it whole.
-
-Orientation is done when you can name the pages, spec sections and files the prompt touches.
+- Open the pages from `llm-wiki/index.md` that the prompt touches, and grep SPEC.md for the IDs it cites rather than reading it whole.
 
 ### 2. Work
 
-Code changes follow SPEC §0:
-
-1. Take the task from SPEC §17 and read every requirement it references.
-2. Write the tests first, in the matching test target under `Packages/ContribusageKit/Tests/`, with fixtures and fakes from `ContribusageTestSupport`.
-3. Make the smallest change that turns them green, in the target that owns it (the page under `llm-wiki/modules/` says which).
-4. Run the tests (see Commands); build the app too when the app target changed.
-5. Tick the task in SPEC §17. Where the implementation departs from the spec, change the spec in the same change and record the reason as an ADR.
-
-Research items (SPEC §17.0) produce a page in `llm-wiki/research/` with method and findings; the outcome goes into the spec, and into an ADR when it decides something.
-
-Throughout: state the assumptions you act on, and when the spec leaves a real choice open, lay out the options and ask. Every changed line traces back to the task. "Done" is a check that would fail without the change.
+- Take the requirements from SPEC.md; make the smallest change that meets them, in the target that owns it (the page under `llm-wiki/modules/` says which). Tests for parsing, persistence and the schedule live under `tests/`; this is a widget, so add a test where logic could silently break, not for every view.
+- Run the build and tests (see Commands); look at the widget in `plasmoidviewer` too when the applet changed.
+- Where the implementation departs from the spec, change the spec in the same change and record a decision as an ADR when it matters.
+- State the assumptions you act on; when the spec leaves a real choice open, lay out the options and ask. Every changed line traces back to the task.
 
 ### 3. Record
 
 Before the final reply:
 
 1. **Session file** (local): rewrite `## Handover` as a whole so it stands alone, and append one `## Log` entry for this message.
-2. **Vault** (public), when the turn changed the repository or produced knowledge worth keeping:
-   - update every page that describes what changed, and its `updated:` date;
-   - create pages for new modules, decisions, research and guides from `llm-wiki/_templates/`, and list each in `index.md`;
-   - append an entry to `log.md`.
-3. Run `llm-wiki/tools/wiki.sh lint`.
-
-Recording is done when lint prints `wiki lint: clean` and a fresh agent could continue from the handover alone. In Claude Code a Stop hook holds the turn open until the session file (and, if the repository changed, the vault) has been updated.
+2. **Vault** (public), when the turn changed the repository or produced knowledge worth keeping: update the pages that describe what changed and their `updated:` date, list new pages in `index.md`, append an entry to `log.md`.
+3. Run `llm-wiki/tools/wiki.sh lint`; recording is done when it prints `wiki lint: clean`.
 
 Subagents report back to the main agent, which owns the session file and the vault.
 
@@ -76,10 +60,8 @@ Write the vault in the project's voice: the subject is the code, the decision or
 | `architecture/` | `architecture` | `planned` `active` `stable` `deprecated` | Cross-cutting structure as built: repo map, data flow, persistence layout |
 | `modules/` | `module` | same | One page per build target: app, core, each provider, GitHub, test support |
 | `decisions/` | `decision` | `proposed` `accepted` `superseded` | ADRs as `NNNN-slug.md`; `ADR-NNN` in the spec is `decisions/0NNN-…` |
-| `research/` | `research` | `open` `answered` | Findings for the spec's R-items and other investigations |
-| `concepts/` | `concept` | `planned` `active` `stable` `deprecated` | Domain knowledge the spec does not hold: observed formats, platform behaviour |
+| `research/` | `research` | `open` `answered` | Measured findings |
 | `guides/` | `guide` | same | How-tos: tooling, fixture capture, release |
-| `sources/` | `source` | same | Summaries of external documents; saved originals go in `raw/` and never change |
 | `sessions/` | none | none | Session files, one per chat, `## Handover` first; never committed, never linked |
 
 A folder is created with its first page and added to the repo map. Page rules (lint enforces the checkable ones):
@@ -92,24 +74,25 @@ A folder is created with its first page and added to the repo map. Page rules (l
 
 ## Hard rules (SPEC §2)
 
-- Leave every tool's credentials untouched (for Claude Code: its credential file and Keychain items), and call no vendor backend (`api.anthropic.com`, `claude.ai`, or any other tool vendor's) from app code.
+- Leave every tool's credentials untouched (for Claude Code: its credential file and any Secret Service or KWallet items it owns), and call no vendor backend (`api.anthropic.com`, `claude.ai`, or any other tool vendor's) from the widget's code.
 - Run `claude` only with the arguments in SPEC §8.1.1 and FR-6.
-- The GitHub token goes only through `SecretStore` (Keychain) and never into logs.
-- `ContribusageCore` imports no provider target and not `ContribusageGitHub`. Provider code lives only in its provider target, and only after its provider section exists in SPEC §8.
-- The app target holds views and wiring only; blocking work stays off the main actor.
-- arm64 only: `ARCHS` stays `arm64`.
-- Swift 6 language mode, strict concurrency, zero warnings.
+- The GitHub token goes only through `SecretStore` (KWallet over the Secret Service API) and never into logs.
+- `src/core/` links only Qt6::Core and includes no provider directory, no GitHub directory and nothing from `src/applet/`. Provider code lives only in its provider directory, and only after its provider section exists in SPEC §8.
+- The applet holds QML views, their wiring and C++ view models only; nothing blocks the plasmashell GUI thread.
+- Linux only: Arch Linux, KDE Plasma 6. No macOS code in the tree.
+- C++23, `-Werror`, clang-format clean.
 - A failing test is fixed in the code. A wrong fixture is corrected with the reason in the commit message.
 
 ## Commands
 
 | Purpose | Command |
 |---|---|
-| Package tests | `swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors` |
-| One target's tests | `swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors --filter ContribusageClaudeCodeTests` |
-| Build the app | `xcodebuild -project Contribusage.xcodeproj -scheme Contribusage -configuration Debug -derivedDataPath .build/xcode build` |
-| Swift lint | `swift format lint --strict -r App Packages` |
-| Architecture check | `lipo -archs .build/xcode/Build/Products/Release/contribusage.app/Contents/MacOS/contribusage` prints `arm64` |
-| CI | `.github/workflows/ci.yml` runs the package tests and lint, the Release build with the `arm64` check, and the wiki lint on every pull request; on `main` a green push with a new `MARKETING_VERSION` creates the GitHub release `v<version>` with the DMG |
+| Configure | `cmake -B build -G Ninja` |
+| Build | `cmake --build build` |
+| Tests | `QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure` |
+| One test | `ctest --test-dir build --output-on-failure -R tst_version` |
+| Format check | `clang-format --dry-run --Werror $(git ls-files '*.cpp' '*.h')` |
+| Run the widget | `QT_PLUGIN_PATH=$PWD/build/bin plasmoidviewer -a org.contribusage.widget -f horizontal` |
+| CI | `.github/workflows/ci.yml` builds, tests and format-checks in an Arch Linux container, and runs the wiki lint, on every push and pull request |
 | Wiki | `llm-wiki/tools/wiki.sh context`, `new-session <slug> [agent]`, `lint` |
 | Wiki tooling test | `llm-wiki/tools/test-wiki.sh` (after changing `wiki.sh`) |

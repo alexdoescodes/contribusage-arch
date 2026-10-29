@@ -14,26 +14,12 @@ Found a security problem? Please report it privately, as described in the [secur
 
 ## Build and run
 
-You need a Mac with Apple Silicon and Xcode 26 or later. To run the app against real data, also [Claude Code](https://code.claude.com), logged in.
-
-```bash
-git clone https://github.com/<you>/contribusage.git && cd contribusage
-swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors
-xcodebuild -project Contribusage.xcodeproj -scheme Contribusage -configuration Debug -derivedDataPath .build/xcode build
-open .build/xcode/Build/Products/Debug/contribusage.app
-```
-
-Or open `Contribusage.xcodeproj` in Xcode and run the `Contribusage` scheme. Before you push, format the code and run the tests:
-
-```bash
-swift format format --in-place -r App Packages
-swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors
-```
+You need Arch Linux with KDE Plasma 6. The commands are in [AGENTS.md § Commands](AGENTS.md#commands) and in the README's "Build from source". Run the tests and the format check before opening a pull request.
 
 ## Find your way around
 
-- `App/` is the SwiftUI app: views and wiring.
-- `Packages/ContribusageKit/` holds the logic and its tests: `ContribusageCore` (models, scheduling, storage), `ContribusageClaudeCode`, `ContribusageGitHub`, and `ContribusageTestSupport` (fakes for tests).
+- `src/applet/` is the Plasma widget: QML views, their wiring and C++ view models.
+- `src/core/` holds the logic (`contribusage_core`), and `tests/` its Qt Test suites. The Swift code the port comes from is at the git tag `macos-reference` (commit `2603a21` on `main`).
 - [`SPEC.md`](SPEC.md) describes what the app should do, with numbered requirements and a task list in §17. It's long; search it rather than reading it whole.
 - [`llm-wiki/`](llm-wiki/) explains how it's built and why: a page per module, the design decisions, research notes. [`overview.md`](llm-wiki/overview.md) is a good start.
 
@@ -42,20 +28,19 @@ swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors
 These keep the app safe and trustworthy, so pull requests that break them can't be merged:
 
 - **Hands off other tools' credentials.** The app never reads Claude Code's login and never calls `api.anthropic.com` or `claude.ai`; it only runs the `claude` CLI. [SPEC §2.1](SPEC.md#21-why-principle-2-matters-claude-code) explains why.
-- **No telemetry**, and the GitHub token stays in the Keychain and out of logs.
+- **No telemetry**, and the GitHub token stays in KWallet and out of logs.
 - **No personal data in the repository:** no tokens, real transcripts or unscrubbed tool output in fixtures, issues or docs.
-- **Builds stay clean:** Swift 6, zero warnings, Apple Silicon only.
+- **Builds stay clean:** C++23, `-Werror`, clang-format clean.
 
 ## Pull requests
 
 - Branch from `main` and open the pull request against it. Draft pull requests are welcome if you want early feedback.
-- Add or update tests for the logic you change. New tests use Swift Testing (`@Test`, `#expect`).
+- Add or update tests for the logic you change. New tests use Qt Test (`QTest`) and are registered in `tests/CMakeLists.txt`.
 - Describe what you changed and how you tested it; for UI changes, a screenshot helps.
-- If your change completes a task from SPEC §17, tick its box; if it changes how something should behave, update the spec too.
+- If it changes how something should behave, update the spec too.
 
-CI runs the tests, the format check, the app build and a check of the wiki. Two things it may ask of you:
+CI runs the build, the tests, the format check and a check of the wiki. One thing it may ask of you:
 
-- **New or changed text in the app** needs an entry in its String Catalog and a German translation. Build in Xcode to add the entry; if you don't speak German, say so and we'll translate it.
 - **The wiki check** may flag a page under `llm-wiki/` as stale because it describes code you changed. Update the page, or just its `updated:` date if it still holds. Not sure? Leave it, and we'll take care of it before merging.
 
 ## Using a coding agent

@@ -22,5 +22,5 @@ v1 integrates only Claude Code, but more AI coding tools are planned (G-7). Pers
 The core knows only provider protocols and neutral types. Each provider is its own target that depends only on the core, and the app is the only place that registers providers.
 
 ## Consequences
-- A deliberately different `FakeProvider` and a shared conformance suite keep the abstraction honest ([[modules/test-support]]).
+- A deliberately different `FakeProvider` and a shared conformance suite keep the abstraction honest.
 - `SourceError.providerSpecific` is the escape hatch for errors the neutral model cannot express.

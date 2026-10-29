@@ -1,0 +1,36 @@
+# Maintainer: contribusage contributors
+# Builds the checkout this file sits in (L-7). An AUR variant takes a git URL as its source once the branch is published.
+# Claude Code itself is not a package: it installs to ~/.local/bin with its own installer, so it is no dependency here.
+pkgname=plasma6-applets-contribusage
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Plasma widget: limits and activity of AI coding tools (Claude Code) and your GitHub contributions"
+arch=(x86_64)
+url="https://github.com/alexdoescodes/contribusage-arch"
+license=(MIT)
+# kirigami and kcmutils are imported by the QML at runtime, which namcap cannot see.
+depends=(glibc libstdc++ kcmutils kcoreaddons kirigami kwallet libplasma qt6-base qt6-declarative)
+makedepends=(cmake extra-cmake-modules git ninja)
+source=()
+sha256sums=()
+
+_root() {
+    realpath "$startdir/../.."
+}
+
+build() {
+    cmake -B build -S "$(_root)" -G Ninja \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+        -DBUILD_TESTING=ON
+    cmake --build build
+}
+
+check() {
+    QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure -E install_layout
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -Dm644 "$(_root)/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

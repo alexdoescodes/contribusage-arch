@@ -1,67 +1,16 @@
 # contribusage: Specification
 
-> A native macOS menu bar app for Apple Silicon that shows the usage of your AI coding tools (starting with Claude Code) and your GitHub contributions at a glance.
+> A KDE Plasma 6 widget for Arch Linux that shows the usage of your AI coding tools (starting with Claude Code) and your GitHub contributions at a glance. Ported from the macOS app (ADR-041).
 
 | | |
 |---|---|
-| **Product name** | contribusage (lowercase, one word: *contrib*utions + *usage*) |
-| **Spec version** | 0.1 (Draft) |
-| **Date** | 2026-09-28 |
-| **Platform** | macOS 14 Sonoma or later, **Apple Silicon (arm64) only** |
-| **Language** | Swift 6, SwiftUI |
-| **Providers in v1** | Claude Code (more AI coding tools later, see [section 7](#7-provider-model)) |
-| **Development style** | Spec Driven Development: this file is the source of truth. Code follows the spec, not the other way around. |
+| **Platform** | Arch Linux, KDE Plasma 6 (Wayland) |
+| **Language** | C++23, Qt 6, QML |
+| **Providers in v1** | Claude Code (more AI coding tools later, each starting with a section in §8) |
+
+This file is the contract: what must be built. How it is built and why lives in [`llm-wiki/`](llm-wiki/). Requirement IDs (`FR-`, `NFR-`, `US-`, `P-`) are stable: new requirements take the next free number, removed ones are struck through, not renumbered. Where the code departs from this file, change the file in the same commit. The macOS-era sections (provider model, architecture, Swift interfaces, setup, test strategy, task plan, appendices) were removed on 2026-10-30; the full text is at the git tag `macos-reference` (`2603a21`) and in the history before that date.
 
 ---
-
-## Table of contents
-
-0. [How to use this spec](#0-how-to-use-this-spec)
-1. [Vision, goals and non-goals](#1-vision-goals-and-non-goals)
-2. [Constitution: non-negotiable principles](#2-constitution-non-negotiable-principles)
-3. [Glossary](#3-glossary)
-4. [User stories and acceptance criteria](#4-user-stories-and-acceptance-criteria)
-5. [Functional requirements](#5-functional-requirements)
-6. [Non-functional requirements](#6-non-functional-requirements)
-7. [Provider model](#7-provider-model)
-8. [Data sources](#8-data-sources)
-9. [Architecture](#9-architecture)
-10. [Data model and interfaces](#10-data-model-and-interfaces)
-11. [UI specification](#11-ui-specification)
-12. [Refresh policy](#12-refresh-policy)
-13. [Error handling](#13-error-handling)
-14. [Security and privacy](#14-security-and-privacy)
-15. [Project setup](#15-project-setup)
-16. [Testing strategy](#16-testing-strategy)
-17. [Implementation plan and tasks](#17-implementation-plan-and-tasks)
-18. [Decision log](#18-decision-log)
-19. [Open questions and risks](#19-open-questions-and-risks)
-20. [Known macOS and Apple Silicon pitfalls](#20-known-macos-and-apple-silicon-pitfalls)
-21. [Appendices](#21-appendices)
-
----
-
-## 0. How to use this spec
-
-This file drives the whole project. The workflow for every change, whether done by you or by Claude Code:
-
-1. **Pick a task** from [section 17](#17-implementation-plan-and-tasks). Tasks reference requirement IDs (`FR-…`, `NFR-…`).
-2. **Read the referenced requirements** and the relevant provider, data source and interface sections.
-3. **Write the tests first** (fixtures and expected values come from this spec and its appendices).
-4. **Implement** until the tests pass. Keep each task a small, reviewable change.
-5. **Check the task box** and, if reality differed from the spec, **update the spec in the same commit**. A spec that drifts from the code is a bug.
-
-Agents follow [`AGENTS.md`](AGENTS.md), which adds the project memory in [`llm-wiki/`](llm-wiki/): every change also updates the vault pages that describe it. This file says *what* to build; the vault records *how* it was built, *why*, and where work stands.
-
-Rules for changing the spec:
-
-- Requirements are never silently deleted. Mark them `~~struck~~` with a note, or move them to the decision log.
-- Every resolved research item ([section 19](#19-open-questions-and-risks)) updates the section it affects and gets a line in the decision log.
-- IDs are stable. New requirements get the next free number.
-- **Adding an AI coding tool** always starts in this file: pass the provider gate ([2.4](#24-provider-gate)), add a provider section under [section 8](#8-data-sources) using the template in [Appendix F](#appendix-f-provider-section-template), then add tasks. No provider code without its spec section.
-
----
-
 ## 1. Vision, goals and non-goals
 
 ### 1.1 Vision
@@ -82,10 +31,9 @@ One glance at the menu bar tells me how much of my AI coding plan I have left an
 
 ### 1.3 Non-goals (for v1)
 
-- **No Intel Macs.** No universal binary, no x86_64 slice, no Rosetta testing ([ADR-009](llm-wiki/decisions/0009-apple-silicon-only.md)).
-- No Windows or Linux version.
-- No Mac App Store distribution (the app needs to launch tool binaries such as `claude` and read `~/.claude`, see [ADR-006](llm-wiki/decisions/0006-no-app-sandbox.md)).
-- **No AI coding tools other than Claude Code in v1.** The provider framework exists from day one, but further providers are future work ([7.6](#76-future-provider-candidates)).
+- **No macOS or Windows version in this fork.** The macOS app is at the git tag `macos-reference` (commit `2603a21` on `main`) ([ADR-041](llm-wiki/decisions/0041-linux-plasmoid-port.md)).
+- No desktop environments other than KDE Plasma 6.
+- **No AI coding tools other than Claude Code in v1.** The provider framework exists from day one, but further providers are future work (7.6).
 - No multi-account support (one login per provider, one GitHub account).
 - No data from claude.ai chat history, other devices, or tools that are not integrated as a provider.
 - No team or organization dashboards, no Admin API usage.
@@ -106,7 +54,7 @@ These principles override any task, shortcut or "quick fix". If a task conflicts
 4. **Honest data.** Every value shows its age, its source and its provider. Unknown is shown as unknown, never as `0 %`. Stale data is visibly marked as stale.
 5. **Frugal.** Event driven wherever possible. Background work is bounded, scheduled with tolerance and paused when pointless (asleep, offline, Low Power Mode). Adding providers must not multiply idle cost.
 6. **Fail soft.** One broken source or provider never breaks the others. Parsing failures degrade to "show raw text", not to crashes or blank UIs.
-7. **Testable core.** All parsing and logic lives in the `ContribusageKit` Swift package, is covered by fixture based tests, and is written test first.
+7. **Testable core.** All parsing and logic lives in the `contribusage_core` library (`src/core/` and its provider and GitHub directories), is covered by fixture based Qt Test suites, and is written test first.
 8. **Provider isolation.** Everything specific to one tool lives in that tool's provider module. The core and the UI know only the provider protocols. The core never imports a provider module; this is enforced by the package's target graph.
 9. **Small increments.** One task, one focused change, tests green before the next task.
 
@@ -137,36 +85,8 @@ Before any code for a new AI coding tool is written, all of the following must b
 2. **Interface inventory.** List the official interfaces that expose usage or limits (CLI commands, documented hooks, status features, local files the tool writes). Mark each as documented or undocumented.
 3. **Compliance decision.** For each capability (limits, activity, insights), decide whether it can be built within principles 1 and 2. A capability that can only be built by reading credentials or calling undocumented vendor endpoints **is not built**. Record the decision as an ADR.
 4. **Research items.** Add research items (output variants, file formats, cost of polling) to [section 19](#19-open-questions-and-risks).
-5. **Provider section.** Add a section under [section 8](#8-data-sources) from the template in [Appendix F](#appendix-f-provider-section-template), including window classification and token categories.
-6. **Tasks.** Add a phase to [section 17](#17-implementation-plan-and-tasks).
-
----
-
-## 3. Glossary
-
-| Term | Meaning |
-|---|---|
-| **Provider** | One AI coding tool integrated into contribusage behind the provider protocols ([section 7](#7-provider-model)). v1 ships exactly one: Claude Code. |
-| **Provider ID** | Stable lowercase identifier of a provider, for example `claude-code`. Used in settings keys, persistence paths and notification keys. Never changes once released. |
-| **Capability** | What a provider can deliver: `limits`, `activity`, `insights`. |
-| **Limits source** | The part of a provider that produces usage windows (for Claude Code: the `/usage` probe plus the optional status line bridge). |
-| **Activity source** | The part of a provider that produces per day activity (for Claude Code: local transcripts). |
-| **Usage window** | One plan limit bucket as reported by a provider, for example Claude Code's "Current session" (rolling 5 hour window) or "Current week (all models)". Has a used percentage and a reset time. |
-| **Window kind** | Provider neutral classification of a usage window: `session`, `weekly` or `other`. Used by the menu bar and settings; the label is kept verbatim and shown as the provider's window title (FR-5). |
-| **Probe** | (Claude Code) One execution of `claude -p "/usage" --no-session-persistence` by the app. |
-| **Probe folder** | (Claude Code) A dedicated empty directory the probe runs in: `~/Library/Application Support/contribusage/providers/claude-code/probe/`. |
-| **Status line bridge** | (Claude Code) Optional shell script registered as Claude Code's `statusLine` command that mirrors `rate_limits` JSON into a file the app watches. |
-| **Transcript** | (Claude Code) A JSONL file Claude Code writes per session under `~/.claude/projects/`. |
-| **Activity** | Aggregated usage derived from a provider's local data: requests, sessions, token counts per day. |
-| **Contribution calendar** | GitHub's per day contribution counts for the last year. |
-| **Snapshot** | A value plus `fetchedAt` timestamp plus origin (and provider where applicable). Everything the UI shows is a snapshot. |
-| **Stale** | A snapshot older than the staleness threshold of its source ([section 12](#12-refresh-policy)). |
-| **Popover** | The window that opens when clicking the menu bar item (`MenuBarExtra` with `.window` style). |
-| **Source** | Something that fetches data and can be switched on or off: each provider (FR-2) and GitHub (FR-43). Nothing runs for a source that is off. |
-| **Section** | One part of the popover the user can show or hide: a provider's limits, activity and insights, the heatmap, GitHub's statistics. Hiding changes only what is shown; whether work runs follows FR-46. |
-| **Block** | A top-level part of the popover the user can reorder: one provider group, the heatmap, GitHub (FR-44). The sections inside a provider group are reordered within it (ADR-034). |
-| **Plan** | The subscription tier a provider's tool runs on, as the tool itself names it (for Claude Code for example "Pro" or "Max"). Shown verbatim, never inferred from usage (FR-50). |
-| **Heatmap layer** | One source's per day values in the shared heatmap, drawn in that source's hue (FR-48). |
+5. **Provider section.** Add a section under [section 8](#8-data-sources) following the shape of §8.1 and §8.4, including window classification and token categories.
+6. **Tasks.** Track the work as GitHub issues.
 
 ---
 
@@ -180,7 +100,7 @@ Priorities: **P1** = MVP (Milestones M1 and M2), **P2** = v1.0, **P3** = later /
 
 - **Given** Claude Code is installed and logged in with a subscription, **when** the app has completed a probe, **then** the menu bar shows the primary window's percentage (default: the Claude Code window of kind `session`, "Current session"), for example `23%`.
 - **Given** no probe has succeeded yet, **then** the menu bar shows the icon with `?` and the popover explains why.
-- **Given** the last successful probe is older than the staleness threshold, **then** the menu bar marks the value stale (`~23%`, 11.1), the popover dims it and says "updated 42 min ago".
+- **Given** the last successful probe is older than the staleness threshold, **then** the menu bar marks the value stale (meter at half strength, 11.1), the popover dims it and says "updated 42 min ago".
 
 The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar shows a static icon and the popover carries US-1.
 
@@ -202,7 +122,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 ### US-4 (P1): See my GitHub contributions
 
 - **Given** a valid GitHub token is stored, **then** the popover shows GitHub's layer in the shared heatmap of the last 26 weeks (US-14), today's count, the current streak and the total for the last year.
-- **Given** no token is configured, **then** the GitHub section shows a "Connect GitHub" button that opens Settings.
+- **Given** no token is configured, **then** the GitHub section shows a token form: field, Connect, link to create a token (ADR-043).
 - **Given** the token is invalid or revoked, **then** the section says so and offers "Change token…", which opens Settings. Other sections keep working.
 
 ### US-5 (P2): See my Claude Code activity on this Mac
@@ -276,7 +196,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 
 | ID | Pri | Requirement |
 |---|---|---|
-| FR-1 | P1 | **Registry.** The app registers providers at launch from a static list (v1: `claude-code`). Each provider supplies a `ProviderDescriptor` ([10.2](#102-provider-types)): ID, display name, SF Symbol, capabilities, token categories and schedule policies. Registration order defines display order. |
+| FR-1 | P1 | **Registry.** The app registers providers at launch from a static list (v1: `claude-code`). Each provider supplies a `ProviderDescriptor` (10.2): ID, display name, SF Symbol, capabilities, token categories and schedule policies. Registration order defines display order. |
 | FR-2 | P1 | **Enablement.** Each provider can be enabled or disabled in Settings. A disabled provider starts no processes, watches no files and schedules nothing; only the Providers tab, while shown, may detect its availability (ADR-028). Default on first run: enabled if its detection reports `available`. |
 | FR-3 | P1 | **Detection.** Each provider reports its availability: `available(version)`, `notInstalled`, `notSignedIn`, `unsupportedPlan(note)` or `unknown`. Detection must be cheap and is re-run at most once per minute on popover open while not `available`. |
 | FR-4 | P1 | **Popover groups.** The popover shows one group per enabled provider, in the block order and visibility of FR-44 (default: registry order), each with its capability sections (limits, activity, insights). With a single provider no provider picker or extra chrome is shown. |
@@ -286,7 +206,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 
 | ID | Pri | Requirement |
 |---|---|---|
-| FR-6 | P1 | **Locate `claude`.** Resolution order: (1) user override in Settings, (2) `command -v claude` run once through the user's login shell with `-lc` (usually `/bin/zsh`), (3) known locations on Apple Silicon: `~/.local/bin/claude` (native installer), `/opt/homebrew/bin/claude` (Homebrew), `~/.npm-global/bin/claude`, `/usr/local/bin/claude` (npm with default prefix). A candidate is valid if `claude --version` exits with 0 within 10 s. Cache the resolved path and version; re-resolve when the cached path stops working. |
+| FR-6 | P1 | **Locate `claude`.** Resolution order: (1) user override in Settings, (2) `command -v claude` run once through the user's login shell with `-lc` (usually `/bin/zsh`), (3) known locations on Linux: `~/.local/bin/claude` (native installer), `~/.npm-global/bin/claude`, `/usr/local/bin/claude`, `/usr/bin/claude`. A candidate is valid if `claude --version` exits with 0 within 10 s. Cache the resolved path and version; re-resolve when the cached path stops working. |
 | FR-7 | P1 | **Probe.** Run `claude -p "/usage" --no-session-persistence` with the probe folder as working directory, stdin connected to `/dev/null`, stdout and stderr captured, 30 s timeout. At most one probe runs at a time (single flight: concurrent requests await the running probe). |
 | FR-8 | P1 | **Parse limits.** Extract every usage window line generically (grammar in [8.1.3](#813-parsing-rules)). Keep label text exactly as printed so new windows appear without code changes. Also extract: subscription status line, insights block (structured, P-11), raw output. |
 | FR-9 | P1 | **Unparseable output.** If a probe exits 0 but yields zero windows, the Claude Code limits state becomes `unparseable`, the previous snapshot is kept (marked stale), and the popover offers "Show raw output". |
@@ -313,7 +233,7 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 
 | ID | Pri | Requirement |
 |---|---|---|
-| FR-16 | P1 | Store the GitHub token only in the Keychain (generic password, service `<bundle id>.github`, account `token`). Never in UserDefaults, files or logs. |
+| FR-16 | P1 | Store the GitHub token only in KWallet (Secret Service API), network wallet, folder contribusage, key token. Never in settings, files or logs. |
 | FR-17 | P1 | Validate a token by querying `viewer { login }`. Show the resolved login in Settings ("@login", "Connected"). |
 | FR-18 | P1 | Fetch the contribution calendar for the last 365 days via GraphQL ([8.4](#84-github-contributions)). |
 | FR-19 | P1 | Compute: today's count, this week's count (week starts per user locale), total for the range, current streak, longest streak within the range ([8.4.4](#844-statistics-rules)). |
@@ -386,79 +306,13 @@ The menu bar criteria arrive with FR-12 in M4 (T-5.10); until then the menu bar 
 | NFR-9 | Appearance | Correct in light and dark mode; respects Reduce Motion and Reduce Transparency; uses system fonts and semantic colors. | Manual checklist |
 | NFR-10 | Localization | All user facing strings in a String Catalog. English first; German ships as well, because an app without the user's language formats dates and units in English (ADR-031); a provider's known window labels are translated too (ADR-033). Dates, numbers and relative times formatted with the user's locale. | Build check (CI: catalogs match the extracted strings and carry German, ADR-031), pseudo-localization run |
 | NFR-11 | Code quality | Swift 6 language mode, strict concurrency, zero compiler warnings. | CI build |
-| NFR-12 | Resilience | Survives: `claude` missing or broken, logged out, offline, sleep and wake, time zone change, clock change, malformed or huge files, deleted transcript folders, a provider throwing on every call. | Test matrix in [16.5](#165-manual-test-matrix) |
+| NFR-12 | Resilience | Survives: `claude` missing or broken, logged out, offline, sleep and wake, time zone change, clock change, malformed or huge files, deleted transcript folders, a provider throwing on every call. | Test matrix in 16.5 |
 | NFR-13 | Privacy | The app itself connects only to `api.github.com`. Logs never contain tokens. | Little Snitch or `nettop`, log review |
 | NFR-14 | Energy | Periodic work uses `NSBackgroundActivityScheduler` or timers with at least 10 % tolerance; nothing runs while the Mac sleeps; Low Power Mode doubles all automatic intervals. | Energy tab in Activity Monitor |
 | NFR-15 | Tests | Line coverage of at least 80 % for parsing, statistics and scheduling code in every package target. | `swift test --enable-code-coverage` |
 | NFR-16 | Architecture | The shipped executable contains only an arm64 slice. `LSMinimumSystemVersion` is 14.0. | `lipo -archs` on the built executable prints `arm64` (CI check) |
 | NFR-17 | Provider isolation | `ContribusageCore` has no dependency on any provider or on the GitHub target. Provider targets do not depend on each other. | `Package.swift` target graph; `ArchitectureTests` (run by `swift test` locally and in CI) fails when `ContribusageCore` imports any other target or another target imports anything but the core |
 | NFR-18 | Process budget | Across all providers, at most one background child process started by the app runs at a time (global process single flight). | Unit tests on the coordinator |
-
----
-
-## 7. Provider model
-
-### 7.1 Concept
-
-A **provider** is the integration of one AI coding tool. It translates whatever that tool officially exposes into provider neutral types (usage windows, activity days, insights text). Everything outside a provider (scheduling, persistence, notifications, UI) works only with those neutral types and the provider's descriptor.
-
-v1 ships one provider, **Claude Code** (`claude-code`). The framework is built and tested from the start, with a deliberately different `FakeProvider` in tests so the abstraction is not shaped only by Claude Code.
-
-### 7.2 Capabilities
-
-| Capability | Meaning | Neutral output type | Claude Code source |
-|---|---|---|---|
-| `limits` | Plan limit windows with percentage and reset time | `LimitsReport` | `/usage` probe, optional status line bridge |
-| `activity` | Per day requests, sessions, tokens (per model) on this Mac | `ActivityReport` | Local transcripts |
-| `insights` | Tool supplied statistics on what drives usage: periods with shares and ranked lists | `Insights` inside `LimitsReport.insights` | "What's contributing" block of `/usage` |
-
-A provider may implement any subset. The UI renders only the sections for the capabilities a provider declares.
-
-### 7.3 Provider contract
-
-Every provider module must supply:
-
-1. A `ProviderDescriptor` with a stable ID, display name, neutral SF Symbol, heatmap hue, capabilities, token categories it reports and a `SchedulePolicy` per polled source.
-2. Availability detection (FR-3), cheap and side effect free.
-3. Zero or one `LimitsSource` and zero or one `ActivitySource` ([10.2](#102-provider-types)).
-4. Window classification: a pure function from label to `WindowKind`, fixture tested; optionally translations of the known texts its tool prints (window labels, insights periods and counts) in its own String Catalog (ADR-033).
-5. Error mapping from tool specific failures to the shared `SourceError`.
-6. If the tool's data differs by plan: a table in its section 8 of what each plan delivers (windows, capabilities), and its plan reported per FR-50.
-7. Its own fixtures and tests, plus a passing run of the shared provider conformance suite ([16.4](#164-provider-conformance-suite)).
-8. A provider section in [section 8](#8-data-sources) with the compliance note required by the provider gate ([2.4](#24-provider-gate)).
-
-A provider must not: talk to the network, read files outside the roots declared in its spec section, touch credentials, deliver notifications, or render UI.
-
-### 7.4 Shared versus provider specific
-
-| Concern | Shared (core and app) | Provider specific |
-|---|---|---|
-| Scheduling, backoff, wake, offline, Low Power Mode | `RefreshCoordinator`, `Schedule` | Only the `SchedulePolicy` values |
-| Process execution | `ProcessRunning` (live runner with timeout and global single flight) | Which executable, which arguments, which working directory |
-| File watching | `FileEvents` | Which roots |
-| Persistence | Store, atomic writes, schema versions, folder layout | Content of files under `providers/<id>/` |
-| Notifications | `NotificationPlanner`, delivery | Nothing |
-| UI | All views, states, formatting, popover layout, heatmap levels | Descriptor values only (name, symbol, heatmap hue, token categories) |
-| Parsing | Nothing | Everything |
-
-### 7.5 Registered providers
-
-| Provider ID | Display name | Capabilities | Priority | Spec |
-|---|---|---|---|---|
-| `claude-code` | Claude Code (heatmap hue `orange`) | `limits`, `activity`, `insights` | v1 | [8.1](#81-claude-code-plan-limits-via-usage-probe) to [8.3](#83-claude-code-activity-from-local-transcripts), mapping in [8.1.4](#814-window-classification-and-token-categories) |
-
-### 7.6 Future provider candidates
-
-Other AI coding tools (for example other vendors' coding CLIs, IDE based coding agents or editor extensions) are candidates for later versions. T-5.17 evaluated Codex CLI, GitHub Copilot CLI and Gemini CLI: none is integrated in v1, and Codex CLI is the next candidate because its own session files carry its limits and token counts (ADR-037). Each one must pass the provider gate ([2.4](#24-provider-gate)) first. It is an acceptable outcome that a tool only supports some capabilities, or none, if its official interfaces do not expose the data.
-
-### 7.7 Rules for multiple providers
-
-- Limits of different providers are never summed, averaged or merged. Merging is allowed only between sources of the same provider (for Claude Code: probe and bridge).
-- Notification titles always start with the provider's display name.
-- `highest` in the menu bar shows the provider's symbol next to the percentage when more than one provider is enabled.
-- Activity is shown per provider. A combined "all tools" activity total is out of scope for v1 (token semantics differ between tools). The shared heatmap shows each source as its own layer with its own levels and never sums them (FR-48, ADR-032).
-- Each provider has its own heatmap hue. Green stays GitHub's and red stays the critical limit color (11.4).
-- Global budgets (NFR-1, NFR-18) apply to the sum of all providers.
 
 ---
 
@@ -475,7 +329,7 @@ Compliance note: see [2.1](#21-why-principle-2-matters-claude-code). The probe r
 ```text
 executable:   <resolved claude path>                  (FR-6)
 arguments:    -p "/usage" --no-session-persistence
-cwd:          ~/Library/Application Support/contribusage/providers/claude-code/probe/   (empty directory, created on demand)
+cwd:          $XDG_DATA_HOME/contribusage/providers/claude-code/probe/   (empty directory, created on demand)
 stdin:        /dev/null
 stdout/err:   captured (stdout parsed, stderr kept for diagnostics only)
 timeout:      30 s, then SIGTERM, then SIGKILL after 2 s
@@ -490,7 +344,7 @@ Why each piece matters:
 
 #### 8.1.2 Expected output
 
-A real sample (September 2026, subscription plan) is in [Appendix A](#appendix-a-sample-usage-output). Structure:
+A real sample (September 2026, subscription plan) is in `tests/claudecode/fixtures/usage/`. Structure:
 
 1. A status line about how Claude Code is billed ("You are currently using your subscription…").
 2. One line per usage window: `<label>: <n>% used · resets <when> (<IANA time zone>)`.
@@ -503,10 +357,10 @@ A real sample (September 2026, subscription plan) is in [Appendix A](#appendix-a
 | P-1 | Strip ANSI escape sequences (`ESC [ … letter`) before anything else. |
 | P-2 | Split into lines; each line is tested independently. |
 | P-3 | Window line grammar (Swift Regex, whole line): `\s*(?<label>[^:]+):\s*<?\s*(?<pct>\d+(?:\.\d+)?)%\s*used(?:.*?\bresets\s+(?<reset>.+?))?\s*` |
-| P-4 | Label is trimmed and kept verbatim. Known labels today: `Current session`, `Current week (all models)`. Model specific weekly windows may appear on some plans (for example `Current week (<model>)`). The UI shows these three forms translated, the model name as printed (ADR-033). |
+| P-4 | Label is trimmed and kept verbatim. Known labels today: `Current session`, `Current week (all models)`. Model specific weekly windows may appear on some plans (for example `Current week (<model>)`). Parsing keeps every form; the popup shows one week bar: `Current week (all models)` reads `Current week`, and a model's own week window is hidden (ADR-042). |
 | P-5 | `<1%` is parsed as 0.5 and displayed as `<1%` (keep a flag `isBelowOne`). |
 | P-6 | Reset clause: optional trailing `(<IANA zone>)`; if the identifier is unknown, use the Mac's time zone. |
-| P-7 | Reset formats tried in order: `MMM d 'at' h:mm a`, `MMM d 'at' h a`, `MMM d`, `h:mm a`, `h a` (after normalizing `am`/`pm` to `AM`/`PM`, locale `en_US_POSIX`). |
+| P-7 | Reset formats tried in order: `MMM d 'at' h:mm a`, `MMM d 'at' h a`, `MMM d, h:mm a`, `MMM d, h a`, `MMM d`, `h:mm a`, `h a` (after normalizing `am`/`pm` to `AM`/`PM`, English month names). The comma forms appear from Claude Code 2.1.289 ("resets Oct 5, 6am"; fixture `subscription-comma-dates.txt`). |
 | P-8 | Year inference: the output has no year. Use the current year; if the result lies more than 24 h in the past, use next year. Time only formats resolve to the next occurrence after `now`. |
 | P-9 | Unparseable reset clause: window still valid, `resetsAt = nil`, UI shows "reset time unknown". |
 | P-10 | Billing status: the first non-empty line is stored as `billingNote`. If it does not mention "subscription", `fetch()` throws `SourceError.unsupportedPlan` (ADR-017) and the limits section shows "Plan limits are only available when Claude Code uses a Claude subscription". R-2 (Claude Code 2.1.284): API key billing and a logged out CLI both exit 0 and print the same cost summary, first line `Total cost:            $0.0000`, no windows (fixtures `not-subscription.txt`, `logged-out.txt`). |
@@ -549,7 +403,7 @@ Claude Code runs a user configured `statusLine` command and passes session JSON 
 
 **Bridge contract**
 
-- Script: [Appendix D](#appendix-d-status-line-bridge-script). Writes only when `rate_limits` is present, atomically (temp file plus `mv`).
+- Script: in the `macos-reference` tag's SPEC.md (appendix D). Writes only when `rate_limits` is present, atomically (temp file plus `mv`).
 - Output file: `~/Library/Application Support/contribusage/providers/claude-code/statusline-limits.json`
 
   ```json
@@ -587,7 +441,7 @@ Claude Code runs a user configured `statusLine` command and passes session JSON 
 | `message.usage.cache_read_input_tokens` | int | Cache read tokens. |
 | `isSidechain` | bool | Subagent traffic flag (for the optional "subagent share"). |
 
-An illustrative line is in [Appendix E](#appendix-e-illustrative-transcript-line).
+An illustrative line is in the `macos-reference` tag's SPEC.md (appendix E).
 
 #### 8.3.3 Aggregation rules
 
@@ -634,7 +488,7 @@ User-Agent: contribusage/<version>
 Content-Type: application/json
 ```
 
-Query and a sample response: [Appendix C](#appendix-c-github-graphql). Variables: `from` = start of the local day 364 days ago, `to` = now (the API accepts a span of at most one year).
+Query and a sample response: appendix C of the `macos-reference` tag's SPEC.md. Variables: `from` = start of the local day 364 days ago, `to` = now (the API accepts a span of at most one year).
 
 #### 8.4.2 Token
 
@@ -659,430 +513,13 @@ Query and a sample response: [Appendix C](#appendix-c-github-graphql). Variables
 
 ---
 
-## 9. Architecture
-
-### 9.1 Overview
-
-```mermaid
-flowchart TB
-  subgraph App["contribusage app target (SwiftUI, MainActor)"]
-    MB["MenuBarExtra label"]
-    PO["Popover views"]
-    SE["Settings scene"]
-    AS["AppState (@Observable)"]
-  end
-  subgraph Kit["ContribusageKit Swift package"]
-    subgraph Core["ContribusageCore"]
-      RC["RefreshCoordinator (actor)"]
-      PR["ProviderRegistry"]
-      NP["NotificationPlanner"]
-      HS["HistoryStore, JSONL reader"]
-      PE["Persistence"]
-      SU["Support: TimeSource, ProcessRunning, HTTPTransport, SecretStore, FileEvents, AppPaths"]
-    end
-    subgraph CC["ContribusageClaudeCode (provider)"]
-      CCP["ClaudeCodeProvider"]
-      CLS["Limits: locator, probe, parser, bridge"]
-      CAS["Activity: transcript decoder, aggregator"]
-    end
-    subgraph GHT["ContribusageGitHub"]
-      GS["GitHubService"]
-    end
-  end
-  subgraph Ext["Outside the app"]
-    CLI["claude CLI"]
-    TR["~/.claude/projects/**/*.jsonl"]
-    BR["statusline-limits.json"]
-    GH["api.github.com"]
-  end
-  MB --> AS
-  PO --> AS
-  SE --> AS
-  AS --> RC
-  RC --> PR
-  PR --> CCP
-  RC --> GS
-  RC --> NP
-  CCP --> CLS
-  CCP --> CAS
-  CLS --> CLI
-  CLS --> BR
-  CAS --> TR
-  GS --> GH
-  CLS --> SU
-  CAS --> HS
-  GS --> SU
-  RC --> PE
-```
-
-Dependency direction: `ContribusageClaudeCode → ContribusageCore ← ContribusageGitHub`. The app target depends on all three and is the only place where providers are registered.
-
-### 9.2 Responsibilities
-
-| Component | Target | Responsibility | Must not |
-|---|---|---|---|
-| App target | app | Views, `AppState`, provider registration, notification delivery, `SMAppService`, Settings UI. | Contain parsing or business logic. |
-| `AppState` | app | `@MainActor @Observable` view model. Holds one `SourceState` per provider capability and one for GitHub, plus settings. Receives updates from the coordinator. | Do IO or run processes. |
-| `ProviderRegistry` | core | Ordered list of registered providers, enablement, availability cache. | Know any concrete provider type. |
-| `RefreshCoordinator` | core | Decides when each source refreshes ([section 12](#12-refresh-policy)), enforces budgets, single flight (per source and global for processes), backoff, reacts to wake, offline and Low Power Mode. | Know anything about parsing or any concrete provider. |
-| `NotificationPlanner` | core | Pure logic: given a fetched limits report and the persisted keys, returns notifications to send; the coordinator runs it (ADR-027). | Deliver notifications itself (the app does). |
-| `HistoryStore`, `IncrementalJSONLReader` | core | Generic history freezing and incremental line reading, reusable by any provider. | Decode tool specific lines. |
-| `Persistence` | core | Versioned, atomic JSON files in Application Support, one folder per provider. | Store secrets. |
-| Support | core | Protocols with live implementations for time, processes, HTTP, Keychain, file events and paths. | Contain business rules. |
-| `ClaudeCodeProvider` | Claude Code | Descriptor, detection, `ClaudeLocator` (FR-6), probe (FR-7), `UsageParser` (FR-8), window classification, bridge reader and merge (FR-39), transcript decoder and aggregation keys (FR-22 to FR-28). | Touch Claude credentials, call Anthropic endpoints, use the network at all. |
-| `GitHubService` | GitHub | GraphQL client, token validation, statistics. | Store the token anywhere but `SecretStore`. |
-
-### 9.3 Concurrency model
-
-- Swift 6 strict concurrency. All cross boundary types are `Sendable` value types.
-- Views and `AppState` are `@MainActor`. Services and providers are `actor`s or `Sendable` structs wrapping actors.
-- Blocking work (process execution, file reads, JSON decoding of large files) runs on `Task.detached(priority: .utility)` or a dedicated serial `DispatchQueue`, never on the main actor and never blocking the cooperative pool for long without yielding.
-- Providers publish immutable snapshots; `AppState` applies them on the main actor.
-- Cancellation: every refresh task checks `Task.isCancelled`; a child process is terminated when its task is cancelled. Disabling a provider cancels all its tasks and stops its file watching.
-
----
-
-## 10. Data model and interfaces
-
-Sketches, not final code. Public API of `ContribusageCore` unless noted.
-
-### 10.1 Core types
-
-```swift
-public struct Snapshot<Value: Sendable & Codable>: Sendable, Codable {
-    public let value: Value
-    public let fetchedAt: Date
-    public let origin: Origin
-}
-
-/// Open set of origins; providers add their own constants.
-public struct Origin: RawRepresentable, Hashable, Sendable, Codable {
-    public let rawValue: String
-    public init(rawValue: String) { self.rawValue = rawValue }
-    public static let cache = Origin(rawValue: "cache")
-    public static let poll = Origin(rawValue: "poll")     // a limits source's fetch(), run by the coordinator (ADR-018)
-    public static let push = Origin(rawValue: "push")     // a limits source's pushedUpdates(), received by the coordinator (ADR-036)
-    public static let github = Origin(rawValue: "github")
-}
-// In ContribusageClaudeCode:
-// Providers add constants for what the coordinator cannot name, e.g. a status line bridge.
-
-public enum SourceState<Value: Sendable & Codable>: Sendable {
-    case notConfigured(NotConfiguredReason)
-    case loading(previous: Snapshot<Value>?)
-    case loaded(Snapshot<Value>)
-    case failed(SourceError, previous: Snapshot<Value>?)
-}
-
-public enum NotConfiguredReason: Sendable, Equatable {
-    case providerDisabled
-    case toolNotInstalled
-    case unsupportedPlan(note: String)
-    case noLocalData
-    case githubTokenMissing
-}
-
-public enum SourceError: Error, Sendable, Equatable {
-    case toolNotFound
-    case notLoggedIn
-    case unsupportedPlan(note: String)   // shown as notConfigured(.unsupportedPlan) (ADR-017)
-    case timedOut
-    case processFailed(exitCode: Int32, stderrTail: String)
-    case unparseable(rawOutput: String)
-    case offline
-    case tokenMissing      // no GitHub token saved: notConfigured(.githubTokenMissing)
-    case unauthorized
-    case rateLimited(until: Date)
-    case http(status: Int)
-    case decoding(String)
-    case io(String)
-    case providerSpecific(code: String, message: String)   // escape hatch, must be documented in the provider section
-}
-```
-
-### 10.2 Provider types
-
-```swift
-public struct ProviderID: RawRepresentable, Hashable, Sendable, Codable {
-    public let rawValue: String          // lowercase, [a-z0-9-], stable forever
-    public init(rawValue: String) { self.rawValue = rawValue }
-}
-// In ContribusageClaudeCode: extension ProviderID { public static let claudeCode = ProviderID(rawValue: "claude-code") }
-
-public struct ProviderCapabilities: OptionSet, Sendable, Codable {
-    public let rawValue: Int
-    public init(rawValue: Int) { self.rawValue = rawValue }
-    public static let limits   = ProviderCapabilities(rawValue: 1 << 0)
-    public static let activity = ProviderCapabilities(rawValue: 1 << 1)
-    public static let insights = ProviderCapabilities(rawValue: 1 << 2)
-}
-
-public enum TokenCategory: String, Sendable, Codable, CaseIterable {
-    case input, output, cacheWrite, cacheRead
-}
-
-public struct SchedulePolicy: Sendable, Equatable {
-    public let defaultInterval: Duration
-    public let minimumInterval: Duration
-    public let maximumInterval: Duration
-    public let staleAfter: Duration
-    public let manualFloor: Duration
-    public let needsNetwork: Bool               // skipped while offline (section 12 rule 2, ADR-018)
-}
-
-public struct ProviderDescriptor: Sendable {
-    public let id: ProviderID
-    public let displayName: String              // "Claude Code"
-    public let symbolName: String               // neutral SF Symbol, never a vendor logo
-    public let heatmapHue: HeatmapHue           // its heatmap layer's color (FR-48, 11.4)
-    public let capabilities: ProviderCapabilities
-    public let tokenCategories: Set<TokenCategory>
-    public let limitsPolicy: SchedulePolicy?    // nil if limits are push only or absent
-    public let toolText: @Sendable (String) -> String  // printed text → UI text, default as printed (ADR-033)
-}
-
-/// Named system hues; the app maps them to colors. Green is GitHub's and never a provider's.
-public enum HeatmapHue: String, Sendable, Codable { case orange, blue, purple, teal, pink, indigo }
-
-public enum ProviderAvailability: Sendable, Equatable {
-    case available(version: String)
-    case notInstalled
-    case notSignedIn
-    case unsupportedPlan(note: String)
-    case unknown(reason: String)
-}
-
-public protocol UsageProvider: Sendable {
-    var descriptor: ProviderDescriptor { get }
-    func detectAvailability() async -> ProviderAvailability
-    var limits: (any LimitsSource)? { get }
-    var activity: (any ActivitySource)? { get }
-    func diagnostics() async -> [String]       // provider specific lines for FR-36; may detect, never fetches;
-                                               // no secret; default [] (ADR-030)
-}
-
-public protocol LimitsSource: Sendable {
-    /// Polled refresh (for Claude Code: one probe). Must honour cancellation.
-    func fetch() async throws -> LimitsReport
-    /// Updates the source pushes on its own (for Claude Code: the status line bridge). Empty stream if none.
-    func pushedUpdates() -> AsyncStream<LimitsReport>
-}
-
-public protocol ActivitySource: Sendable {   // watching runs while a reports() stream is consumed (ADR-016)
-    func reports() -> AsyncStream<ActivityReport>   // start watching, emit an initial report, then one per change;
-                                                    // cancelling the consumer stops watching, releases file handles
-    func rescan() async                             // e.g. on wake or popover open; result arrives on open streams
-}
-```
-
-### 10.3 Limits
-
-```swift
-public enum WindowKind: String, Sendable, Codable { case session, weekly, other }
-
-public struct UsageWindow: Equatable, Sendable, Codable {
-    public let label: String          // verbatim, e.g. "Current session"
-    public let kind: WindowKind
-    public let usedPercent: Double    // 0...100 (can exceed 100 in theory; clamp only in UI)
-    public let isBelowOne: Bool       // output said "<1%"
-    public let resetsAt: Date?
-}
-
-public struct LimitsReport: Sendable, Codable {
-    public let provider: ProviderID
-    public let windows: [UsageWindow]
-    public let billingNote: String?   // Claude Code: first line of the output
-    public let insights: Insights?    // capability `insights`: note, periods of shares and rankings (P-11)
-    public let rawOutput: String?     // for "Show raw output" and diagnostics
-}
-
-public struct Insights: Sendable, Codable, Equatable {   // FR-38, P-11
-    public let note: String?          // the tool's caveat: approximate, local only
-    public let periods: [Period]      // printed order, at least one, e.g. "Last 24h", "Last 7d"
-    public struct Period { label: String; summary: String; shares: [Share]; rankings: [Ranking] }
-    public struct Share { label: String; percent: Int? }      // nil: a line the provider could not read
-    public struct Ranking { title: String; items: [Share] }   // "Skills": printed order
-}
-```
-
-### 10.4 Activity
-
-```swift
-public struct TokenCounts: Sendable, Codable, Equatable {
-    public var input = 0, output = 0, cacheWrite = 0, cacheRead = 0
-    public var total: Int { input + output + cacheWrite + cacheRead }
-}
-
-public struct DayKey: Hashable, Sendable, Codable, Comparable {   // "2026-09-28", local calendar day
-    public let rawValue: String
-}
-
-public struct ActivityDay: Sendable, Codable, Equatable {
-    public let day: DayKey
-    public var requests: Int
-    public var sessions: Int
-    public var tokens: TokenCounts
-    public var byModel: [String: TokenCounts]
-}
-
-public struct ActivityReport: Sendable, Codable {
-    public let provider: ProviderID
-    public let days: [ActivityDay]    // newest last, up to 365
-    public let skippedLines: Int
-}
-```
-
-Providers that do not report a token category leave it at 0 and omit it from `ProviderDescriptor.tokenCategories`; the UI hides categories a provider does not report instead of showing 0.
-
-### 10.5 GitHub (in `ContribusageGitHub`)
-
-```swift
-public enum ContributionLevel: Int, Sendable, Codable { case none, first, second, third, fourth }
-
-public struct ContributionDay: Sendable, Codable, Equatable {
-    public let date: DayKey
-    public let count: Int
-    public let level: ContributionLevel
-}
-
-public struct ContributionStats: Sendable, Codable, Equatable {
-    public let today: Int
-    public let thisWeek: Int
-    public let currentStreak: Int
-    public let streakNeedsToday: Bool  // today is 0 so far, streak counted up to yesterday
-    public let longestStreak: Int
-}
-
-public struct ContributionCalendar: Sendable, Codable, Equatable {   // as GitHub returns it
-    public let login: String
-    public let weeks: [[ContributionDay]]   // Sunday first; the first and last week can be short
-    public var days: [ContributionDay] { Array(weeks.joined()) }
-    public let totalContributions: Int
-}
-
-public struct GitHubReport: Sendable, Codable {
-    public let calendar: ContributionCalendar
-    public let stats: ContributionStats
-}
-```
-
-### 10.6 Seams for testing
-
-```swift
-public protocol TimeSource: Sendable { var now: Date { get } }   // not named Clock: avoids clashing with Swift.Clock
-
-public struct ProcessRequest: Sendable {
-    public let executable: URL
-    public let arguments: [String]
-    public let workingDirectory: URL
-    public let environment: [String: String]?
-    public let timeout: Duration
-}
-public struct ProcessResult: Sendable {
-    public let exitCode: Int32
-    public let stdout: String
-    public let stderr: String
-}
-public protocol ProcessRunning: Sendable {
-    func run(_ request: ProcessRequest) async throws -> ProcessResult
-}
-
-public protocol HTTPTransport: Sendable {
-    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse)
-}
-
-public protocol SecretStore: Sendable {
-    func read(_ key: String) throws -> String?
-    func write(_ key: String, value: String) throws
-    func delete(_ key: String) throws
-}
-
-public protocol FileEvents: Sendable {
-    func changes(in roots: [URL], debounce: Duration) -> AsyncStream<Set<URL>>
-}
-
-public protocol FileReading: Sendable {                   // what an activity source lists or reads (16.4, ADR-025)
-    func enumerator(at folder: URL) -> FileManager.DirectoryEnumerator?
-    func handle(forReadingFrom file: URL) throws -> FileHandle
-    func contents(of file: URL) throws -> Data
-}
-
-public struct AppPaths: Sendable {                        // a struct, not a seam (ADR-015)
-    public let root: URL                                   // .live: ~/Library/Application Support/contribusage
-    public init(root: URL)                                 // tests pass a temporary folder
-    public func providerFolder(_ id: ProviderID) -> URL    // root/providers/<id>
-}
-```
-
-Every protocol has a live implementation (in `ContribusageCore/Support/Live`) and a fake (in `ContribusageTestSupport`). The live process runner is shared by all providers and enforces the global process single flight (NFR-18).
-
-### 10.7 Persistence
-
-Directory: `~/Library/Application Support/contribusage/` (created with permissions `0700`).
-
-| File | Content | Loss tolerable? |
-|---|---|---|
-| `state.json` | `schemaVersion`, last limits snapshot per provider, last GitHub snapshot, notification keys | Yes (cache) |
-| `providers/claude-code/history.json` | Frozen daily aggregates, 365 days | **No**: back up to `history.json.bak` before migrations |
-| `providers/claude-code/statusline-limits.json` | Written by the optional bridge script | Yes |
-| `providers/claude-code/probe/` | Empty working directory for probes | Yes |
-
-Rules: all writes atomic (`Data.write(options: .atomic)`); every file the app writes is `{"schemaVersion": n, "value": …}` (`statusline-limits.json` is the bridge's own format, Appendix D); unknown or newer versions of cache files are discarded, `history.json` is never discarded automatically. "Delete data for this provider" (US-12) removes `providers/<id>/` after a confirmation dialog.
-
-Non secret settings live in `UserDefaults`. Global keys: `enabledProviders`, `menuBarMode`, `menuBarProvider`, `menuBarStyle`, `menuBarTint`, `menuBarColor` (the custom color as `RRGGBB`, FR-51), `githubEnabled` (FR-43, default on), `githubInterval`, `githubLogin` (the login the saved token resolved to, FR-17), `notificationThresholds`, `notifyOnReset`, `popoverLayout` (the `PopoverLayout` of 10.8 as JSON, FR-45). Intervals are stored in minutes. Provider keys are namespaced `provider.<id>.<key>`, for Claude Code: `provider.claude-code.pathOverride`, `provider.claude-code.probeInterval`, `provider.claude-code.configDir`. Launch at login state is read from `SMAppService`, not stored.
-
-### 10.8 Popover layout and heatmap
-
-Plain values in the core, so the rules of FR-44 to FR-49 are tested without the app ([16.3](#163-must-have-test-cases)). GitHub enters as an ID and its data as plain day values, so the core still imports no GitHub target (NFR-17).
-
-```swift
-public enum BlockID: Hashable, Sendable, Codable {   // persisted as the provider ID, "heatmap" or "github" (FR-45)
-    case provider(ProviderID), heatmap, github
-}
-public enum SectionKind: String, Sendable, Codable { case limits, activity, insights }
-public enum HeatmapStyle: String, Sendable, Codable { case combined, stacked }
-
-public struct PopoverLayout: Sendable, Codable, Equatable {
-    public var order: [BlockID]
-    public var hiddenBlocks: Set<BlockID>
-    public var hiddenSections: [ProviderID: Set<SectionKind>]
-    public var sectionOrder: [ProviderID: [SectionKind]]   // missing sections follow in default order (ADR-034)
-    public var outOfHeatmap: Set<BlockID>              // .provider(_) or .github
-    public var heatmapStyle: HeatmapStyle              // .combined by default
-    /// Visible blocks in order, given the registry order and the sources that are on (FR-44, FR-47).
-    public func blocks(registered: [ProviderID], on: Set<BlockID>) -> [BlockID]
-    /// What must run (FR-46); the menu bar's sources come from its mode.
-    public func demand(on: Set<BlockID>, menuBar: Set<BlockID>) -> Demand
-    /// The heatmap's layers in block order: sources that are on and in the heatmap; `sources` have daily data (FR-48).
-    public func heatmapLayers(sources: [ProviderID], on: Set<BlockID>) -> [BlockID]
-}
-
-public struct Demand: Sendable, Equatable {        // limits need none: they run while their provider is on (FR-46)
-    public var activity: Set<ProviderID>
-    public var github: Bool
-}
-
-public struct HeatmapLayer: Sendable, Equatable {
-    public let id: BlockID
-    public let name: String                            // "GitHub" or the provider's display name
-    public let values: [DayKey: Int]                   // tokens or contributions; a missing day is "no data"
-    public let levels: [DayKey: Int]                   // 0...4
-    public static func quartiled(_ id: BlockID, name: String, values: [DayKey: Int]) -> HeatmapLayer   // providers (FR-48)
-    public static func days(through now: Date, calendar: Calendar) -> [DayKey]          // 26 weeks from a Sunday
-    public func text(on day: DayKey, locale: Locale) -> String                           // "1.2M tokens", "no data"
-    public static func line(_ day: DayKey, layers: [HeatmapLayer], locale: Locale) -> String   // the FR-49 line
-}
-```
-
----
-
 ## 11. UI specification
 
 ### 11.1 Menu bar item
 
 - One image drawn by the app in the style and color of FR-51, not a template (ADR-035). Its drawing handler runs whenever the status item draws, in the status item's appearance, so the text and the neutral parts use `labelColor` and follow a light or dark menu bar; the meter keeps its color.
 - Content by mode (FR-12), for example `primary` in the `prompt` style: the mark with the session window's fill, then `23%`.
-- Stale value: prefixed with `~` (`~23%`) and the meter at half strength. Unknown: `?` and an empty meter. At 90 % or more the meter is red (11.4) unless the color is monochrome.
+- Stale value: the same text (`23%`) and the meter at half strength, with no text marker (ADR-049). Unknown: `?` and an empty meter. At 90 % or more the meter is red (11.4) unless the color is monochrome.
 - With more than one enabled provider and mode `highest` (or a fallback to it), the provider's symbol stands before the glyph.
 - `githubToday`: today's count (`7`) with the glyph filled to today's contribution level (FR-51), or GitHub's last three weeks in the `heatmap` style; `primaryAndGitHub`: the primary label followed by ` · 7`. GitHub without data yet reads `?`.
 - Width stays stable and the label ends at its value: monospaced digits, with figure spaces in front up to two digits; `100%` widens the label by one digit (ADR-035).
@@ -1095,7 +532,7 @@ public struct HeatmapLayer: Sendable, Equatable {
 │ ◆ Claude Code                  updated 2m  │
 │ Current session                       23%  │
 │ ██████░░░░░░░░░░░░░░░░░░  resets in 2h 10m │
-│ Current week (all models)             41%  │
+│ Current week                          41%  │
 │ ██████████░░░░░░░░░░░░░░  resets Sun 18:59 │
 │ On this Mac                                │
 │ Today: 668 requests · 8 sessions · 4.2M    │
@@ -1126,7 +563,7 @@ public struct HeatmapLayer: Sendable, Equatable {
 |---|---|---|---|
 | Provider disabled | Group hidden | Group hidden | n/a |
 | Hidden by the user (FR-44), GitHub off (FR-43) | Section hidden | Section hidden | Block hidden |
-| Not configured | "Claude Code not found" + "Locate…" button | "No Claude Code sessions found on this Mac" | "Connect GitHub" button |
+| Not configured | "Claude Code not found" + "Locate…" button | "No Claude Code sessions found on this Mac" | token form: field, Connect, link to create a token (ADR-043) |
 | First load | Skeleton bars | Skeleton rows | Skeleton grid |
 | Loaded | Values | Values | Values |
 | Stale | Values dimmed + "updated 42 min ago" | n/a | Values dimmed + age |
@@ -1232,428 +669,6 @@ Global rules:
 
 ---
 
-## 15. Project setup
-
-### 15.1 Prerequisites
-
-- A Mac with Apple Silicon (M1 or later).
-- Xcode 26 or later (Swift 6.2 toolchain). Check Apple's release notes for the macOS version Xcode itself needs; the app's deployment target stays macOS 14.
-- Claude Code installed natively for Apple Silicon and logged in with your subscription (`claude` works in Terminal).
-- A GitHub account and a personal access token (see 8.4.2).
-- Optional: `jq` (status line bridge), Node.js for `npx ccusage` (validation only), the SF Symbols app, Homebrew (installed under `/opt/homebrew`).
-
-### 15.2 Repository layout
-
-```text
-contribusage/
-├── SPEC.md                         ← this file
-├── AGENTS.md                       ← agent instructions (replaces Appendix B)
-├── CLAUDE.md                       ← imports AGENTS.md for Claude Code
-├── .claude/settings.json           ← Claude Code hooks for the llm-wiki protocol
-├── .github/workflows/ci.yml        ← CI (16.1): package tests, app build, architecture, wiki lint; release on version bump
-├── llm-wiki/                       ← project memory (Obsidian vault), ADRs in decisions/
-├── .gitignore
-├── .swift-format
-├── Contribusage.xcodeproj
-├── App/                            ← thin app target (a folder synchronised with the Xcode target)
-│   ├── ContribusageApp.swift
-│   ├── AppState.swift
-│   ├── ProviderRegistration.swift  ← the only place that lists providers
-│   ├── MenuBar/ (MenuBarItem, MenuBarArt)
-│   ├── Popover/ (PopoverView, ProviderGroup, LimitsSection, ActivitySection, InsightsSection, GitHubSection, FooterView)
-│   ├── Settings/ (SettingsView, GeneralTab, ProvidersTab, ClaudeCodeSettingsPane, GitHubTab, AdvancedTab)
-│   ├── Notifications/NotificationDelivery.swift
-│   └── Resources/ (Assets.xcassets, Localizable.xcstrings)
-├── Packages/
-│   └── ContribusageKit/
-│       ├── Package.swift
-│       ├── Sources/
-│       │   ├── ContribusageCore/
-│       │   │   ├── Models/           (Snapshot, SourceState, UsageWindow, ActivityDay, …)
-│       │   │   ├── Providers/        (UsageProvider, LimitsSource, ActivitySource, ProviderDescriptor, ProviderRegistry)
-│       │   │   ├── Activity/         (IncrementalJSONLReader, HistoryStore)
-│       │   │   ├── Scheduling/       (Schedule, RefreshCoordinator)
-│       │   │   ├── Notifications/NotificationPlanner.swift
-│       │   │   ├── Persistence/
-│       │   │   ├── Support/          (protocols + Live/ implementations)
-│       │   │   └── Resources/Localizable.xcstrings  (the core's texts: reset text, notification titles; ADR-031)
-│       │   ├── ContribusageClaudeCode/
-│       │   │   ├── ClaudeCodeProvider.swift   (descriptor, detection and the probe as its LimitsSource: locate cache, error mapping)
-│       │   │   ├── Limits/           (ClaudeLocator, UsageParser with window classification, StatusLineBridgeReader)
-│       │   │   └── Activity/         (TranscriptLine, TranscriptAggregator, TranscriptRoots)
-│       │   └── ContribusageGitHub/
-│       │       └── (GitHubClient, GitHubService; statistics in `ContributionStats`)
-│       └── Tests/
-│           ├── ContribusageTestSupport/   (fakes, FakeProvider, ProviderConformance)
-│           ├── ContribusageCoreTests/
-│           ├── ContribusageClaudeCodeTests/
-│           │   └── Fixtures/ (usage/, jsonl/)
-│           └── ContribusageGitHubTests/
-│               └── Fixtures/ (github/)
-└── scripts/
-    └── contribusage-statusline.sh  ← Appendix D
-```
-
-### 15.3 Creating the Xcode project
-
-1. Xcode → New Project → macOS → App. Interface SwiftUI, language Swift, product name `Contribusage` (the type becomes `ContribusageApp`), bundle id `dev.<yourname>.contribusage`.
-2. Build settings of the app target:
-   - `PRODUCT_NAME = contribusage` (bundle `contribusage.app`), `INFOPLIST_KEY_CFBundleDisplayName = contribusage`.
-   - `MACOSX_DEPLOYMENT_TARGET = 14.0`.
-   - **`ARCHS = arm64`** for all configurations (do not use "Standard Architectures", which adds x86_64 in Release). `ONLY_ACTIVE_ARCH = YES` in Debug.
-   - Swift 6 language mode; treat warnings as errors in all configurations (NFR-11).
-   - `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`: the app target holds views and wiring only.
-3. Signing & Capabilities: remove **App Sandbox**; keep **Hardened Runtime**; signing "Sign to Run Locally" (no Developer ID, ADR-006).
-4. Info.plist: generated from build settings (`GENERATE_INFOPLIST_FILE`); `INFOPLIST_KEY_LSUIElement = YES` makes the app an agent without a Dock icon. `App/` is a synchronised folder, so files added there join the target without editing the project file.
-5. Create the local package at `Packages/ContribusageKit` (File → New → Package), add it to the project (File → Add Package Dependencies → Add Local…), link `ContribusageCore`, `ContribusageClaudeCode` and `ContribusageGitHub` to the app target.
-6. Verify after the first Release build: `lipo -archs .build/xcode/Build/Products/Release/contribusage.app/Contents/MacOS/contribusage` prints `arm64` (NFR-16).
-
-### 15.4 `Package.swift`
-
-```swift
-// swift-tools-version: 6.1
-import PackageDescription
-
-let package = Package(
-    name: "ContribusageKit",
-    platforms: [.macOS(.v14)],
-    products: [
-        .library(name: "ContribusageCore", targets: ["ContribusageCore"]),
-        .library(name: "ContribusageClaudeCode", targets: ["ContribusageClaudeCode"]),
-        .library(name: "ContribusageGitHub", targets: ["ContribusageGitHub"]),
-    ],
-    targets: [
-        // Provider neutral core. Must never depend on a provider or on GitHub (NFR-17).
-        .target(name: "ContribusageCore"),
-
-        // Providers. Each depends only on the core.
-        .target(name: "ContribusageClaudeCode", dependencies: ["ContribusageCore"]),
-
-        // GitHub contributions.
-        .target(name: "ContribusageGitHub", dependencies: ["ContribusageCore"]),
-
-        // Shared fakes, FakeProvider and the provider conformance suite (not shipped).
-        .target(
-            name: "ContribusageTestSupport",
-            dependencies: ["ContribusageCore"],
-            path: "Tests/ContribusageTestSupport"
-        ),
-
-        // Test targets gain `resources: [.copy("Fixtures")]` with their first fixture (16.2).
-        .testTarget(
-            name: "ContribusageCoreTests",
-            dependencies: ["ContribusageCore", "ContribusageTestSupport"]
-        ),
-        .testTarget(
-            name: "ContribusageClaudeCodeTests",
-            dependencies: ["ContribusageClaudeCode", "ContribusageTestSupport"]
-        ),
-        .testTarget(
-            name: "ContribusageGitHubTests",
-            dependencies: ["ContribusageGitHub", "ContribusageTestSupport"]
-        ),
-    ]
-)
-```
-
-Adding a provider later means adding one `.target` and one `.testTarget` following the Claude Code pattern, and one line in `App/ProviderRegistration.swift`.
-
-### 15.5 App entry point (sketch)
-
-```swift
-import SwiftUI
-import ContribusageCore
-import ContribusageClaudeCode
-import ContribusageGitHub
-
-@main
-struct ContribusageApp: App {
-    @State private var appState = AppState.live(providers: ProviderRegistration.all())
-
-    var body: some Scene {
-        MenuBarExtra {
-            PopoverView()
-                .environment(appState)
-                .frame(width: 360)
-        } label: {
-            MenuBarLabel(state: appState)
-        }
-        .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
-                .environment(appState)
-        }
-    }
-}
-```
-
-```swift
-// App/ProviderRegistration.swift
-import ContribusageCore
-import ContribusageClaudeCode
-
-enum ProviderRegistration {
-    static func all() -> [any UsageProvider] {
-        var providers: [any UsageProvider] = [ClaudeCodeProvider.live()]
-        #if CONTRIBUSAGE_FAKE_PROVIDER
-        providers.append(DebugFakeProvider())   // debug only, US-11
-        #endif
-        return providers
-    }
-}
-```
-
-`DebugFakeProvider` lives in `App/DebugFakeProvider.swift`, wrapped in `#if CONTRIBUSAGE_FAKE_PROVIDER`, since `ContribusageTestSupport` never links into the app. No configuration sets the flag; build with it by adding it to the conditions: `xcodebuild … -configuration Debug build 'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG CONTRIBUSAGE_FAKE_PROVIDER'` (ADR-036).
-
-### 15.6 Everyday commands
-
-```bash
-# All package tests (fast, no Xcode UI needed)
-swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors
-
-# Only the Claude Code provider tests
-swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors --filter ContribusageClaudeCodeTests
-
-# With coverage
-swift test --package-path Packages/ContribusageKit -Xswiftc -warnings-as-errors --enable-code-coverage
-
-# Build the app
-xcodebuild -project Contribusage.xcodeproj -scheme Contribusage -configuration Debug \
-  -derivedDataPath .build/xcode build
-
-# Run the built app
-open .build/xcode/Build/Products/Debug/contribusage.app
-
-# Check the architecture of a Release build (NFR-16)
-lipo -archs .build/xcode/Build/Products/Release/contribusage.app/Contents/MacOS/contribusage
-
-# Format and lint (swift-format ships with the Swift 6 toolchain)
-swift format lint --strict -r App Packages
-```
-
-### 15.7 Git conventions
-
-- `.gitignore`: `.build/`, `DerivedData/`, `xcuserdata/`, `*.xcuserstate`, `.DS_Store`.
-- Commit messages reference tasks and requirements: `T-2.4: live process runner with timeout (FR-7)`.
-- Never commit tokens, real transcripts or unscrubbed tool output containing personal data.
-
----
-
-## 16. Testing strategy
-
-### 16.1 Levels
-
-| Level | Scope | Where | Runs in CI |
-|---|---|---|---|
-| Unit | Parsers, classification, statistics, aggregation, scheduler, notification planner, persistence | Per target test suites with fixtures and fakes | Yes |
-| Integration | Providers and services wired to fakes (`ProcessRunning`, `HTTPTransport`, `FileEvents`, `TimeSource`) | Per target test suites | Yes |
-| Provider conformance | Shared suite run against every provider and `FakeProvider` | `ContribusageTestSupport`, invoked from each provider's tests | Yes |
-| Process | `LiveProcessRunner` against `/bin/echo`, `/bin/sleep`, `/usr/bin/false` | `ContribusageCoreTests` | Yes |
-| Architecture | `lipo -archs` of the Release build prints `arm64`; core imports no other target | `lipo` step in CI; `ArchitectureTests` in `ContribusageCoreTests` scans the sources | Yes |
-| Live smoke | Real `claude` probe, real GitHub call | Only when `CONTRIBUSAGE_LIVE_TESTS=1` (token from env var `CONTRIBUSAGE_GITHUB_TOKEN`) | No |
-| UI | SwiftUI previews for every section state, with one and with two providers; manual matrix below | App target | No |
-
-Use the Swift Testing framework (`import Testing`, `@Test`, `#expect`) for new tests.
-
-### 16.2 Fixtures
-
-| Fixture | Target | Origin | Purpose |
-|---|---|---|---|
-| `usage/subscription-basic.txt` | Claude Code | Real (Appendix A), captured byte for byte | Baseline parsing |
-| `usage/not-subscription.txt` | Claude Code | Real, from R-2 (2.1.284) | P-10 |
-| `usage/logged-out.txt` | Claude Code | Real, from R-2 (2.1.284) | Error mapping; same bytes as `not-subscription.txt` |
-| `jsonl/basic.jsonl` | Claude Code | Real, scrubbed (R-3) | Field decoding |
-| `jsonl/duplicate-blocks.jsonl` | Claude Code | Real or synthetic | De-duplication |
-| `jsonl/malformed.jsonl` | Claude Code | Synthetic | Skipped lines counter |
-| `jsonl/partial-last-line.jsonl` | Claude Code | Synthetic | Incremental reading |
-| `jsonl/cross-midnight.jsonl` | Claude Code | Synthetic | Local day bucketing |
-| `github/calendar.json` | GitHub | Synthetic, in the shape of a real 365-day response (real counts are personal data) | Stats and heatmap |
-| `github/graphql-errors.json` | GitHub | Synthetic | Error handling |
-
-The synthetic `/usage` cases (a model specific week, an unknown label, `<1%` with a time only reset, ANSI color codes) are inline strings in `UsageParserTests`, not fixture files.
-
-Scrubbing rule for real fixtures: replace user names, paths, prompt text and ids with neutral placeholders; keep structure and numbers.
-
-### 16.3 Must-have test cases
-
-- Reset times across the Berlin DST change on 2026-10-25 (CEST to CET) and across New Year.
-- Unknown time zone identifier falls back to the Mac's zone.
-- Window classification for all known labels and for unknown labels.
-- Streak when today is 0 so far, when the whole range is active, and when the range is empty.
-- De-duplication across content blocks and across files.
-- Truncated file and replaced file (identity change) during incremental reading.
-- Day freezing after 48 h; deleted transcript does not change frozen history.
-- Scheduler: minimum intervals, backoff growth and cap, Low Power Mode doubling, offline skip, wake delay, manual refresh floor, global process single flight across two providers, disabled providers never scheduled.
-- Notification planner: thresholds fire once per provider, window and reset cycle, survive restart, re-arm after reset; identical labels from two providers produce separate notifications; a reset time moving by up to 1 h (or missing) keeps the cycle and its identifier and sends nothing, one moving further re-arms; a cycle begun without a reset time takes the first one reported; a window reported without a reset time after the cycle's has passed ends the cycle; several thresholds crossed in one refresh send only the highest.
-- Persistence: atomic write, schema version mismatch handling, history never discarded, provider data deletion removes only that provider's folder.
-- Menu bar selection: `primary` falls back to `highest`, then `?`; `highest` across two providers.
-- Popover layout: default order; a new provider appended and shown; saved keys of unknown providers kept; hidden blocks and sections left out; sections in their saved order, moving within their group only; "Nothing to show" when no visible block has a source that is on.
-- Work follows use (FR-46): a hidden activity section with its heatmap layer off watches nothing; a hidden limits section keeps probing; a hidden GitHub block still fetches while its layer is on or the menu bar shows it.
-- Heatmap levels: quartiles over non-zero days, a range with one active day and an all-zero range, days without data, GitHub levels passed through unchanged; layer order follows block order; the FR-49 line including "no data".
-
-### 16.4 Provider conformance suite
-
-`ProviderConformance` in `ContribusageTestSupport` is a reusable set of checks that every provider's test target runs against the provider wired to fakes:
-
-- The descriptor has a valid ID (`[a-z0-9-]+`), a non-empty display name and an existing SF Symbol name.
-- Declared capabilities match the sources the provider exposes (`limits` ↔ `limits != nil`, `activity` ↔ `activity != nil`).
-- Every `LimitsReport` and `ActivityReport` carries the provider's own ID.
-- Every window has a kind; percentages are finite and not negative.
-- `fetch()` honours cancellation within 2 s (fake process runner that never finishes).
-- Failures surface as `SourceError`, never as crashes or untyped errors.
-- Cancelling the consumer of `reports()` releases all file watching (fake `FileEvents` reports zero active streams).
-- The provider performs no HTTP (it receives no `HTTPTransport`; holds by construction) and reads no path outside its declared roots: every listing and read goes through `FileReading`, whose fake passes through to the disk and records each URL; up to the first activity report, at least one URL must be recorded and every recorded URL, symlinks resolved, must lie inside the roots the test wiring declares (the FR-22 roots plus the provider's own folder). Not covered: child processes, writes, and limits-side reads such as the locator's look at the `claude` executable (FR-36) ([ADR-025](llm-wiki/decisions/0025-read-roots-check-with-t-4-7.md)).
-
-`FakeProvider` intentionally differs from Claude Code: only one window of kind `weekly`, limits delivered only via `pushedUpdates()`, token categories `input` and `output` only.
-
-### 16.5 Manual test matrix
-
-| Scenario | Expected |
-|---|---|
-| Sleep 1 h, wake | Refresh after about 10 s; ages correct |
-| Wi-Fi off | "Offline" badges; transcripts still update |
-| `claude` renamed or uninstalled | Limits show "not found"; others unaffected |
-| Claude Code provider disabled | Group hidden; no `claude` processes (check Activity Monitor); menu bar falls back |
-| Debug build with `CONTRIBUSAGE_FAKE_PROVIDER` | Two provider groups render correctly; notifications name the right provider; the heatmap shows three layers in both styles |
-| Popover tab: reorder, hide every block, switch GitHub off | Popover follows at once; "Nothing to show"; menu bar and notifications keep working while their sections are hidden |
-| Fresh macOS user without `~/.claude` | Popover sections explain ("Claude Code not found" with "Locate…", "No Claude Code sessions found on this Mac"); no crash |
-| Invalid GitHub token | GitHub section error with "Change token…", which opens Settings |
-| Dark mode, increased contrast, Reduce Motion | Readable, no animations beyond system defaults |
-| VoiceOver through popover | All values announced meaningfully |
-| Time zone changed in System Settings | Reset times and day buckets update |
-| Low Power Mode | Intervals doubled (check log) |
-| Crowded menu bar / notch (MacBook Air and Pro) | Label stays narrow and stable |
-
-### 16.6 When Claude Code updates
-
-1. `claude --version` and note it.
-2. `cd ~/Library/Application\ Support/contribusage/providers/claude-code/probe && claude -p "/usage" --no-session-persistence > /tmp/usage.txt`
-3. Scrub, save as `usage/subscription-<version>.txt`, add a test case, run the suite.
-4. If parsing broke: fix the parser, never loosen tests to pass.
-
-Every future provider documents an equivalent update procedure in its provider section.
-
----
-
-## 17. Implementation plan and tasks
-
-Milestones: **M1** Claude Code limits live in the popover. **M2** GitHub contributions. **M3** Claude Code activity. **M4** v1.0 (menu bar label, polish, notifications, settings). **M5** optional extras and release.
-
-Each task lists its requirements, dependencies and acceptance. A task is done when its acceptance holds and the [Definition of Done](#177-definition-of-done) is met.
-
-### 17.0 Phase 0: Research (do first, each updates the spec)
-
-- [x] **R-1 Probe cost.** Note current session %; run 20 probes 30 s apart; compare. Also run `claude -p "/usage" --output-format json --no-session-persistence` and inspect cost and token fields. *Outcome:* default and minimum probe interval confirmed or changed (NFR-5, 8.1.4), ADR entry. Done 2026-10-04 in T-5.21: no quota cost, about 1.7 s CPU per probe; default 5 min, minimum 1 min (ADR-039, `llm-wiki/research/r-1-probe-cost.md`).
-- [x] **R-2 Output variants.** Capture exit code, stdout and stderr for: subscription (done), logged out (try an empty config: `CLAUDE_CONFIG_DIR=$(mktemp -d) claude -p "/usage"`, so your real login stays untouched; if it still finds your login, capture this variant on a second macOS user account instead), API key billing (same, plus a dummy `ANTHROPIC_API_KEY`). *Outcome:* fixtures, exact texts for P-10 and section 13. Answered 2026-09-29: `llm-wiki/research/r-2-usage-output-variants.md`.
-- [x] **R-3 Transcripts.** Inspect real files (`ls ~/.claude/projects`, `head -n 5 file.jsonl | jq .`). Confirm roots, field paths, duplicate lines per response, subagent file layout, placeholder models, default `cleanupPeriodDays`. Compare a quick prototype's daily totals with `npx ccusage daily --json`. *Outcome:* section 8.3 confirmed or corrected, fixtures. The ccusage comparison was done 2026-10-02 against the built activity source (8.3.6). Closed 2026-10-04: roots, field paths and de-duplication confirmed by T-4.1 to T-4.7, daily totals within 1 % of ccusage, `<synthetic>` lines carry zero usage and are skipped, `cleanupPeriodDays` defaults to 30 days; 8.3 updated.
-- [ ] **R-4 GitHub details.** Which token type and permissions include private contributions; meaning of `restrictedContributionsCount`; which time zone defines "today" (compare API with the profile page around midnight). *Outcome:* 8.4.2 and 8.4.4 finalized.
-- [ ] **R-5 Probe performance.** `time` a probe in the probe folder; watch Activity Monitor for child processes (user level MCP servers may start even in an empty folder). Check that the resolved `claude` runs natively (`file "$(command -v claude)"`, Activity Monitor "Kind" column shows "Apple"). Evaluate adding `--strict-mcp-config --mcp-config '{"mcpServers":{}}'` to skip MCP startup, adopt only if the output is unchanged. *Outcome:* final argument list in 8.1.1.
-- [ ] **R-6 Plan source.** For Claude Code: `/usage` says only that a subscription is used, not which. Check whether `claude auth status` (an official CLI command) names the plan, in which format, and what personal data it prints that must not be stored or logged; the credential file's fields stay off limits (section 2). Running it from the app extends 8.1.1 and FR-6's argument list, so the outcome is a spec change. For later providers the same question is part of their provider gate (2.4). *Outcome:* FR-50's Claude Code source, or an ADR that it has none. After v1.
-
-### 17.1 Phase 1: Foundation
-
-- [x] **T-1.1** Create the Xcode project per 15.3, arm64 only. *(FR-30, NFR-16)* Accept: app launches, menu bar icon visible, no Dock icon, Quit works, `lipo -archs` prints `arm64`.
-- [x] **T-1.2** Create `ContribusageKit` with the targets from 15.4, link them. *(ADR-004, ADR-010)* Accept: `swift test --package-path Packages/ContribusageKit` passes with one placeholder test per test target.
-- [x] **T-1.3** Add `SPEC.md`, `AGENTS.md` (with `CLAUDE.md` importing it), `.gitignore`, `.swift-format`. Accept: lint command runs clean.
-- [x] **T-1.4** Support protocols with live implementations and fakes: `TimeSource`, `ProcessRunning`, `HTTPTransport`, `SecretStore`, `FileEvents`, `AppPaths` (a struct, ADR-015). The live `ProcessRunning`, `SecretStore` and `FileEvents` are T-2.4, T-3.1 and T-4.5. *(10.6)* Accept: fakes used in at least one test each.
-- [x] **T-1.5** Persistence: versioned atomic JSON store, Application Support folder with `0700`, per provider folders. *(10.7)* Accept: tests for round trip, atomicity, version mismatch, provider folder deletion.
-- [x] **T-1.6** Provider framework: `UsageProvider`, `LimitsSource`, `ActivitySource`, `ProviderDescriptor`, `ProviderRegistry`, `FakeProvider`, `ProviderConformance`. *(FR-1 to FR-5, US-11, 16.4)* Accept: `FakeProvider` passes the conformance suite; registry tests for order, enablement and availability caching.
-- [x] **T-1.7** Popover shell with mock `AppState`: provider groups, GitHub, footer, all states from 11.3 as SwiftUI previews, with one and with two providers. *(FR-4, FR-31)* Accept: every state renders in previews in light and dark mode.
-
-### 17.2 Phase 2: Claude Code limits (M1)
-
-- [x] **T-2.1** `UsageParser` in `ContribusageClaudeCode/Limits/` returning classified `UsageWindow`s (8.1.4), Swift Testing tests, fixtures loaded via `Bundle.module`. The earlier app-side `UsageParser.swift` never reached this repository, so the parser was written from the rules. *(FR-8, P-1 to P-9, 8.1.4)* Accept: tests cover P-1 to P-9, classification, Appendix A and the reset cases in 16.3.
-- [x] **T-2.2** Extend the parser to `LimitsReport`: `billingNote`, `insights`, `rawOutput`; add fixtures from R-2 and 16.2. *(FR-5, FR-8, P-10, P-11)* Depends: R-2.
-- [x] **T-2.3** `ClaudeLocator` implementing FR-6 against `ProcessRunning`, including executable type detection for diagnostics. Stateless: it also returns PATH from the login shell (8.1.1), and the cache belongs to T-2.5. *(FR-6, FR-36)* Accept: tests for override, login shell result, fallback list, invalid candidates.
-- [x] **T-2.4** `LiveProcessRunner` in the core: reads stdout and stderr concurrently (no pipe deadlock), timeout with SIGTERM then SIGKILL, terminates on task cancellation, stdin `/dev/null`, global single flight (a FIFO queue shared by every instance; timeout throws `SourceError.timedOut`, cancellation `CancellationError`). FR-7's "concurrent requests await the running probe" is the provider's join (T-2.5), not this queue. *(FR-7, NFR-18)* Accept: process tests from 16.1.
-- [x] **T-2.5** `ClaudeCodeProvider` with descriptor, detection and its `LimitsSource`: locate (caching path, version and environment, re-resolving when the path stops working, FR-6), probe (single flight), parse, classify, map errors (section 13). Capabilities are `limits` and `insights` until T-4 adds the `ActivitySource`; P-10 surfaces as `SourceError.unsupportedPlan` (ADR-017). A launch failure re-resolves once, then maps to `toolNotFound`. *(FR-3, FR-6 to FR-11)* Depends: T-1.6, T-2.2 to T-2.4. Accept: conformance suite passes.
-- [x] **T-2.6** `Schedule` pure function and `RefreshCoordinator` for polled limits sources: intervals from `SchedulePolicy`, backoff, wake, offline, Low Power Mode, manual floor, persistence of snapshots. The coordinator takes conditions through `update(_:)`; the app feeds them and registers providers in T-2.7, which also adds the popover-open and reset-reached triggers (ADR-018). *(FR-10, section 12, NFR-5, NFR-14, NFR-18)* Accept: scheduler tests from 16.3.
-- [x] **T-2.7** Limits section UI with bars, countdowns, all states, accessibility labels. Wires `ClaudeCodeProvider` and `RefreshCoordinator` into `AppState`: conditions from wake and sleep notifications, `NWPathMonitor` and Low Power Mode; the section 12 triggers "popover opened" and "a window's reset time reached" (FR-11), both through `Schedule.nextRun`'s `triggers` (section 12 rule 8, ADR-019). *(US-1, US-2, FR-11, 11.2 to 11.7)*
-- [x] **M1 check:** US-1 (its popover criteria; the menu bar ones come with T-5.10) and US-2 acceptance criteria hold on your Mac for 24 h; NFR-1 and NFR-2 measured. Done 2026-09-29: US-1 and US-2 checked by hand over a day without sleep; Release build sampled with `ps` and `footprint`: minutes without a refresh or an open popover cost at most 0.01 s CPU (under 0.02 %, NFR-1), memory footprint 15 to 25 MB (NFR-2).
-
-### 17.3 Phase 3: GitHub (M2)
-
-- [x] **T-3.1** `KeychainSecretStore`. *(FR-16)* Accept: live test behind `CONTRIBUSAGE_LIVE_TESTS`, unit tests with fake.
-- [x] **T-3.2** GitHub tab in Settings: secure field, validate, remove, "Connected as @login". *(FR-17, 11.6)*
-- [x] **T-3.3** `GitHubClient`: GraphQL request, decoding, rate limit headers, error mapping. `contributions(token:from:to:)` returns a `ContributionCalendar` (10.5), which `GitHubReport` carries next to the stats; the caller computes `from` and `to` (T-3.6). *(FR-18, 8.4.3)* Accept: fixture tests incl. errors and 401.
-- [x] **T-3.4** Contribution statistics: `ContributionStats(days:now:calendar:)`, pure; the R-4 time zone is the caller's `calendar` (ADR-021). *(FR-19, 8.4.4)* Accept: streak and week tests.
-- [x] **T-3.5** Heatmap view with hover details (11.2). Palette, keyboard and VoiceOver moved to T-5.11. *(FR-20)*
-- [x] **T-3.6** Wire GitHub into `RefreshCoordinator` as a job the app supplies (ADR-018, ADR-022); the app passes `Calendar.current` until R-4 names GitHub's zone. *(section 12)* Accept: coordinator tests for restore, token missing, 401, token change and rate limit.
-- [x] **M2 check:** US-4 acceptance holds. Done 2026-09-30: US-4 checked by hand in the running app with a live token.
-
-### 17.4 Phase 4: Claude Code activity (M3)
-
-- [x] **T-4.1** `TranscriptLine` lenient decoder. *(FR-23, 8.3.2)* Depends: R-3 (field paths checked against real files; the ccusage comparison stays in T-4.7).
-- [x] **T-4.2** `TranscriptAggregator`: de-duplication, day buckets, per model totals. *(FR-24, FR-25, 8.3.3)*
-- [x] **T-4.3** Generic `IncrementalJSONLReader` in the core plus Claude Code root discovery: incremental reading, identity and truncation handling, probe folder exclusion. *(FR-22, FR-26, FR-28, 8.3.5)*
-- [x] **T-4.4** Generic `HistoryStore` in the core: freezing after 48 h, 365 day retention, never discarded, keyed by provider. *(FR-29, 8.3.4)*
-- [x] **T-4.5** Live `FileEvents` with FSEvents (file level events, 5 s latency). *(FR-27)*
-- [x] **T-4.6** Claude Code `ActivitySource` and Activity section UI: today row, 7 day chart, states, hidden token categories. *(US-5, 10.4)* Accept: conformance suite passes with activity.
-- [x] **T-4.7** Validation against `ccusage` and performance test with generated 500 MB fixture set (on an M3 against half the budget, ADR-026); persist the live index only if the launch scan misses NFR-7 (ADR-024), and keep it within NFR-2; the file system seam and the conformance check that a provider reads only its declared roots (16.4, ADR-025). *(8.3.4, 8.3.6, NFR-2, NFR-7, 16.4)*
-- [x] **M3 check:** US-5 acceptance holds. Done 2026-10-02: US-5 checked by hand in the running app.
-
-### 17.5 Phase 5: v1.0 (M4)
-
-- [x] **T-5.1** `NotificationPlanner` plus delivery with `UNUserNotificationCenter`, planned in the coordinator (ADR-027). *(FR-13 to FR-15, US-3)*
-- [x] **T-5.2** Complete Settings window including Providers tab, enable toggles and data deletion; the controls of T-5.3, T-5.5, T-5.10 and T-6.2 come with those tasks (ADR-028). *(FR-2, FR-33, US-7, US-12)*
-- [x] **T-5.3** Launch at login with `SMAppService.mainApp`. *(FR-34)*
-- [ ] ~~**T-5.4** First run onboarding. *(FR-37)*~~ Dropped with FR-37 (ADR-029).
-- [x] **T-5.5** Copy diagnostics in Settings, with provider lines through `UsageProvider.diagnostics()`, and copy statistics in the popover footer (ADR-030). *(FR-36, FR-42, US-10)*
-- [x] **T-5.6** Wake, offline and Low Power Mode behaviour end to end. *(section 12, NFR-12)*
-- [x] **T-5.7** Accessibility and localization pass. *(NFR-8 to NFR-10)* String Catalogs in the app and the core, English and German, with a CI sync check (ADR-031); provider groups scroll only when they overflow, so VoiceOver reaches them directly; the popover keeps the system's Liquid Glass, the heatmap uses system green in four steps (11.4), the footer shows icons with tooltips; heatmap keyboard and VoiceOver stay with T-5.11; VoiceOver, keyboard and appearance are checked with the 16.5 matrix.
-- [x] **T-5.8** Performance and energy verification on an M1. *(NFR-1 to NFR-4, NFR-14)* Done 2026-10-03 on an M3 as the stand-in (ADR-026): Release build with the popover closed and no transcript writes, 0.07 % CPU over 7.7 min; with a Claude Code session writing transcripts, 0.2 %; footprint 43 to 47 MB; 3 idle wakeups per minute; NFR-3, NFR-4 and NFR-14 checked in code. Method and results in `llm-wiki/research/t-5-8-performance-energy.md`.
-- [ ] ~~**T-5.9** Debug build with `CONTRIBUSAGE_FAKE_PROVIDER` verified end to end.~~ Moved to T-5.12.
-- [x] **T-5.10** Menu bar label with display modes, stale and unknown rendering, stable width, fallback rules; reuses `UsageWindow.percentText(at:)`. Moved from Phase 2 (formerly T-2.8). *(FR-12, US-1, 11.1)* Depends: T-3.6 for the GitHub modes, T-5.13 and T-5.14 for offering only the modes of sources that are on; adds the display mode and menu bar provider settings to Settings' General tab (ADR-028). Done 2026-10-03: `MenuBarMode` and `MenuBarLabel` in the core, the label and the General tab's Menu bar section in the app.
-- [x] **T-5.11** Heatmap keyboard navigation and VoiceOver on the shared heatmap, in both styles, reading the FR-49 line; the palette (11.4, light and dark) came with T-5.7. Moved from Phase 3 (split from T-3.5). *(FR-20, FR-49, NFR-8)* Depends: T-5.16. The grids take focus as one control: arrow keys move a day or a week (`HeatmapLayer.step`), the reached day is outlined and its line shows below the grid; every day is a VoiceOver element read as its line, Stacked exposes only its first grid.
-- [x] **T-5.12** Debug build with `CONTRIBUSAGE_FAKE_PROVIDER` verified end to end. Moved from T-5.9: the popover layout and shared heatmap (T-5.13 to T-5.16) change what US-11 checks, so this check runs after them. *(US-11)* Done 2026-10-04: the coordinator consumes pushed limits (§12 rule 9), `DebugFakeProvider` in the app under the flag (ADR-036); checked by hand.
-- [x] **T-5.13** Popover layout in the core: blocks, order, visibility, heatmap membership and style, persistence keys, and the demand rule; the coordinator and activity watching follow the demand. *(FR-44 to FR-47, 10.8, US-13)* Accept: the 16.3 cases for layout and work follows use.
-- [x] **T-5.14** GitHub on/off switch that keeps the token; the GitHub job is not scheduled while off. *(FR-43, US-12)* Depends: T-5.13.
-- [x] **T-5.15** Settings' Popover tab, the popover drawing its blocks in the configured order, the "Nothing to show" state, and copy statistics following the layout. *(FR-42, FR-44, FR-47, 11.6, US-13)* Depends: T-5.13, T-5.14.
-- [x] **T-5.16** Shared heatmap block: provider layers with quartile levels, `heatmapHue` in the descriptor, Combined and Stacked styles, legend and tooltip, the legend preview in the Popover tab, and the heatmap's line per layer in copy statistics; the heatmap leaves the GitHub section. *(FR-20, FR-48, FR-49, 11.4, US-14, ADR-032)* Depends: T-5.13. Accept: the 16.3 heatmap cases.
-- [x] **T-5.17** Second provider evaluation (research only), moved from T-6.9: a second real shape tests the layout and the heatmap metric before v1. Run the provider gate (2.4), then either write its provider section and a new phase, or record an ADR explaining why it is not integrated. *(Q-7)* *Outcome:* no second provider for v1 (ADR-037); Codex CLI is the candidate after v1, its interfaces surveyed in the vault's research page for T-5.17.
-- [x] **T-5.18** Name availability check (Q-6), split from T-6.7: a rename costs more with every string and the bundle ID. *Outcome:* 2026-10-04, the name is free in the App Stores, the domains `.com`, `.dev`, `.app`, `.io` and `.org`, GitHub, the package registries, the web, USPTO and TMview; ADR-011 stands. Method in the vault's research page for T-5.18.
-- [x] **T-5.19** Menu bar styles and colors: the `prompt` mark, rings, ring, line, heatmap, shared heatmap and text, five colors, live previews in Settings; the label carries its meter, companion window and source instead of a gauge symbol. *(FR-51, FR-12, FR-46, 11.1)* Depends: T-5.10. Done 2026-10-04: `MenuBarStyle`, `MenuBarTint` and the new `MenuBarLabel` in the core, `MenuBarArt` and `MenuBarItem` in the app (ADR-035).
-- [x] **T-5.20** Notification fixes: a cycle ends only when the reset time moves more than 1 h (the false "has reset" and repeated "at 80 %" after background probes), only the highest threshold crossed in one refresh, delivery 3 s apart and grouped per provider. *(FR-13, FR-15, FR-52, US-3, ADR-038)* Seam: `NotificationPlanner.plan` for the cycle and threshold rules; delivery checked by hand. Accept: the 16.3 notification planner cases.
-- [x] **T-5.21** Claude Code probe every minute: `SchedulePolicy` 1 min minimum, 5 min default (changed from 1 min after R-1 measured the CPU per probe), Settings from 1 min; answer R-1 (does a probe cost plan quota) before the default ships, and re-measure NFR-1 with the 1 min probe. *(NFR-5, NFR-1, section 12, 11.6, ADR-039)* Seam: `Schedule.nextRun` with Claude Code's `limitsPolicy`. Done 2026-10-04: R-1 answered (no quota); Release build probing every minute, popover closed, 0.08 % CPU over 9 min, footprint 22 to 23 MB.
-- [x] **T-5.22** Menu bar polish: `iconOnly` keeps the companion ring; the GitHub modes fill the glyph with today's level and the inner ring with the week's active days, never red; the value is padded in front to two digits so no space trails it; rings and ring drawn at 15 and 16 pt. *(FR-12, FR-51, 11.1, ADR-035)* Seam: `MenuBarLabel` and `ContributionStats.menuBarMeters`; the drawing checked in rendered light and dark sheets. Done 2026-10-04.
-- [x] **T-5.23** App icon and README, split from T-6.7: the icon is the app's mark in Liquid Glass, a prompt `›`, a cursor line that fills like a meter and the agent's spark (§2.3: no vendor logo), as an Icon Composer document `App/AppIcon.icon` with light, dark, clear and tinted renditions and Xcode's flat fallback for macOS 14 and 15 (ADR-040); Claude Code's SF Symbol is `sparkle`, the icon's spark, in place of `terminal`; the README with header, logo, badges and screenshots from the real views with mock data. *(§2.3, Q-6)* Check: the app builds with `AppIcon.icns` and `Assets.car`, and the icon was rendered in every rendition with Icon Composer's `ictool`. Done 2026-10-04.
-
-- [x] **T-5.24** About tab in Settings: the app icon, version and build, the copyright from `NSHumanReadableCopyright`, links to the source, the MIT license and the acknowledgements. *(11.6)* Check: the app builds, its Info.plist carries the copyright, and the String Catalog sync of NFR-10 finds every new string translated. Done 2026-10-04.
-
-Order: T-5.13, T-5.14, T-5.15, T-5.16, then T-5.10, T-5.11, T-5.12; T-5.17 and T-5.18 any time before the M4 check; T-5.20, T-5.21, T-5.22, T-5.23 and T-5.24 before the M4 check.
-- [x] **M4 check:** manual matrix 16.5 passes. Done 2026-10-04: every row checked by hand in the Release build and the Debug build with `CONTRIBUSAGE_FAKE_PROVIDER`; the Rosetta row was dropped from 13 and 16.5 instead of built (ADR-009).
-
-### 17.6 Phase 6: Optional and release (M5)
-
-- [x] **T-6.1** Insights area: structured parse and period picker, done before Phase 4 (ADR-023). *(FR-38, US-8)*
-- [ ] **T-6.2** Status line bridge reader and merge, plus manual setup instructions in Settings. *(FR-39, 8.2)*
-- [ ] **T-6.3** Guided bridge installer with backup, diff and uninstall. *(FR-39)*
-- [ ] **T-6.4** API-equivalent value estimate for the last 7 days: tokens per category and money per model from a price table. *(FR-40)* Seam: a pure estimate over `ActivityDay`s and a price table in the core.
-- [ ] **T-6.5** Import token from `gh`. *(FR-21)*
-- [ ] **T-6.6** Custom Claude config directory. *(FR-41)*
-- [ ] **T-6.7** Distribution: Developer ID signing, notarization (`xcrun notarytool`), arm64 only DMG. The DMG came 2026-10-04: CI's `release` job attaches it, ad-hoc signed, to every release, and the README tells users to clear the quarantine flag once. Signing and notarization are deferred to a later stage, for example once the project draws enough users (ADR-006). The name check moved to T-5.18, the icon to T-5.23; CI checks `LSMinimumSystemVersion` 14.0.
-- [x] **T-6.8** CI: `swift test` and the architecture checks on an Apple Silicon macOS runner for every push. Done in Phase 1 (`.github/workflows/ci.yml`, ADR-014). Since 2026-10-04 its `release` job turns a version bump on `main` into the GitHub release `v<MARKETING_VERSION>` once the other jobs pass: tag, generated notes and the ad-hoc signed arm64 DMG with a build provenance attestation (`gh attestation verify`, `SECURITY.md`) (ADR-006).
-- [ ] ~~**T-6.9** Second provider evaluation (research only).~~ Moved to T-5.17.
-- [ ] **T-6.10** Plan display: the plan in the group header, copy statistics and diagnostics. *(FR-50, US-15)* Depends: R-6. After v1; becomes relevant with a second provider whose data differs by plan (T-5.17).
-
-### 17.7 Definition of Done
-
-- Tests written first and passing; new logic lives in `ContribusageKit`, in the correct target.
-- Zero warnings in Swift 6 language mode.
-- The core still imports no provider and no GitHub code.
-- Every new UI state has a preview; VoiceOver labels present.
-- No main actor blocking; no new timers while the popover is closed unless the spec allows it.
-- Spec updated if anything differed; task box ticked; an ADR added to the decision log when a choice was made; vault updated per `AGENTS.md`.
-
----
-
-## 18. Decision log
-
-Decisions are recorded as ADR pages in [`llm-wiki/decisions/`](llm-wiki/decisions/), one file per decision with its context, the options considered and the consequences. `ADR-NNN` in this spec is the file `llm-wiki/decisions/0NNN-<slug>.md`; new decisions take the next free number there. ADR-001 to ADR-011 were first recorded in this section and moved there unchanged in substance ([ADR-013](llm-wiki/decisions/0013-spec-standalone-contract.md)).
-
----
-
 ## 19. Open questions and risks
 
 ### 19.1 Open questions
@@ -1685,214 +700,3 @@ Decisions are recorded as ADR pages in [`llm-wiki/decisions/`](llm-wiki/decision
 | Users on Intel Macs ask for support | Low | Support requests | Documented non-goal (ADR-009); the README states "Apple Silicon only" |
 
 ---
-
-## 20. Known macOS and Apple Silicon pitfalls
-
-- **GUI apps do not inherit your shell environment.** `PATH`, `CLAUDE_CONFIG_DIR` and friends are missing when launched from Finder. Resolve once through the login shell (FR-6, FR-22).
-- **Homebrew lives in `/opt/homebrew` on Apple Silicon**, which is not on the default GUI `PATH`. Never assume `/usr/local/bin` is the Homebrew prefix.
-- **x86_64 tools need Rosetta.** A tool installed through an x86_64 Node.js or an old Homebrew under Rosetta launches only if Rosetta is installed. The app itself never needs Rosetta; diagnostics report the executable type (FR-36). Without Rosetta such a tool fails FR-6's `--version` check and shows as not found; no Rosetta specific message (ADR-009).
-- **Accidental universal builds.** "Standard Architectures" includes x86_64 in Release builds. Set `ARCHS = arm64` explicitly and check with `lipo -archs` in CI (NFR-16).
-- **CI runners.** Use Apple Silicon macOS runners; performance numbers from Intel runners are meaningless for NFR-7.
-- **Pipe deadlocks.** Waiting for a process to exit before reading its output deadlocks when the output fills the pipe buffer. Read stdout and stderr concurrently (T-2.4).
-- **Opening Settings from an agent app** often leaves the window behind other apps. Use `@Environment(\.openSettings)` and call `NSApp.activate()`; test it explicitly.
-- **`MenuBarExtra` has no official "is open" binding or programmatic dismiss.** Use `.onAppear` of the popover content for "popover opened" triggers and verify it fires on every open. If more control is needed, evaluate the open source `MenuBarExtraAccess` package.
-- **Menu bar labels render as templates.** SF Symbols and text in a `MenuBarExtra` label lose their colors. A non-template `NSImage` keeps them: draw it in a drawing handler, which runs in the status item's appearance, and derive colors such as `labelColor.withAlphaComponent(_:)` inside the handler, since a derived color resolves in the appearance it is made in (ADR-035).
-- **The notch hides menu bar items** when the bar is crowded (all current MacBook Air and Pro models have a notch). Keep the label short and stable in width.
-- **Notifications** need a stable bundle identifier and a signed app; test from the built `.app`, not only from Xcode's run button.
-- **`SMAppService.mainApp`** registers the app at its current location; move the app to `/Applications` before enabling launch at login.
-- **DateFormatter** parsing must use `en_US_POSIX`, otherwise user locale settings break parsing.
-- **Default MainActor isolation** in new Xcode 26 app targets: keep blocking work in `ContribusageKit` (no default isolation) and hop off the main actor explicitly.
-- **FSEvents** delivers directory level events by default; request file level events and use a latency of about 5 s.
-- **Efficiency cores.** Work at `.utility` or `.background` QoS is scheduled on efficiency cores on Apple Silicon. That is intended for scans; never use it for work the open popover waits on.
-
----
-
-## 21. Appendices
-
-### Appendix A: Sample `/usage` output
-
-Captured 2026-09-27 on a subscription plan. The test fixture must be captured byte for byte with the command in 16.6; punctuation in the "Approximate…" line is simplified here, and skill and plugin names are replaced with placeholders (scrubbing rule in 16.2).
-
-```text
-You are currently using your subscription to power your Claude Code usage
-
-Current session: 3% used · resets Sep 28 at 4:09am (Europe/Berlin)
-Current week (all models): 5% used · resets Oct 4 at 6:59pm (Europe/Berlin)
-
-What's contributing to your limits usage?
-Approximate, based on local sessions on this machine; does not include other devices or claude.ai. Behaviors are independent characteristics, not a breakdown.
-
-Last 24h · 668 requests · 8 sessions
-  80% of your usage was at >150k context
-  31% of your usage came from subagent-heavy sessions
-  Top skills: /skill-a 76%, /skill-b 9%, /skill-c 1%
-  Top plugins: plugin-a 76%
-
-Last 7d · 3002 requests · 63 sessions
-  72% of your usage was at >150k context
-  13% of your usage came from sessions active for 8+ hours
-  12% of your usage came from subagent-heavy sessions
-  Top skills: /skill-a 29%, /skill-d 18%, /skill-b 6%, /skill-e 2%, /skill-f 1%
-  Top subagents: general-purpose 1%
-  Top plugins: plugin-a 29%
-```
-
-Expected parse (with `now` = 2026-09-27 20:00 UTC):
-
-| label | kind | usedPercent | resetsAt (UTC) |
-|---|---|---|---|
-| Current session | session | 3 | 2026-09-28 02:09 |
-| Current week (all models) | weekly | 5 | 2026-10-04 16:59 |
-
-### Appendix B: Agent instructions
-
-Superseded by [`AGENTS.md`](AGENTS.md) at the repository root, which carries this appendix's workflow, hard rules and commands together with the llm-wiki protocol. `CLAUDE.md` imports it for Claude Code.
-
-### Appendix C: GitHub GraphQL
-
-Query:
-
-```graphql
-query Contributions($from: DateTime!, $to: DateTime!) {
-  viewer {
-    login
-    contributionsCollection(from: $from, to: $to) {
-      restrictedContributionsCount
-      contributionCalendar {
-        totalContributions
-        weeks {
-          contributionDays {
-            date
-            contributionCount
-            contributionLevel
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-Request body:
-
-```json
-{
-  "query": "query Contributions($from: DateTime!, $to: DateTime!) { … }",
-  "variables": { "from": "2025-09-29T00:00:00+02:00", "to": "2026-09-28T20:00:00+02:00" }
-}
-```
-
-Sample response (shortened):
-
-```json
-{
-  "data": {
-    "viewer": {
-      "login": "octocat",
-      "contributionsCollection": {
-        "restrictedContributionsCount": 0,
-        "contributionCalendar": {
-          "totalContributions": 1234,
-          "weeks": [
-            {
-              "contributionDays": [
-                { "date": "2026-09-20", "contributionCount": 0, "contributionLevel": "NONE" },
-                { "date": "2026-09-21", "contributionCount": 7, "contributionLevel": "SECOND_QUARTILE" }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-}
-```
-
-Level mapping: `NONE` → 0, `FIRST_QUARTILE` → 1, `SECOND_QUARTILE` → 2, `THIRD_QUARTILE` → 3, `FOURTH_QUARTILE` → 4.
-
-### Appendix D: Status line bridge script
-
-`scripts/contribusage-statusline.sh`, copied to `~/.claude/contribusage-statusline.sh` and made executable (`chmod +x`). Requires `jq`.
-
-```bash
-#!/bin/bash
-# contribusage status line bridge: mirrors Claude Code's rate_limits into a file contribusage watches.
-# Register in ~/.claude/settings.json:
-#   "statusLine": { "type": "command", "command": "~/.claude/contribusage-statusline.sh" }
-input=$(cat)
-out="$HOME/Library/Application Support/contribusage/providers/claude-code/statusline-limits.json"
-(umask 077 && mkdir -p "$(dirname "$out")")   # the app's folders are owner-only (10.7), whoever creates them first
-
-# Write only when rate_limits is present, so a fresh session never wipes good data
-if echo "$input" | jq -e '.rate_limits' > /dev/null 2>&1; then
-  echo "$input" | jq '{rate_limits, written_at: now}' > "$out.tmp" && mv "$out.tmp" "$out"
-fi
-
-# Keep an existing status line by calling it here with the same input, for example:
-#   echo "$input" | ~/.claude/statusline.sh
-echo "$input" | jq -r '.model.display_name'
-```
-
-### Appendix E: Illustrative transcript line
-
-Illustrative only; verify every field in R-3. Real lines contain more fields (including message content) that the app ignores.
-
-```json
-{"type":"assistant","isSidechain":false,"sessionId":"6f1c2a7e-0000-4000-8000-000000000000","cwd":"/Users/me/code/contribusage","timestamp":"2026-09-27T12:34:56.789Z","requestId":"req_0000000000000000","message":{"id":"msg_0000000000000000","model":"claude-opus-5-5","role":"assistant","usage":{"input_tokens":12,"cache_creation_input_tokens":1834,"cache_read_input_tokens":145210,"output_tokens":421}}}
-```
-
-### Appendix F: Provider section template
-
-Copy this into [section 8](#8-data-sources) for every new AI coding tool, after passing the provider gate (2.4).
-
-```markdown
-### 8.x <Tool name>: <capability> via <interface>
-
-| | |
-|---|---|
-| **Provider ID** | `<lowercase-id>` (stable forever) |
-| **Display name** | <Tool name> |
-| **SF Symbol** | `<neutral symbol>` (never a vendor logo) |
-| **Capabilities** | limits / activity / insights (only those that pass the gate) |
-| **Token categories** | subset of input, output, cacheWrite, cacheRead |
-| **Needs network for polling** | yes / no |
-
-#### 8.x.1 Compliance note
-Summary of the vendor's terms on automation, third party tools and credentials, with links.
-Which interfaces are used, and why that is ordinary use of the tool. What is deliberately not done.
-
-#### 8.x.2 Interfaces
-Official interfaces used (documented / undocumented), exact invocations or file locations,
-working directory, environment, timeouts.
-
-#### 8.x.3 Parsing and mapping
-Output format, parsing rules (numbered), mapping to UsageWindow / ActivityDay,
-window classification table (label → session / weekly / other).
-
-#### 8.x.4 Schedule policy
-default / minimum / maximum interval, stale after, manual floor, extra triggers.
-
-#### 8.x.5 Error mapping
-Tool specific conditions → SourceError; the app words each case (ADR-031), and a provider that needs its own wording adds a String Catalog to its target.
-
-#### 8.x.6 Limitations and update procedure
-What is not covered, how to capture new fixtures when the tool updates.
-
-#### 8.x.7 Research items and fixtures
-R-items added to section 19, fixture list added to section 16.2.
-```
-
-### Appendix G: References
-
-- Claude Code status line: <https://code.claude.com/docs/en/statusline>
-- Claude Code legal and compliance: <https://code.claude.com/docs/en/legal-and-compliance>
-- Claude Code CLI reference: <https://code.claude.com/docs/en/cli-reference>
-- GitHub GraphQL `ContributionsCollection`: <https://docs.github.com/en/graphql/reference/objects#contributionscollection>
-- GitHub GraphQL rate limits: <https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api>
-- SwiftUI `MenuBarExtra`: <https://developer.apple.com/documentation/swiftui/menubarextra>
-- `SMAppService`: <https://developer.apple.com/documentation/servicemanagement/smappservice>
-- `NSBackgroundActivityScheduler`: <https://developer.apple.com/documentation/foundation/nsbackgroundactivityscheduler>
-- Building a universal or single architecture macOS binary: <https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary>
-- ccusage (validation reference): <https://github.com/ryoppippi/ccusage>
-
-*End of specification.*

@@ -22,3 +22,14 @@ llm-wiki/.obsidian/*
 # Claude Code: personal overrides
 .claude/settings.local.json
 .claude/worktrees/
+build/
+build-*/
+
+# makepkg output (L-7)
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.pkg.tar.*
+packaging/arch/*.log
+
+# Planning bloat
+docs/superpowers/

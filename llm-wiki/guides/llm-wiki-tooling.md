@@ -1,7 +1,7 @@
 ---
 type: guide
 status: active
-updated: 2026-10-04
+updated: 2026-10-30
 tracks: [llm-wiki/tools/wiki.sh, llm-wiki/tools/test-wiki.sh, .claude/settings.json]
 tags: [tooling, wiki]
 ---
@@ -39,7 +39,7 @@ Other agents get no hooks: they follow `AGENTS.md` and run `lint` themselves.
 | `links into local-only sessions/` | Remove the link; move what matters into a committed page. |
 | `stale — <path> changed after this page's updated: date` | Re-read the tracked code; update the page, or bump `updated:` if it still holds. |
 | `tracks a missing path` | Fix `tracks:` after a move or deletion. |
-| `names: … used in more than one folder` | Rename one page; bare `[[name]]` links would be ambiguous. |
+| `names: … used in more than one folder` | Rename one page; bare ``name`` links would be ambiguous. |
 | `decisions: name must be NNNN-slug.md`, `number … is used twice` | Renumber the newer ADR (parallel branches can collide). |
 | `raw originals are immutable` | Restore the file under `raw/` from git. |
 | `repo-map: … is missing from the tree`, `the tree lists …, which does not exist` | Update the tree in [[architecture/repo-map]]. |

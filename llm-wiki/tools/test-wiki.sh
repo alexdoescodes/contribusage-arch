@@ -56,7 +56,7 @@ page guides/x; sed -i.bak '$d' llm-wiki/index.md; rm llm-wiki/index.md.bak
                                                     lint_has "page missing from the index" "guides/x: not listed in index.md"
 page guides/x '' '[[nope/nothing]]';              lint_has "broken link" "broken link [[nope/nothing]]"
 page guides/x '' '```\n[[nope/nothing]]\n```';    lint_clean "links inside code blocks are ignored"
-page guides/x '' '[[overview#System at a glance]] [[overview#System at a glance|the targets]]'; lint_clean "valid heading links"
+page guides/x '' '[[overview#Targets]] [[overview#Targets|the targets]]'; lint_clean "valid heading links"
 page guides/x '' '[[overview#No such heading]]';   lint_has "link to a missing heading" "guides/x: no heading 'No such heading' in [[overview]]"
 page guides/x 'type: research\nstatus: open\n';   lint_clean "research page with its own statuses"
 page guides/x 'type: research\n';                 lint_has "research page with a lifecycle status" "status 'active' is not one of: open answered"
@@ -66,8 +66,8 @@ page guides/x 'type: essay\n';                    lint_has "unknown type" "unkno
 page guides/x 'status: done\n';                   lint_has "bad status" "status 'done' is not one of"
 page guides/Bad_Name;                             lint_has "non-kebab-case name" "guides/Bad_Name: file name is not kebab-case"
 page guides/overview;                             lint_has "duplicate page name" "names: overview.md is used in more than one folder"
-cp llm-wiki/decisions/0001-*.md llm-wiki/decisions/0001-other.md; echo '- [[decisions/0001-other]]' >> llm-wiki/index.md
-                                                    lint_has "duplicate decision number" "decisions: number 0001 is used twice"
+cp llm-wiki/decisions/0003-*.md llm-wiki/decisions/0003-other.md; echo '- [[decisions/0003-other]]' >> llm-wiki/index.md
+                                                    lint_has "duplicate decision number" "decisions: number 0003 is used twice"
 printf -- '---\ntype: decision\nstatus: proposed\nupdated: 2026-01-01\n---\n' > llm-wiki/decisions/idea.md; echo '- [[decisions/idea]]' >> llm-wiki/index.md
                                                     lint_has "decision without a number" "decisions/idea.md: name must be NNNN-slug.md"
 mkdir -p llm-wiki/raw && echo x > llm-wiki/raw/a.md && G add -A && G commit -qm raw && echo y >> llm-wiki/raw/a.md
@@ -80,7 +80,7 @@ page guides/x 'tracks: [README.md]\n'; G add -A; G commit -qm page; echo x >> RE
                                                     lint_has "page edited without bumping updated:" "guides/x: stale — README.md"
 page guides/x "tracks: [README.md]\nupdated: $(date +%F)\n"; G add -A; G commit -qm page; echo x >> README.md
                                                     lint_clean "page checked today, code changed today"
-page guides/x "tracks:\n  - README.md\n  - \"llm-wiki/tools/a b.txt\"\nupdated: $(date +%F)\n"; touch "llm-wiki/tools/a b.txt"
+page guides/x "tracks:\n  - README.md\n  - \"llm-wiki/tools/a b.txt\"\nupdated: 2999-12-31\n"; touch "llm-wiki/tools/a b.txt"
                                                     lint_clean "block-list tracks and paths with spaces"
 mkdir test && touch test/x;                         lint_has "undocumented top-level folder" "repo-map: test is missing from the tree"
 mkdir llm-wiki/assets && touch llm-wiki/assets/x;   lint_has "undocumented vault folder" "repo-map: llm-wiki/assets is missing from the tree"
