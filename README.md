@@ -66,6 +66,14 @@ Right-click the panel, choose **Add or Manage Widgets…**, and add **contribusa
 
 To remove it: `sudo pacman -Rns plasma6-applets-contribusage`. Your data stays in `~/.local/share/contribusage` until you delete it.
 
+**Plasma upgrades.** The widget is a compiled plugin, and libplasma changes its binary interface with every Plasma minor release (6.7 to 6.8, and so on). A plugin built for the old release cannot load in the new one, so the package depends on `libplasma` within the minor release it was built against (for example `>=6.8` and `<6.9`). When the next minor release arrives, `pacman -Syu` stops with a dependency error instead of leaving a widget that cannot load. Then remove the package, upgrade, and build it again (your settings and data are kept):
+
+```bash
+sudo pacman -Rns plasma6-applets-contribusage
+sudo pacman -Syu
+cd contribusage-arch/packaging/arch && git pull && makepkg -si
+```
+
 ## Build from source
 
 ```bash

@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-29
+updated: 2026-11-04
 tracks: [src/applet, tests/applet]
 tags: [plasma, qml]
 ---
@@ -35,6 +35,7 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 ## Things that bite
 - `popupmodel.cpp` calls `mallopt(M_ARENA_MAX, 1)` from a static initializer, so threads created after the plugin loads share one malloc arena instead of each keeping its own dirty pages. Measured with the environment variable `MALLOC_ARENA_MAX=1` on the whole viewer process, the widget's Private_Dirty gap over the analogclock baseline fell from 18-20 MB to 8-13 MB (two runs); the call from `PopupModel`'s constructor gave 13.3, 18.2 and 15.8 MB (three runs), less than the variable because earlier threads keep their arenas. The static initializer is being measured the same way.
 - Run it from the build tree with `QT_PLUGIN_PATH=$PWD/build/bin plasmoidviewer -a org.contribusage.widget`. An install to `~/.local` is not found by plasmashell unless its `QT_PLUGIN_PATH` includes it; the PKGBUILD (L-7) installs to `/usr`.
+- The applet is a compiled plugin and libplasma bumps its soname per Plasma minor release (6.7: `libPlasma.so.7`, 6.8: `.so.8`) without a soname `Provides`, so pacman cannot detect a stale plugin. After the 6.8 upgrade a plugin built for 6.7 failed to load (`libPlasma.so.7: cannot open shared object file`) and plasmashell restarted in a loop with it in the panel config; whether the stale plugin alone causes the crash was not isolated, because a stale copy of the shell package was present too. The PKGBUILD therefore bounds `libplasma` to the minor release it is built against (`>=6.8`, `<6.9`, computed from the installed version at build time), which makes pacman refuse the next minor upgrade until the package is removed and rebuilt. Check a build with `ldd /usr/lib/qt6/plugins/plasma/applets/org.contribusage.widget.so | grep 'not found'`.
 - libplasma 6.7's CMake package links `KF6::ConfigCore` without finding it, so the top-level `CMakeLists.txt` finds KF6 Config before Plasma.
 - KDE's CMake settings register an `appstreamtest` CTest test of their own; test counts include it.
 - Colors live in `Theme.qml` only; text colors come from `Kirigami.Theme` in each component, so the popup follows a light or dark Plasma theme. A custom Kirigami color stays on the item that sets it; to reach the children, `StyleTint` sets it on each one. Kirigami's fallback theme (the tests) has colors only for items in a window.

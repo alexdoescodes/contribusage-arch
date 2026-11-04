@@ -8,8 +8,17 @@ pkgdesc="Plasma widget: limits and activity of AI coding tools (Claude Code) and
 arch=(x86_64)
 url="https://github.com/alexdoescodes/contribusage-arch"
 license=(MIT)
+# This is a compiled plugin: libplasma bumps its soname with every Plasma minor release
+# (6.7 -> libPlasma.so.7, 6.8 -> libPlasma.so.8) and libplasma has no soname Provides, so
+# pacman cannot see the break. Without a bound, a Plasma upgrade leaves a plugin that no
+# longer loads, and plasmashell fails to start with it in the panel (seen 2026-11-04).
+# Bounding libplasma to the minor release this was built against makes pacman refuse the
+# next minor upgrade until the package is rebuilt, instead of breaking the desktop.
+_plasma_ver=$(pacman -Q libplasma | awk '{split($2, v, "-"); print v[1]}')   # e.g. 6.8.2
+_plasma_minor=${_plasma_ver%.*}                                              # 6.8
+_plasma_next=${_plasma_minor%.*}.$(( ${_plasma_minor#*.} + 1 ))              # 6.9
 # kirigami and kcmutils are imported by the QML at runtime, which namcap cannot see.
-depends=(glibc libstdc++ kcmutils kcoreaddons kirigami kwallet libplasma qt6-base qt6-declarative)
+depends=(glibc libstdc++ kcmutils kcoreaddons kirigami kwallet "libplasma>=$_plasma_minor" "libplasma<$_plasma_next" qt6-base qt6-declarative)
 makedepends=(cmake extra-cmake-modules git ninja)
 source=()
 sha256sums=()

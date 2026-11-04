@@ -1,6 +1,6 @@
 ---
 type: log
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 # Log
 
@@ -47,3 +47,6 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-10-30] chore | Trim the repository to a widget's size
 - Tests cut from 35 suites to the parsing, persistence, schedule, GitHub client and applet smoke tests; SPEC.md cut to the requirements (macOS-era sections, tasks and appendices removed); implementation plans, Swift-era ADRs, research, sources and templates deleted. Full text: git history and the `macos-reference` tag.
+
+## [2026-11-04] fix | Bound libplasma in the PKGBUILD
+- A plugin built for Plasma 6.7 cannot load after the 6.8 upgrade and pacman did not notice; the package now depends on `libplasma` within its build-time minor release, and the README documents the remove, upgrade, rebuild flow.
