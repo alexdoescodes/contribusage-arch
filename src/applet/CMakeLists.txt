@@ -5,7 +5,7 @@ plasma_add_applet(org.contribusage.widget
         ProviderGroup.qml HeatmapBlock.qml GitHubSection.qml Footer.qml FullPopup.qml
         PromptGlyph.qml CompactLabel.qml Skeleton.qml ActionButton.qml
         LabelContent.qml RingGlyph.qml LineGlyph.qml MiniHeatmap.qml
-        ConfigGeneral.qml ConfigClaudeCode.qml ConfigGitHub.qml ConfigAdvanced.qml ConfigPopover.qml ConfigAppearance.qml
+        ConfigGeneral.qml ConfigClaudeCode.qml ConfigGitHub.qml ConfigAdvanced.qml ConfigPopover.qml ConfigAppearance.qml ConfigSmallTV.qml
         OverridableBlock.qml
     CPP_SOURCES appinfo.cpp appinfo.h popupmodel.cpp popupmodel.h styletint.cpp styletint.h
     GENERATE_APPLET_CLASS)
@@ -16,5 +16,5 @@ ecm_target_qml_sources(org.contribusage.widget SOURCES config/main.xml config/co
 qt_add_resources(org.contribusage.widget "symbols" PREFIX "/contribusage" FILES
     symbols/sparkle.svg symbols/calendar-dots.svg symbols/grid.svg symbols/arrow-clockwise.svg symbols/gearshape.svg
     symbols/doc-on-doc.svg symbols/chevron-right.svg symbols/chevron-down.svg)
-target_link_libraries(org.contribusage.widget PRIVATE contribusage_claudecode contribusage_github contribusage_platform
+target_link_libraries(org.contribusage.widget PRIVATE contribusage_claudecode contribusage_github contribusage_platform contribusage_smalltv
     contribusage_core Qt6::Qml Qt6::Quick KF6::KirigamiPlatform)

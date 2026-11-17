@@ -29,6 +29,11 @@ ConfigModel {
         source: "ConfigGitHub.qml"
     }
     ConfigCategory {
+        name: "SmallTV"
+        icon: "video-display"
+        source: "ConfigSmallTV.qml"
+    }
+    ConfigCategory {
         name: "Advanced"
         icon: "configure"
         source: "ConfigAdvanced.qml"

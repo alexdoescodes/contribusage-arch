@@ -50,3 +50,10 @@ Append-only record of what changed in the project, newest last. Entry format: `#
 
 ## [2026-11-04] fix | Bound libplasma in the PKGBUILD
 - A plugin built for Plasma 6.7 cannot load after the 6.8 upgrade and pacman did not notice; the package now depends on `libplasma` within its build-time minor release, and the README documents the remove, upgrade, rebuild flow.
+
+## [2026-11-17] feat | SmallTV endpoint
+- An opt-in HTTP endpoint serves the session and week limits as JSON to a SmallTV clock (FR-53, ADR-051): `src/smalltv/`, a footer switch and a SmallTV settings page; off by default and on loopback until an address is set.
+- SPEC §1.3, §2 and §14 name it as the one listener; limits older than 15 minutes answer 503 so the clock falls back to its clock face.
+
+## [2026-11-17] feat | Session states for the SmallTV
+- The endpoint's JSON gains `a` (sessions waiting for input) and `r` (working), read from per-session files that Claude Code hooks write (FR-54, ADR-052, guide `smalltv-hooks`); the widget never edits Claude's settings.

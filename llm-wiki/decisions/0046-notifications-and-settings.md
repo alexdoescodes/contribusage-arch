@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-29
+updated: 2026-11-17
 aliases: [ADR-046]
 tracks: [src/platform/desktopnotifier.cpp, src/core/widgetsettings.cpp, src/applet/main.qml]
 tags: [notifications, settings, platform]
@@ -26,3 +26,5 @@ The platform's `DesktopNotifier` calls `Notify` asynchronously and replaces a wi
 ## Consequences
 - Moving to KNotification later only swaps the sink once the package installs a notifyrc (L-7).
 - Each widget instance has its own settings, as Plasma does for every widget.
+
+Since [[decisions/0051-smalltv-endpoint]] the plasmoid configuration also holds `smalltvEnabled`, `smalltvAddress` and `smalltvPort` (a SmallTV settings page and a footer switch); `main.qml` passes them to the model with the other settings.

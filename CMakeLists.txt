@@ -28,6 +28,7 @@ add_subdirectory(src/core)
 add_subdirectory(src/claudecode)
 add_subdirectory(src/github)
 add_subdirectory(src/platform)
+add_subdirectory(src/smalltv)
 add_subdirectory(src/applet)
 
 if(BUILD_TESTING)

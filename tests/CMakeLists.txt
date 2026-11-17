@@ -46,6 +46,10 @@ ecm_add_test(core/tst_schedule.cpp
     TEST_NAME tst_schedule
     LINK_LIBRARIES contribusage_core Qt6::Test)
 
+ecm_add_test(smalltv/tst_smalltv.cpp
+    TEST_NAME tst_smalltv
+    LINK_LIBRARIES contribusage_smalltv Qt6::Test)
+
 # L-7: the installed file list and the packaging files.
 add_test(NAME install_layout
     COMMAND ${CMAKE_COMMAND} -DBUILD_DIR=${CMAKE_BINARY_DIR} -DSTAGE=${CMAKE_CURRENT_BINARY_DIR}/install-stage

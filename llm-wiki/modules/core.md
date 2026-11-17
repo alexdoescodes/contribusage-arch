@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-10-30
+updated: 2026-11-17
 tracks: [src/core, tests/core]
 tags: [core, architecture]
 ---
@@ -43,3 +43,5 @@ Plain `swift test` lets warnings through; the AGENTS.md test command adds `-Xswi
 
 ## Related
 ADR-004 · ADR-018 · ADR-005 · [[decisions/0010-provider-abstraction-from-day-one]] · `test-support`
+
+`WidgetSettings` carries `smalltvEnabled`, `smalltvAddress` and `smalltvPort` (1024 to 65535) for [[modules/smalltv]]; core has no `QtNetwork`, so the address is checked where the socket opens.
