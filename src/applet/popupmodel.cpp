@@ -27,11 +27,13 @@
 #include "platform/kwalletsecretstore.h"
 #include "platform/networktransport.h"
 #include "platform/systemconditions.h"
+#include "smalltv/smalltvserver.h"
 
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
+#include <QHostAddress>
 #include <QRegularExpression>
 #include <QStandardPaths>
 
@@ -263,6 +265,12 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
     m_job->setNotifications(m_notifier.get(), {});
     connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this, &PopupModel::changed);
     m_job->start();
+    // ADR-051: the SmallTV endpoint serves what the probe last produced; it stays closed until the setting is on.
+    m_smalltv = std::make_unique<smalltv::SmallTvServer>();
+    m_smalltv->setSessionsFolder(AppPaths::live().root + QStringLiteral("/sessions"));
+    m_smalltv->setSnapshot(m_job->state().snapshot());
+    connect(m_job.get(), &claudecode::LimitsJob::stateChanged, this,
+            [this] { m_smalltv->setSnapshot(m_job->state().snapshot()); });
     m_activityJob =
         std::make_unique<claudecode::ActivityJob>(*m_runner, QDir::homePath(), shell, m_limits->probeFolder(),
                                                   AppPaths::live(), 5'000); // SPEC §8.3, 5 s debounce
@@ -280,6 +288,7 @@ PopupModel::PopupModel(QObject *parent) : QObject(parent) {
 
 // Out of line, where the owned types are complete; the job goes first, so no probe outlives its limits object.
 PopupModel::~PopupModel() {
+    m_smalltv.reset();
     m_activityJob.reset();
     m_githubJob.reset();
     m_job.reset();
@@ -516,9 +525,33 @@ void PopupModel::applySettings(const QVariantMap &configuration) {
         m_job->setNotifications(m_notifier.get(), settings.notifications);
         m_limits->setOverride(settings.claudePathOverride);
         m_githubJob->setInterval(settings.githubIntervalMinutes);
+        syncSmallTv(&settings);
     }
     applyDemand();
     Q_EMIT changed();
+}
+
+// ADR-051: opens, moves or closes the endpoint to match the settings; a bad address or a taken port is shown on the
+// SmallTV page and leaves the endpoint closed.
+void PopupModel::syncSmallTv(const WidgetSettings *settings) {
+    m_smalltvStatus.clear();
+    if (!settings->smalltvEnabled) {
+        m_smalltv->stop();
+        return;
+    }
+    QHostAddress address;
+    if (!address.setAddress(settings->smalltvAddress)) {
+        m_smalltv->stop();
+        m_smalltvStatus = QStringLiteral("\"%1\" is not an IP address.").arg(settings->smalltvAddress);
+        return;
+    }
+    const auto port = quint16(settings->smalltvPort);
+    if (m_smalltv->isListening() && m_smalltv->address() == address && m_smalltv->port() == port) {
+        return;
+    }
+    if (!m_smalltv->start(address, port)) {
+        m_smalltvStatus = QStringLiteral("Could not listen on %1:%2.").arg(settings->smalltvAddress).arg(port);
+    }
 }
 
 void PopupModel::deleteClaudeCodeData() {

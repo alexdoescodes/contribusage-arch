@@ -1,7 +1,7 @@
 ---
 type: architecture
 status: active
-updated: 2026-10-30
+updated: 2026-11-17
 tracks: [.github, src, tests, CMakeLists.txt, LICENSE]
 tags: [structure]
 ---
@@ -25,9 +25,9 @@ contribusage/
 ├── README.md
 ├── SECURITY.md             supported versions, private vulnerability reporting, what counts as a vulnerability
 ├── packaging/              arch/: the PKGBUILD (plasma6-applets-contribusage) that builds this checkout, and its .SRCINFO
-├── src/                    core/: the static logic library contribusage_core (Qt6::Core only: models, persistence, schedule, layout, planner); claudecode/: the Claude Code provider, contribusage_claudecode (parser, locator, probe, limits job, transcripts and activity job, views); github/: GitHub contributions, contribusage_github; platform/: the live seams, contribusage_platform (QNetworkAccessManager transport, KWallet secret store, desktop notifier, suspend/network/power conditions); applet/: the Plasma widget org.contribusage.widget (QML and its C++ view models)
+├── src/                    core/: the static logic library contribusage_core (Qt6::Core only: models, persistence, schedule, layout, planner); claudecode/: the Claude Code provider, contribusage_claudecode (parser, locator, probe, limits job, transcripts and activity job, views); github/: GitHub contributions, contribusage_github; platform/: the live seams, contribusage_platform (QNetworkAccessManager transport, KWallet secret store, desktop notifier, suspend/network/power conditions); smalltv/: the opt-in SmallTV endpoint, contribusage_smalltv (payload and a small HTTP server); applet/: the Plasma widget org.contribusage.widget (QML and its C++ view models)
 ├── SPEC.md                 the contract: requirements
-├── tests/                  a few Qt Test suites run by CTest: parsing, persistence, schedule, GitHub client, applet smoke tests; support/ (fakes), packaging/ (the install-layout check)
+├── tests/                  a few Qt Test suites run by CTest: parsing, persistence, schedule, GitHub client, SmallTV endpoint, applet smoke tests; support/ (fakes), packaging/ (the install-layout check)
 └── llm-wiki/               the memory: this Obsidian vault
     ├── .obsidian/          shared vault settings (only app.json is committed)
     ├── _templates/         the session-file template

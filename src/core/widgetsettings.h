@@ -16,6 +16,9 @@ struct WidgetSettings {
     int githubIntervalMinutes = 30; // 10 to 360
     NotificationSettings notifications;
     QString claudePathOverride;
+    bool smalltvEnabled = false; // ADR-051
+    QString smalltvAddress = QStringLiteral("127.0.0.1");
+    int smalltvPort = 8787; // 1024 to 65535
 };
 
 // `menuBarMode` by its SPEC §10.7 name; unknown names give Primary.

@@ -15,6 +15,7 @@ Every page in the vault, one line each; lint checks that each page is listed. Th
 - [[modules/core]]: provider-neutral models, scheduler, persistence
 - [[modules/claude-code]]: the v1 provider; `/usage` probe and transcripts
 - [[modules/github]]: GraphQL client, token validation, contribution statistics
+- [[modules/smalltv]]: the opt-in HTTP endpoint that serves the limits to a SmallTV clock
 
 ## Decisions
 - [[decisions/0003-official-interfaces-only]]: ADR-003, no credentials, no undocumented vendor endpoints
@@ -28,8 +29,11 @@ Every page in the vault, one line each; lint checks that each page is listed. Th
 - [[decisions/0047-customization-scope]]: ADR-047, what the customization layers cover
 - [[decisions/0048-plasmoid-memory-budget]]: ADR-048, the widget may add 20 MB of private memory
 - [[decisions/0050-widget-themes]]: ADR-050, themes (System, macOS, Plasma styles) apply to this widget only
+- [[decisions/0051-smalltv-endpoint]]: ADR-051, an opt-in HTTP endpoint serves the limits to a SmallTV clock
+- [[decisions/0052-session-states-from-hooks]]: ADR-052, Claude Code hooks write session states into files the SmallTV endpoint reads
 
 ## Research and guides
 - [[research/l-7-resource-budget]]: memory, CPU and refresh cost measured against the budget
 - [[guides/llm-wiki-tooling]]: the wiki scripts, hooks and lint messages
+- [[guides/smalltv-hooks]]: the Claude Code hooks that report waiting and running sessions to the SmallTV endpoint
 - [[guides/qml-overrides]]: overriding blocks of the popup from the configuration

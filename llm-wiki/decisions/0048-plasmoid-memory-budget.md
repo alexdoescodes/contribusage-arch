@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-29
+updated: 2026-11-17
 aliases: [ADR-048]
 tracks: [src/applet/popupmodel.cpp]
 tags: [performance, packaging]

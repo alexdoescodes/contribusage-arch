@@ -1,7 +1,7 @@
 ---
 type: module
 status: active
-updated: 2026-11-04
+updated: 2026-11-17
 tracks: [src/applet, tests/applet]
 tags: [plasma, qml]
 ---
@@ -47,3 +47,5 @@ The KDE Plasma 6 widget `org.contribusage.widget`: QML views and their wiring, w
 
 ## Related
 - [[decisions/0041-linux-plasmoid-port]]
+
+`PopupModel` also owns the SmallTV endpoint ([[modules/smalltv]], [[decisions/0051-smalltv-endpoint]]): it feeds the server after each limits job change and opens, moves or closes it from the settings; `Footer.qml` has its switch, `ConfigSmallTV.qml` its page and `smalltvStatus` the reason a socket could not open.

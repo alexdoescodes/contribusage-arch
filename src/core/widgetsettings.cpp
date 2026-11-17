@@ -59,6 +59,18 @@ WidgetSettings widgetSettingsFromMap(const QVariantMap &map) {
         std::ranges::sort(thresholds);
         settings.notifications.thresholds = thresholds.mid(0, 3);
     }
+    if (has("smalltvEnabled")) {
+        settings.smalltvEnabled = map.value(QStringLiteral("smalltvEnabled")).toBool();
+    }
+    if (has("smalltvAddress")) {
+        const QString address = map.value(QStringLiteral("smalltvAddress")).toString().trimmed();
+        if (!address.isEmpty()) {
+            settings.smalltvAddress = address; // the server checks that it parses; core has no QtNetwork
+        }
+    }
+    if (has("smalltvPort")) {
+        settings.smalltvPort = std::clamp(map.value(QStringLiteral("smalltvPort")).toInt(), 1024, 65535);
+    }
     settings.claudePathOverride = map.value(QStringLiteral("claudePathOverride")).toString().trimmed();
     return settings;
 }

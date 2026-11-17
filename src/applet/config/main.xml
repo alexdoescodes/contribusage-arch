@@ -15,6 +15,10 @@
     <entry name="claudePathOverride" type="String"><default></default></entry>
     <entry name="githubEnabled" type="Bool"><default>true</default></entry>
     <entry name="githubIntervalMinutes" type="Int"><default>30</default></entry>
+    <!-- ADR-051: the opt-in endpoint for a SmallTV clock. Off, on loopback, port 8787. -->
+    <entry name="smalltvEnabled" type="Bool"><default>false</default></entry>
+    <entry name="smalltvAddress" type="String"><default>127.0.0.1</default></entry>
+    <entry name="smalltvPort" type="Int"><default>8787</default></entry>
     <entry name="popoverLayout" type="String"><default></default></entry>
     <!-- ADR-050: `theme` replaces `look`; an unset theme takes an old look (macOS or Custom gives macOS), else the system. -->
     <entry name="theme" type="String"><default></default></entry>

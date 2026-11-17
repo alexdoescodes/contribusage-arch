@@ -15,6 +15,7 @@ namespace contribusage {
 class LiveProcessRunner;
 class ScheduleConditionsSource;
 class SystemConditions;
+struct WidgetSettings;
 class DesktopNotifier;
 class NetworkTransport;
 class KWalletSecretStore;
@@ -23,6 +24,9 @@ class GitHubClient;
 class GitHubAccount;
 class GitHubJob;
 } // namespace github
+namespace smalltv {
+class SmallTvServer;
+}
 namespace claudecode {
 class ActivityJob;
 class ClaudeLocator;
@@ -51,6 +55,8 @@ class PopupModel : public QObject {
     Q_PROPERTY(QVariantList plasmaStyles READ plasmaStyles NOTIFY changed)
     Q_PROPERTY(QVariantList globalThemes READ globalThemes NOTIFY changed)
     Q_PROPERTY(QString overrideFolder READ overrideFolder CONSTANT)
+    // ADR-051: empty while the SmallTV endpoint is off or listening; else why it could not start.
+    Q_PROPERTY(QString smalltvStatus READ smalltvStatus NOTIFY changed)
 
 public:
     explicit PopupModel(QObject *parent = nullptr);
@@ -76,6 +82,7 @@ public:
     Q_INVOKABLE QString symbolFile(const QString &name, const QString &color) const;
     // Port design §3, layer 3: $XDG_DATA_HOME/contribusage/qml; <Block>.qml there replaces that popup block.
     QString overrideFolder() const;
+    QString smalltvStatus() const { return m_smalltvStatus; }
     Q_INVOKABLE QUrl overrideUrl(const QString &block) const;
     Q_INVOKABLE void applySettings(const QVariantMap &configuration);
     Q_INVOKABLE void deleteClaudeCodeData();
@@ -102,6 +109,7 @@ private:
     void buildFakeData();
     QSet<QString> sourcesOn() const;
     void applyDemand();
+    void syncSmallTv(const contribusage::WidgetSettings *settings);
 
     bool m_fake = false;
     QVariantList m_providers; // fake mode
@@ -128,5 +136,7 @@ private:
     std::unique_ptr<contribusage::github::GitHubJob> m_githubJob;
     bool m_githubBusy = false;
     QString m_githubConnectError;
+    std::unique_ptr<contribusage::smalltv::SmallTvServer> m_smalltv;
+    QString m_smalltvStatus;
     QTimer m_minute; // ages and countdowns move on (SPEC §11.2)
 };

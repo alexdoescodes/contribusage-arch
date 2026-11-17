@@ -36,6 +36,18 @@ RowLayout {
         onClicked: Plasmoid.internalAction("configure").trigger()
     }
     Item { Layout.fillWidth: true }
+    // ADR-051: the SmallTV endpoint's on/off switch; the address and port are on the SmallTV settings page.
+    QQC2.Switch {
+        objectName: "smalltvSwitch"
+        text: "SmallTV"
+        checked: Plasmoid.configuration.smalltvEnabled
+        onToggled: Plasmoid.configuration.smalltvEnabled = checked
+        QQC2.ToolTip.text: PopupModel.smalltvStatus.length > 0 ? PopupModel.smalltvStatus
+                                                              : "Serve the limits to a SmallTV clock"
+        QQC2.ToolTip.visible: hovered
+        Accessible.name: "Serve the limits to a SmallTV"
+    }
+    Item { Layout.fillWidth: true }
     PlasmaComponents.ToolButton {
         icon.name: Theme.iconSource("edit-copy").length > 0 ? "" : "edit-copy"
         icon.source: Theme.iconSource("edit-copy")

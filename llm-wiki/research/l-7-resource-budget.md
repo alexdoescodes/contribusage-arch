@@ -1,7 +1,7 @@
 ---
 type: research
 status: answered
-updated: 2026-11-04
+updated: 2026-11-17
 tracks: [src/applet/popupmodel.cpp, src/claudecode/activityjob.cpp, packaging/arch/PKGBUILD]
 tags: [research, performance, packaging]
 ---

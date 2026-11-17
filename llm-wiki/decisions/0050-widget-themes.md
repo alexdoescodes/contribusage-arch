@@ -1,7 +1,7 @@
 ---
 type: decision
 status: accepted
-updated: 2026-10-29
+updated: 2026-11-17
 aliases: [ADR-050]
 tracks: [src/applet/styletint.h, src/applet/popupmodel.cpp, src/applet/symbols, src/applet/Footer.qml, src/applet/InsightsSection.qml, src/applet/SectionHeader.qml, src/applet/ActivitySection.qml, src/applet/Theme.qml, src/applet/FullPopup.qml, src/applet/LimitBar.qml, src/applet/HeatmapBlock.qml, src/applet/styletint.cpp, src/applet/ConfigAppearance.qml, src/core/appearance.cpp]
 tags: [customization, ui]
